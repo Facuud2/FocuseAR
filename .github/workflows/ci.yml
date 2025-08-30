@@ -1,0 +1,41 @@
+# Nombre del workflow que aparecerá en la pestaña "Actions" de GitHub
+name: CI for Develop Branch
+
+# Disparador (Trigger): Este workflow se ejecutará en cada Pull Request que apunte a la rama 'develop'
+on:
+  pull_request:
+    branches: [ develop ]
+
+# Trabajos (Jobs): Lista de trabajos a ejecutar. En este caso, solo uno.
+jobs:
+  build_and_test:
+    # Nombre del trabajo que aparecerá en la UI de GitHub
+    name: Build and Test
+    
+    # Máquina virtual donde se ejecutará el trabajo
+    runs-on: ubuntu-latest
+
+    # Pasos (Steps): Secuencia de tareas que se ejecutarán en el trabajo
+    steps:
+      # 1. Clona el código del repositorio en la máquina virtual
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      # 2. Configura el entorno de Node.js. Especifica la versión que usa tu equipo.
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Puedes cambiar esto a 18, 22, etc.
+          cache: 'npm' # Habilita el caché para acelerar las instalaciones futuras
+
+      # 3. Instala las dependencias de forma limpia. 'npm ci' es más rápido y seguro para CI que 'npm install'.
+      - name: Instalar dependencias
+        run: npm ci
+
+      # 4. Ejecuta el comando de build. Esto comprueba que el proyecto no tenga errores de compilación (ej. errores de TypeScript).
+      - name: Construir proyecto
+        run: npm run build
+
+      # 5. (Opcional pero recomendado) Ejecuta el linter para asegurar la calidad y consistencia del código.
+      - name: Verificar linting
+        run: npm run lint
