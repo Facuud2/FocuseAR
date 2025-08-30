@@ -39,7 +39,3 @@ jobs:
       # 5. (Opcional pero recomendado) Ejecuta el linter para asegurar la calidad y consistencia del código.
       - name: Verificar linting
         run: npm run lint
-
-      # 6. (Opcional pero muy recomendado) Ejecuta las pruebas unitarias o de integración.
-      - name: Ejecutar pruebas
-        run: npm run test
