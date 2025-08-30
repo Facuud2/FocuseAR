@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { signInWithPopup, signOut, User } from "firebase/auth";
+import { signInWithPopup, signOut, type User } from "firebase/auth";
 import { auth, googleProvider } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";

@@ -1,29 +1,30 @@
-<<<<<<< HEAD
-import React, { useState } from "react";
-import Login from "./Login";
+import { useState } from "react";
 import Dashboard from "./Dashboard";
 import "./App.css";
-
-const App: React.FC = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
-
-  return loggedIn ? <Dashboard /> : <Login onLogin={() => setLoggedIn(true)} />;
-};
-
-export default App;
-=======
 import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 import Auth from "./components/Auth";
+import type { ReactNode } from "react";
+import Login from "./LoginForm";
 
-export default function App() {
+function App() {
+
+
+  const [loggedIn, setLoggedIn] = useState(false);
+
+
+  const PrivateRoute = ( {children} : {children: ReactNode}) => {
+    return loggedIn ? { children } : <Login />
+  };
+
+
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
       <div className="min-h-screen flex justify-center items-center bg-gray-100">
         <Routes>
-          <Route path="/" element={<Auth />} />
+          <Route path="/" element={<Auth loggedIn={loggedIn} setLoggedIn={setLoggedIn} />} />
           <Route 
             path="/informacion-academica" 
             element={
@@ -38,7 +39,5 @@ export default function App() {
       </div>
     </BrowserRouter>
   );
-}
-
-
->>>>>>> 1bc5acf3bdfb17556d230244877c6460d7012b60
+};
+export default App;
