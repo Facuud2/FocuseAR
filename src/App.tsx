@@ -1,15 +1,19 @@
-import './App.css'
+import { AuthProvider, useAuth } from "./AuthContext";
+import LoginForm from "./LoginForm";
+import Dashboard from "./Dashboard";
+import './App.css';
 
-function App() {
-
-
-  return (
-    <>
-      <div>
-          ¡Hola mundo!
-      </div>
-    </>
-  )
+function Main() {
+  const { user } = useAuth();
+  return user ? <Dashboard /> : <LoginForm />;
 }
 
-export default App
+function App() {
+  return (
+    <AuthProvider>
+      <Main />
+    </AuthProvider>
+  );
+}
+
+export default App;
