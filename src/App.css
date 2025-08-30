@@ -14,7 +14,7 @@
     text-shadow:
       0 4px 16px rgba(124,42,232,0.25), /* sombra violeta más intensa */
       0 2px 0 #fff, /* borde blanco suave */
-      0 0 6px #e364c5, /* halo rosa pastel */
+      0 0 8px #e364c5, /* halo rosa pastel */
       0 0 10px #0f0e0e; /* halo rosa claro */
   margin-bottom: 0.1em;
   margin-left: 20px;
