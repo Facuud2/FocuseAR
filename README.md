@@ -1,69 +1,70 @@
-# React + TypeScript + Vite
+# FocuseAR
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este proyecto es una aplicación web construida con React, TypeScript y Vite.
 
-Currently, two official plugins are available:
+## Versiones Requeridas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Para asegurar la compatibilidad y el correcto funcionamiento del proyecto, es necesario utilizar las siguientes versiones de las tecnologías principales. Puedes verificar las versiones exactas en el archivo `package.json`.
 
-## Expanding the ESLint configuration
+*   **Node.js:** `^20.0.0` (o la versión especificada en `package.json`)
+*   **npm:** `^10.0.0` (o la versión compatible con tu versión de Node.js)
+*   **Vite:** `^5.0.0`
+*   **React:** `^18.2.0`
+*   **Tailwind CSS:** `^3.3.6`
+*   **Framer Motion:** `^10.16.16`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Guía de Trabajo Colaborativo
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Este proyecto sigue un flujo de trabajo que busca mantener la calidad y la estabilidad del código. La rama `main` está protegida y todos los cambios deben ser integrados a través de la rama `develop` mediante Pull Requests (PR).
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Flujo de Trabajo
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1.  **Clonar el repositorio:**
+    ```bash
+    git clone https://github.com/Facuud2/FocuseAR.git
+    cd FocuseAR
+    ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2.  **Posicionarse en la rama de desarrollo:**
+    La rama `develop` es la rama principal de desarrollo. Asegúrate de tener la última versión de esta rama.
+    ```bash
+    git checkout develop
+    git pull origin develop
+    ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3.  **Crear una nueva rama para tu tarea:**
+    Crea una nueva rama a partir de `develop` para trabajar en tu nueva funcionalidad o corrección. recuerda **utilizar el boton create branch desde la tarea**, la misma te traera una tarea `{numero}-{nombre-de-tarea}`.
+    ```bash
+    git checkout -b feature/mi-nueva-funcionalidad
+    ```
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+4.  **Desarrollar y confirmar cambios (commit):**
+    Realiza los cambios necesarios en el código. Una vez que hayas finalizado, confirma tus cambios con un mensaje claro y descriptivo.
+    ```bash
+    git add .
+    git commit -m "feat: se agrega la funcionalidad X"
+    ```
+
+5.  **Subir los cambios al repositorio remoto:**
+    Sube tu rama al repositorio remoto para que otros puedan ver tus cambios.
+    ```bash
+    git push origin feature/mi-nueva-funcionalidad
+    ```
+
+6.  **Crear un Pull Request (PR):**
+    *   Ve al repositorio en GitHub.
+    *   Aparecerá un mensaje para crear un Pull Request desde tu rama hacia `develop`.
+    *   Haz clic en "Compare & pull request".
+    *   Añade un título y una descripción detallada de los cambios realizados.
+    *   Asigna a uno o más revisores para que evalúen tu código.
+
+7.  **Revisión de código y fusión (merge):**
+    *   Los revisores verificarán tu código y podrán solicitar cambios.
+    *   Una vez que el Pull Request sea aprobado, se podrá fusionar con la rama `develop`.
+
+8.  **Mantener la rama `develop` actualizada:**
+    Antes de comenzar una nueva tarea, es una buena práctica actualizar tu rama `develop` local.
+    ```bash
+    git checkout develop
+    git pull origin develop
+    ```
