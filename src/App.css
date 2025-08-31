@@ -1,3 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+.header-wave {
+  width: 100%;
+  height: 38px;
+  background: url("data:image/svg+xml;utf8,<svg width='100%' height='38' xmlns='http://www.w3.org/2000/svg'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='0%'><stop offset='0%' stop-color='%237c2ae8'/><stop offset='60%' stop-color='%23e364c5'/><stop offset='100%' stop-color='%23f7cac9'/></linearGradient></defs><path d='M0 19 Q150 38 300 19 T600 19 T900 19 T1200 19 T1500 19 T1800 19 V38 H0 Z' fill='url(%23grad)' opacity='0.85'/></svg>");
+  background-repeat: no-repeat;
+  background-size: cover;
+  margin-bottom: 40px;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 6px 18px rgba(124,42,232,0.08);
+}
 /* ===== ESTILO TITULO ===== */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
@@ -37,10 +49,10 @@
 .login-box {
   max-width: 400px;
   margin: 60px auto;
-  background: #dcec9cf7;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px #dcec9cf7;
-  padding: 32px 24px;
+  background: #e4d692f7;
+  border-radius: 25px;
+  box-shadow: 0 5px 20px #dcec9cf7;
+  padding: 32px 34px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -54,22 +66,24 @@
 }
 
 body {
-  background: linear-gradient(135deg, #6b04e0, #a777e3);
+  background: linear-gradient(135deg, #7c2ae8 0%, #e364c5 60%, #f7cac9 100%);
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
   display: flex;
   justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
+  align-items: flex-start;
 }
 
 .container {
-  background-color: #eae7b2f7;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px #dcec9cf7;
+  background: rgba(255,255,255,0.85);
+  border-radius: 25px;
+  box-shadow: 0 8px 32px #7c2ae8a8;
   width: 100%;
-  max-width: 1800px;
-  min-width: 1400px;
-  padding: 30px;
+  max-width: 1400px;
+  min-width: 350px;
+  padding: 40px 40px 20px 40px;
+  margin-top: 40px;
   display: flex;
   flex-direction: column;
 }
@@ -77,15 +91,19 @@ body {
 /* ===== ENCABEZADO ===== */
 header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 25px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #4e59e9;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  position: relative;
+  background: transparent;
 }
 
 .logo {
   display: flex;
+  flex-direction: column;
   align-items: center;
   width: 100%;
   min-width: 0;
@@ -93,14 +111,25 @@ header {
 
 .logo-icon {
   background: linear-gradient(135deg, #95a8e9, #b793e3);
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: 100px;      /* podés cambiar el tamaño del círculo */
+  height: 100px;
+  border-radius: 50px; /* hace que el div sea un círculo */
+  overflow: hidden; /* todo lo que se salga se recorta */
+  padding: 0.1px;    /* 👈 grosor del borde (menos espacio violeta) */
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 15px;
+  margin: 0 auto 0px; /* centrado arriba del título */
+  border: 0.01px solid #ffffff;  /* 👈 color alrededor del círculo */
 }
+
+.logo-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* recorta para llenar el círculo */
+  border-radius: 50%;
+}
+
 
 .logo-icon i {
   font-size: 24px;
@@ -108,18 +137,55 @@ header {
 }
 
 .logo-text h1 {
-  color: #e364c5;
-  font-size: 45px;
-  font-weight: 700;
+  /* El título se estiliza con .focusear-title */
+.focusear-title {
+  font-family: 'Montserrat', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 8em;
+  margin-left: 0;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 4px;
+  background: linear-gradient(90deg, #7c2ae8 0%, #e364c5 60%, #f7cac9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  text-shadow:
+    0 4px 16px rgba(124,42,232,0.25),
+    0 2px 0 #fff,
+    0 0 8px #e364c5,
+    0 0 10px #0f0e0e;
+  margin-bottom: 0.1em;
+  margin-left: 40px;
+  animation: focusear-zoom 2.2s cubic-bezier(.4,0,.2,1) infinite alternate;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+@keyframes focusear-zoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.07); }
+}
+
+.focusear-subtitle {
+  color: #650599;
+  font-size: 2.9em;
+  font-weight: 500;
+  margin-left: 0;
+  margin-top: 0.8em;
+  letter-spacing: 1px;
+  text-align: center;
+}
 }
 
 .logo-text h2 {
   color: #650599;
   font-size: 0.9em;
   font-weight: 100;
-  margin-left: 30px; /* mueve el subtítulo más a la derecha */
-  margin-top: 0.4em;
-  letter-spacing: 1px;
+  margin-left: 150px;
+  text-align: center;
+  margin-top: 0.1em;
+  letter-spacing: 3px;
 }
 
 .user-info {

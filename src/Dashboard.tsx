@@ -178,7 +178,9 @@ const Dashboard: React.FC = () => {
       {/* HEADER */}
       <header>
         <div className="logo">
-          <div className="logo-icon"><i className="fas fa-graduation-cap"></i></div>
+          <div className="logo-icon">
+            <img src="/LOGO.png" alt="LOGO" /><i className="fas fa-graduation-cap"></i></div>
+          
           <div className="logo-text">
             <h1 className="focusear-title">FocuseAR</h1>
             <h2>Planificación Automatizada con IA</h2>
