@@ -1,4 +1,8 @@
-import React, { useState, type JSX } from "react";
+import React, { useState, type JSX, useEffect } from "react";
+import DatabaseTester from "./components/DatabaseTester";
+import { useDatabase } from "./hooks/useDatabase";
+import { useContext } from "react";
+import { AuthContext } from "./context/authContext";
 
 interface Pdf {
   id: number;
@@ -25,6 +29,9 @@ interface Event {
 }
 
 const Dashboard: React.FC = () => {
+  const { user } = useContext(AuthContext);
+  const { createMaterial, createStudyPlan, loading: dbLoading, error: dbError } = useDatabase();
+  
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [subjectName, setSubjectName] = useState("");
@@ -38,26 +45,75 @@ const Dashboard: React.FC = () => {
   const [dragActive, setDragActive] = React.useState(false);
 
   // === LOGICA DE MATERIAS Y PLANIFICACIÓN ===
-  const handlePlanify = () => {
+  const handlePlanify = async () => {
     if (!subjectName || !examDate || pdfs.length === 0) {
       alert("Completa todos los campos");
       return;
     }
 
-    const newSubject: Subject = {
-      id: Date.now(),
-      name: subjectName,
-      examDate,
-      color: selectedColor,
-      pdfs,
-    };
+    if (!user) {
+      alert("Debes estar autenticado para crear materias");
+      return;
+    }
 
-    setSubjects([...subjects, newSubject]);
-    generateEvents(newSubject);
+    try {
+      // Crear materiales en Firestore
+      const materialIds: string[] = [];
+      for (const pdf of pdfs) {
+        const materialId = await createMaterial({
+          fileName: pdf.name,
+          storagePath: `users/${user.uid}/materials/${pdf.name}`,
+          fileType: 'pdf'
+        });
+        if (materialId) {
+          materialIds.push(materialId);
+        }
+      }
 
-    setSubjectName("");
-    setExamDate("");
-    setPdfs([]);
+      // Crear plan de estudio en Firestore
+      if (materialIds.length > 0) {
+        const examDateObj = new Date(examDate);
+        const today = new Date();
+        const daysUntilExam = Math.ceil((examDateObj.getTime() - today.getTime()) / (1000 * 3600 * 24));
+        
+        const dailyTasks = [];
+        for (let day = 1; day <= Math.min(daysUntilExam, 10); day++) {
+          dailyTasks.push({
+            day,
+            task: `Estudiar ${subjectName} - Día ${day}`
+          });
+        }
+
+        await createStudyPlan({
+          materialId: materialIds[0], // Usar el primer material
+          title: `Plan de estudio: ${subjectName}`,
+          durationDays: Math.min(daysUntilExam, 10),
+          dailyTasks
+        });
+      }
+
+      // Crear materia local
+      const newSubject: Subject = {
+        id: Date.now(),
+        name: subjectName,
+        examDate,
+        color: selectedColor,
+        pdfs,
+      };
+
+      setSubjects([...subjects, newSubject]);
+      generateEvents(newSubject);
+
+      setSubjectName("");
+      setExamDate("");
+      setPdfs([]);
+
+      alert("Materia creada exitosamente con plan de estudio en Firestore!");
+      
+    } catch (error) {
+      console.error("Error al crear materia:", error);
+      alert("Error al crear la materia. Revisa la consola para más detalles.");
+    }
   };
 
   const generateEvents = (subject: Subject) => {
@@ -263,7 +319,46 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            <button className="planify-btn" onClick={handlePlanify}><i className="fas fa-robot"></i> Planificar</button>
+            <button 
+              className="planify-btn" 
+              onClick={handlePlanify}
+              disabled={dbLoading}
+            >
+              {dbLoading ? (
+                <span>⏳ Guardando en Firestore...</span>
+              ) : (
+                <span><i className="fas fa-robot"></i> Planificar</span>
+              )}
+            </button>
+
+            {/* Mostrar errores de base de datos */}
+            {dbError && (
+              <div style={{
+                backgroundColor: '#FEF2F2',
+                border: '1px solid #FECACA',
+                borderRadius: '6px',
+                padding: '15px',
+                marginTop: '15px',
+                color: '#DC2626'
+              }}>
+                <strong>❌ Error en base de datos:</strong> {dbError}
+              </div>
+            )}
+
+            {/* Mostrar estado de conexión */}
+            {user && (
+              <div style={{
+                backgroundColor: '#ECFDF5',
+                border: '1px solid #BBF7D0',
+                borderRadius: '6px',
+                padding: '10px',
+                marginTop: '15px',
+                color: '#047857',
+                fontSize: '14px'
+              }}>
+                <strong>✅ Conectado a Firestore como:</strong> {user.email}
+              </div>
+            )}
           </div>
 
           {/* Lista de materias */}
@@ -271,6 +366,11 @@ const Dashboard: React.FC = () => {
             <h2><i className="fas fa-list"></i> Mis Materias</h2>
             {subjects.length===0 ? <p>No hay materias</p> :
               subjects.map(s=><div key={s.id}>{s.name} ({s.examDate})</div>)}
+          </div>
+
+          {/* Probador de Base de Datos */}
+          <div className="panel">
+            <DatabaseTester />
           </div>
         </div>
 
