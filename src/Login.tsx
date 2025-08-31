@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 
-const Login: React.FC<{ onLogin: (email: string, pass: string) => void }> = ({ onLogin }) => {
+interface LoginProps {
+  onLogin: (email: string, pass: string) => void;
+  onGoogleLogin: () => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -37,6 +42,16 @@ const Login: React.FC<{ onLogin: (email: string, pass: string) => void }> = ({ o
         </div>
         <button type="submit" className="planify-btn">Entrar</button>
       </form>
+      <div className="mt-4">
+        <button 
+          onClick={onGoogleLogin}
+          type="button" 
+          className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50"
+        >
+          <img src="https://www.google.com/favicon.ico" alt="Google logo" className="w-5 h-5" />
+          Continuar con Google
+        </button>
+      </div>
     </div>
   );
 };
