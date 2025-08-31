@@ -1,25 +1,45 @@
 import React, { useEffect, useState } from "react";
-import { onAuthStateChanged } from 'firebase/auth';
-import type { User } from 'firebase/auth';
-import { auth } from './FirebaseConfig';
-import { AuthContext } from './useAuth';
+import {
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut,
+  type User,
+  type AuthError
+} from "firebase/auth";
+import { auth, googleProvider } from "./firebase";
+import { AuthContext } from "./context/authContext";
 
-// Componente proveedor que envuelve la app y gestiona el usuario.
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    // Escucha los cambios de autenticación de Firebase.
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-            setUser(firebaseUser);
-        });
-        return () => unsubscribe();
-    }, []);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
 
-    // Provee el usuario a toda la app.
-    return (
-        <AuthContext.Provider value={{ user }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const loginWithGoogle = async () => {
+    try {
+      setError(null);
+      await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError.message);
+    }
+  };
+
+  const logout = async () => {
+    await signOut(auth);
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, loading, error, loginWithGoogle, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
+
