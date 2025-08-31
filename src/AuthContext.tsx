@@ -1,21 +1,13 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   onAuthStateChanged,
   signInWithPopup,
   signOut,
- type User
+  type User,
+  type AuthError
 } from "firebase/auth";
 import { auth, googleProvider } from "./firebase";
-
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  loginWithGoogle: () => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from "./context/authContext";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -34,8 +26,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       await signInWithPopup(auth, googleProvider);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const authError = err as AuthError;
+      setError(authError.message);
     }
   };
 
@@ -48,12 +41,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-};
-
-// Hook de conveniencia
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth debe usarse dentro de AuthProvider");
-  return context;
 };
 
