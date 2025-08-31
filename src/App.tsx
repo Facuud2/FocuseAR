@@ -5,25 +5,33 @@ import { Toaster } from 'react-hot-toast';
 import Auth from "./components/Auth";
 import InfoAcademica from "./InfoAcademica";
 import ProtectedRoute from "./ProtectedRoute";
+import { AuthProvider } from "./AuthContext";
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Auth />} />
+      <Route 
+        path="/informacion-academica" 
+        element={
+          <ProtectedRoute>
+            <InfoAcademica />
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
 function App() {
 
   return (
     <BrowserRouter>
+      <AuthProvider>
       <Toaster position="top-right" />
-      <div className="min-h-screen flex justify-center items-center bg-gray-100">
-        <Routes>
-          <Route path="/" element={<Auth />} />
-          <Route 
-            path="/informacion-academica" 
-            element={
-              <ProtectedRoute>
-                <InfoAcademica />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </div>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   );
 };
