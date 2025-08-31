@@ -2,15 +2,19 @@ import "./App.css";
 import './App.css'
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
-import Auth from "./components/Auth";
 import InfoAcademica from "./InfoAcademica";
 import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider } from "./AuthContext";
+import Auth from "./components/Auth";
+
 
 function AppRoutes() {
+
   return (
     <Routes>
-      <Route path="/" element={<Auth />} />
+      <Route path="/" element={
+        <Auth />
+      } />
       <Route 
         path="/informacion-academica" 
         element={

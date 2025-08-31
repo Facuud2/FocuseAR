@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 
-const Login: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+const Login: React.FC<{ onLogin: (email: string, pass: string) => void }> = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email && password) {
-      onLogin();
+      onLogin(email, password);
     } else {
       alert("Completa todos los campos");
     }
