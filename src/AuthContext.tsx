@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { onAuthStateChanged } from 'firebase/auth';
 import type { User } from 'firebase/auth';
-import { auth } from './FirebaseConfig';
+import { auth } from './firebase';
 import { AuthContext } from './useAuth';
 
 // Componente proveedor que envuelve la app y gestiona el usuario.
