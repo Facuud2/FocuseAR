@@ -17,6 +17,10 @@ Para asegurar la compatibilidad y el correcto funcionamiento del proyecto, es ne
 
 Este proyecto sigue un flujo de trabajo que busca mantener la calidad y la estabilidad del código. La rama `main` está protegida y todos los cambios deben ser integrados a través de la rama `develop` mediante Pull Requests (PR).
 
+## Configuracion de variables de entorno
+
+Las variables de entorno se encuentran en el archivo `.env` en la raiz del proyecto, utiliza el archivo `.env.example` para guiarte.
+
 ### Flujo de Trabajo
 
 1.  **Clonar el repositorio:**
