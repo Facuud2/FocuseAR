@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   onAuthStateChanged,
   signInWithPopup,
   signOut,
   type User,
-  type AuthError
-} from "firebase/auth";
-import { auth, googleProvider } from "./firebase";
-import { AuthContext } from "./context/authContext";
-import { DatabaseService } from "./services/DatabaseService";
+  type AuthError,
+} from 'firebase/auth';
+import { auth, googleProvider } from './firebase';
+import { AuthContext } from './context/authContext';
+import { DatabaseService } from './services/DatabaseService';
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,11 +26,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await DatabaseService.createOrUpdateUser(firebaseUser);
           console.log('✅ Usuario sincronizado con Firestore');
         } catch (dbError) {
-          console.error('❌ Error al sincronizar usuario con Firestore:', dbError);
+          console.error(
+            '❌ Error al sincronizar usuario con Firestore:',
+            dbError,
+          );
           // No bloqueamos la autenticación por errores de base de datos
         }
       }
-      
+
       setUser(firebaseUser);
       setLoading(false);
     });
@@ -39,12 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       setLoading(true);
-      
-      const result = await signInWithPopup(auth, googleProvider);
-      
+
+      await signInWithPopup(auth, googleProvider);
+
       // El usuario se creará/actualizará automáticamente en el useEffect
       console.log('✅ Login con Google exitoso');
-      
     } catch (err) {
       const authError = err as AuthError;
       setError(authError.message);
@@ -64,9 +68,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, loginWithGoogle, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, error, loginWithGoogle, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
-
