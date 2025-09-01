@@ -6,6 +6,7 @@ import InfoAcademica from "./InfoAcademica";
 import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider } from "./AuthContext";
 import Auth from "./components/Auth";
+import Dashboard from "./Dashboard";
 
 
 function AppRoutes() {
@@ -16,10 +17,10 @@ function AppRoutes() {
         <Auth />
       } />
       <Route 
-        path="/informacion-academica" 
+        path="/dashboard" 
         element={
           <ProtectedRoute>
-            <InfoAcademica />
+            <Dashboard/>
           </ProtectedRoute>
         } 
       />
