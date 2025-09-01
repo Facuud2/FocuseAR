@@ -284,7 +284,11 @@ const Dashboard: React.FC = () => {
       <header>
         <div className="logo">
           <div className="logo-icon">
-            <i className="fas fa-graduation-cap"></i>
+            <img
+              src="/Focuslogo.png"
+              alt="FocuseAR Icon"
+              className="w-[110px] h-[110px] object-cover rounded-full"
+            />
           </div>
           <div className="logo-text">
             <img src="Texto.png" alt="FocuseAR" className="focusear-title" />
