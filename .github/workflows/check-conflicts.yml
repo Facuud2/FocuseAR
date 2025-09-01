@@ -1,0 +1,42 @@
+name: Check for Merge Conflicts
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches:
+      - develop
+      - main
+      - master
+
+jobs:
+  check-conflicts:
+    name: Verificar Conflictos de Merge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Git
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+
+      - name: Merge Conflict Finder
+        uses: olivernybroe/action-conflict-finder@v4.1
+
+      - name: Simulación manual de merge
+        run: |
+          echo "== Análisis manual de merge =="
+          git fetch origin ${{ github.base_ref }} ${{ github.head_ref }}
+          git checkout ${{ github.base_ref }}
+          git checkout -b temp-merge-check
+          if ! git merge --no-commit --no-ff origin/${{ github.head_ref }}; then
+            echo "::error::❌ Conflictos de merge detectados en la simulación"
+            git merge --abort || true
+            exit 1
+          else
+            echo "✅ No se detectaron conflictos"
+            git reset --hard HEAD
+          fi
