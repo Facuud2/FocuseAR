@@ -1,12 +1,12 @@
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { storage, db } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { storage } from '../firebase';
+import { saveMaterialMetadata } from './materials';
 
 interface UploadResponse {
   url: string;
   path: string;
   fileName: string;
-  materialId: string; // ID del documento en Firestore
+  materialId: string;
 }
 
 export const uploadPDF = async (
@@ -40,8 +40,8 @@ export const uploadPDF = async (
     // Obtener la URL de descarga
     const downloadURL = await getDownloadURL(storageRef);
 
-    // Guardar los metadatos en Firestore
-    const docRef = await addDoc(collection(db, 'materials'), {
+    // Guardar los metadatos usando el servicio dedicado
+    const materialId = await saveMaterialMetadata({
       fileName: file.name,
       originalName: file.name,
       storagePath: filePath,
@@ -49,7 +49,6 @@ export const uploadPDF = async (
       userId,
       fileSize: file.size,
       mimeType: file.type,
-      uploadedAt: serverTimestamp(),
       status: 'completed'
     });
 
@@ -57,7 +56,7 @@ export const uploadPDF = async (
       url: downloadURL,
       path: filePath,
       fileName: file.name,
-      materialId: docRef.id
+      materialId
     };
   } catch (error) {
     console.error('Error al subir el archivo:', error);
