@@ -41,7 +41,9 @@ const PDFUpload: React.FC = () => {
 
   const handleUpload = async () => {
     if (!selectedFile || !user) {
-      setError('Por favor, selecciona un archivo PDF y asegúrate de estar autenticado');
+      setError(
+        'Por favor, selecciona un archivo PDF y asegúrate de estar autenticado',
+      );
       return;
     }
 
@@ -50,24 +52,26 @@ const PDFUpload: React.FC = () => {
 
     try {
       setUploadProgress(0);
-      const result = await uploadPDF(
-        selectedFile,
-        user.uid,
-        (progress) => setUploadProgress(progress)
+      const result = await uploadPDF(selectedFile, user.uid, (progress) =>
+        setUploadProgress(progress),
       );
-      
+
       toast.success('Archivo subido exitosamente');
       setSelectedFile(null);
       setUploadProgress(0);
-      
+
       // Limpiar el input de archivo
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      const fileInput = document.querySelector(
+        'input[type="file"]',
+      ) as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-      
+
       console.log('Documento creado en Firestore con ID:', result.materialId);
     } catch (err) {
       toast.error('Error al subir el archivo');
-      setError(err instanceof Error ? err.message : 'Error al subir el archivo');
+      setError(
+        err instanceof Error ? err.message : 'Error al subir el archivo',
+      );
       setUploadProgress(0);
     } finally {
       setIsUploading(false);
@@ -77,7 +81,7 @@ const PDFUpload: React.FC = () => {
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Subir PDF</h2>
-      
+
       <div className="space-y-4">
         {/* Input para seleccionar archivo */}
         <div className="flex flex-col">
@@ -132,10 +136,9 @@ const PDFUpload: React.FC = () => {
                    focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50
                    disabled:cursor-not-allowed transition-colors"
         >
-          {isUploading 
-            ? `Subiendo... ${Math.round(uploadProgress)}%` 
-            : 'Subir PDF'
-          }
+          {isUploading
+            ? `Subiendo... ${Math.round(uploadProgress)}%`
+            : 'Subir PDF'}
         </button>
 
         {/* Mostrar error si existe */}

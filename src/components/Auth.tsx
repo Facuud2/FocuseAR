@@ -15,7 +15,7 @@ export default function Auth() {
     try {
       await signInWithEmailAndPassword(auth, email, pass);
       toast.success("¡Inicio de sesión exitoso!");
-      navigate("/informacion-academica");
+      navigate("/dashboard");
     } catch (error) {
       toast.error("Error al iniciar sesión. Por favor, revisa tus credenciales.");
       console.error("Error al iniciar sesión", error);
@@ -27,7 +27,7 @@ export default function Auth() {
       const result = await signInWithPopup(auth, googleProvider);
       if (result.user) {
         toast.success("¡Inicio de sesión con Google exitoso!");
-        navigate("/informacion-academica");
+        navigate("/dashboard");
       }
     } catch (error) {
       toast.error("Error al iniciar sesión con Google");

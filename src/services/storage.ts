@@ -12,7 +12,7 @@ interface UploadResponse {
 export const uploadPDF = async (
   file: File,
   userId: string,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
 ): Promise<UploadResponse> => {
   try {
     // Crear una referencia única para el archivo
@@ -26,17 +26,16 @@ export const uploadPDF = async (
 
     // Manejar el progreso de la subida si se proporciona la función onProgress
     if (onProgress) {
-      uploadTask.on('state_changed', 
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          onProgress(progress);
-        }
-      );
+      uploadTask.on('state_changed', (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        onProgress(progress);
+      });
     }
 
     // Esperar a que la subida se complete
     await uploadTask;
-    
+
     // Obtener la URL de descarga
     const downloadURL = await getDownloadURL(storageRef);
 
@@ -49,17 +48,19 @@ export const uploadPDF = async (
       userId,
       fileSize: file.size,
       mimeType: file.type,
-      status: 'completed'
+      status: 'completed',
     });
 
     return {
       url: downloadURL,
       path: filePath,
       fileName: file.name,
-      materialId
+      materialId,
     };
   } catch (error) {
     console.error('Error al subir el archivo:', error);
-    throw new Error('Error al subir el archivo. Por favor, intenta nuevamente.');
+    throw new Error(
+      'Error al subir el archivo. Por favor, intenta nuevamente.',
+    );
   }
 };

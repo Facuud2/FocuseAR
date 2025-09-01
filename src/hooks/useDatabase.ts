@@ -9,74 +9,82 @@ export const useDatabase = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Crear material
-  const createMaterial = useCallback(async (materialData: {
-    fileName: string;
-    storagePath: string;
-    fileType: string;
-  }) => {
-    if (!user) {
-      setError('Usuario no autenticado');
-      return null;
-    }
+  const createMaterial = useCallback(
+    async (materialData: {
+      fileName: string;
+      storagePath: string;
+      fileType: string;
+    }) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const materialId = await DatabaseService.createMaterial({
-        userId: user.uid,
-        ...materialData
-      });
+      try {
+        const materialId = await DatabaseService.createMaterial({
+          userId: user.uid,
+          ...materialData,
+        });
 
-      console.log('✅ Material creado:', materialId);
-      return materialId;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError(errorMessage);
-      console.error('❌ Error al crear material:', err);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+        console.log('✅ Material creado:', materialId);
+        return materialId;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al crear material:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
 
   // Crear plan de estudio
-  const createStudyPlan = useCallback(async (planData: {
-    materialId: string;
-    title: string;
-    durationDays: number;
-    dailyTasks: Array<{ day: number; task: string }>;
-  }) => {
-    if (!user) {
-      setError('Usuario no autenticado');
-      return null;
-    }
+  const createStudyPlan = useCallback(
+    async (planData: {
+      materialId: string;
+      title: string;
+      durationDays: number;
+      dailyTasks: Array<{ day: number; task: string }>;
+    }) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    try {
-      const planId = await DatabaseService.createStudyPlan({
-        userId: user.uid,
-        materialId: planData.materialId,
-        generatedPlan: {
-          title: planData.title,
-          durationDays: planData.durationDays,
-          dailyTasks: planData.dailyTasks
-        }
-      });
+      try {
+        const planId = await DatabaseService.createStudyPlan({
+          userId: user.uid,
+          materialId: planData.materialId,
+          generatedPlan: {
+            title: planData.title,
+            durationDays: planData.durationDays,
+            dailyTasks: planData.dailyTasks,
+          },
+        });
 
-      console.log('✅ Plan de estudio creado:', planId);
-      return planId;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError(errorMessage);
-      console.error('❌ Error al crear plan de estudio:', err);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+        console.log('✅ Plan de estudio creado:', planId);
+        return planId;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al crear plan de estudio:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
 
   // Obtener materiales del usuario
   const getUserMaterials = useCallback(async (): Promise<Material[]> => {
@@ -93,7 +101,8 @@ export const useDatabase = () => {
       console.log('✅ Materiales obtenidos:', materials.length);
       return materials;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
       console.error('❌ Error al obtener materiales:', err);
       return [];
@@ -117,7 +126,8 @@ export const useDatabase = () => {
       console.log('✅ Planes de estudio obtenidos:', plans.length);
       return plans;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
       console.error('❌ Error al obtener planes de estudio:', err);
       return [];
@@ -127,25 +137,25 @@ export const useDatabase = () => {
   }, [user]);
 
   // Actualizar tarea completada
-  const updateTaskCompletion = useCallback(async (
-    planId: string, 
-    day: number, 
-    completed: boolean
-  ) => {
-    setLoading(true);
-    setError(null);
+  const updateTaskCompletion = useCallback(
+    async (planId: string, day: number, completed: boolean) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      await DatabaseService.updateTaskCompletion(planId, day, completed);
-      console.log('✅ Tarea actualizada');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
-      setError(errorMessage);
-      console.error('❌ Error al actualizar tarea:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        await DatabaseService.updateTaskCompletion(planId, day, completed);
+        console.log('✅ Tarea actualizada');
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al actualizar tarea:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
 
   // Eliminar material y planes asociados
   const deleteMaterialAndPlans = useCallback(async (materialId: string) => {
@@ -156,7 +166,8 @@ export const useDatabase = () => {
       await DatabaseService.deleteMaterialAndPlans(materialId);
       console.log('✅ Material y planes eliminados');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
       console.error('❌ Error al eliminar material:', err);
     } finally {
@@ -178,6 +189,6 @@ export const useDatabase = () => {
     getUserMaterials,
     getUserStudyPlans,
     updateTaskCompletion,
-    deleteMaterialAndPlans
+    deleteMaterialAndPlans,
   };
 };

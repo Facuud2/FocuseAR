@@ -1,4 +1,11 @@
-import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs,
+} from 'firebase/firestore';
 import { db } from '../firebase';
 
 interface MaterialMetadata {
@@ -13,11 +20,13 @@ interface MaterialMetadata {
   createdAt?: Date;
 }
 
-export const saveMaterialMetadata = async (metadata: Omit<MaterialMetadata, 'createdAt'>): Promise<string> => {
+export const saveMaterialMetadata = async (
+  metadata: Omit<MaterialMetadata, 'createdAt'>,
+): Promise<string> => {
   try {
     const docRef = await addDoc(collection(db, 'materials'), {
       ...metadata,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
     });
     return docRef.id;
   } catch (error) {
@@ -26,17 +35,19 @@ export const saveMaterialMetadata = async (metadata: Omit<MaterialMetadata, 'cre
   }
 };
 
-export const getUserMaterials = async (userId: string): Promise<MaterialMetadata[]> => {
+export const getUserMaterials = async (
+  userId: string,
+): Promise<MaterialMetadata[]> => {
   try {
     const materialsQuery = query(
       collection(db, 'materials'),
-      where('userId', '==', userId)
+      where('userId', '==', userId),
     );
 
     const querySnapshot = await getDocs(materialsQuery);
-    return querySnapshot.docs.map(doc => ({
+    return querySnapshot.docs.map((doc) => ({
       ...(doc.data() as MaterialMetadata),
-      id: doc.id
+      id: doc.id,
     }));
   } catch (error) {
     console.error('Error al obtener los materiales:', error);
