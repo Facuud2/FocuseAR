@@ -2,8 +2,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-<<<<<<< Updated upstream
-=======
 .focusear-title {
   font-family: 'Montserrat', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 7em;
@@ -26,7 +24,6 @@
   overflow-wrap: break-word;
   white-space: normal;
 }
->>>>>>> Stashed changes
 
 /* ===== ESTILOS GENERALES ===== */
 * {
