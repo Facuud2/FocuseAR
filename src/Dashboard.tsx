@@ -285,7 +285,7 @@ const Dashboard: React.FC = () => {
         <div className="logo">
           <div className="logo-icon">
             <img
-              src="/Focuslogo.png"
+              src="/logo.png"
               alt="FocuseAR Icon"
               className="w-[110px] h-[110px] object-cover rounded-full"
             />

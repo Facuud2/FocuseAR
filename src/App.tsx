@@ -1,5 +1,4 @@
 import './App.css';
-import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './ProtectedRoute';
@@ -34,4 +33,5 @@ function App() {
     </BrowserRouter>
   );
 }
+
 export default App;

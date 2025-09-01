@@ -25,7 +25,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
         <div className="login-logo-full">
           <div className="login-logo-icon">
             <img
-              src="/Focuslogo.png"
+              src="/logo.png"
               alt="FocuseAR Icon"
               className="w-[180px] h-[180px] object-cover rounded-full mx-auto"
             />
