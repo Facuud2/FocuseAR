@@ -30,9 +30,23 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
   });
 
   const [showColorPicker, setShowColorPicker] = useState(false);
+  const [error, setError] = useState<string>('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validaciones
+    if (!formData.name.trim()) {
+      setError('El nombre de la asignatura es obligatorio');
+      return;
+    }
+
+    if (formData.endDate < formData.startDate) {
+      setError('La fecha de finalización debe ser posterior a la fecha de inicio');
+      return;
+    }
+
+    setError('');
     onSubmit(formData);
   };
 
@@ -63,14 +77,23 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
           <DatePicker
             selected={formData.startDate}
             onChange={(date: Date | null) => date && setFormData({ ...formData, startDate: date })}
-          disabled={disabled}
             selectsStart
             startDate={formData.startDate}
             endDate={formData.endDate}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md
+                     focus:outline-none focus:ring-2 focus:ring-blue-500
+                     disabled:bg-gray-100 disabled:cursor-not-allowed"
             dateFormat="dd/MM/yyyy"
             locale="es"
             placeholderText="Seleccionar fecha"
+            showMonthDropdown
+            showYearDropdown
+            dropdownMode="select"
+            isClearable
+            disabled={disabled}
+            todayButton="Hoy"
+            maxDate={formData.endDate}
+            popperPlacement="bottom-start"
           />
         </div>
         <div>
@@ -80,15 +103,23 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
           <DatePicker
             selected={formData.endDate}
             onChange={(date: Date | null) => date && setFormData({ ...formData, endDate: date })}
-          disabled={disabled}
             selectsEnd
             startDate={formData.startDate}
             endDate={formData.endDate}
             minDate={formData.startDate}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md
+                     focus:outline-none focus:ring-2 focus:ring-blue-500
+                     disabled:bg-gray-100 disabled:cursor-not-allowed"
             dateFormat="dd/MM/yyyy"
             locale="es"
             placeholderText="Seleccionar fecha"
+            showMonthDropdown
+            showYearDropdown
+            dropdownMode="select"
+            isClearable
+            disabled={disabled}
+            todayButton="Hoy"
+            popperPlacement="bottom-start"
           />
         </div>
       </div>
@@ -101,25 +132,53 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
         <div className="relative">
           <button
             type="button"
-            onClick={() => setShowColorPicker(!showColorPicker)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center"
+            onClick={() => !disabled && setShowColorPicker(!showColorPicker)}
+            className={`w-full px-3 py-2 border border-gray-300 rounded-md 
+                     focus:outline-none focus:ring-2 focus:ring-blue-500 
+                     flex items-center ${disabled ? 'cursor-not-allowed opacity-75' : 'cursor-pointer hover:bg-gray-50'}`}
+            disabled={disabled}
           >
             <div
-              className="w-6 h-6 rounded-md mr-2"
+              className="w-6 h-6 rounded-md mr-2 shadow-inner"
               style={{ backgroundColor: formData.color }}
             />
-            {formData.color}
+            <span className="text-gray-700 flex-grow text-left">{formData.color}</span>
+            {!disabled && (
+              <span className="text-gray-400 text-sm ml-2">
+                Clic para cambiar
+              </span>
+            )}
           </button>
-          {showColorPicker && (
-            <div className="absolute z-10 mt-2">
+          {showColorPicker && !disabled && (
+            <div className="absolute z-50 mt-2">
               <div 
-                className="fixed inset-0" 
+                className="fixed inset-0 bg-black bg-opacity-25" 
                 onClick={() => setShowColorPicker(false)}
               />
-              <HexColorPicker
-                color={formData.color}
-                onChange={(color) => setFormData({ ...formData, color })}
-              />
+              <div className="relative bg-white p-4 rounded-lg shadow-xl border border-gray-200">
+                <HexColorPicker
+                  color={formData.color}
+                  onChange={(color) => {
+                    setFormData({ ...formData, color });
+                  }}
+                />
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div 
+                      className="w-8 h-8 rounded-md shadow-inner mr-2"
+                      style={{ backgroundColor: formData.color }}
+                    />
+                    <span className="text-sm font-medium">{formData.color.toUpperCase()}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowColorPicker(false)}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    Aceptar
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -129,6 +188,13 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
       <div className="mb-6">
         <PDFUpload />
       </div>
+
+      {/* Mensaje de error */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
 
       {/* Botón de envío */}
       <button
