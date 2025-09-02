@@ -40,11 +40,13 @@ const PDFUpload: React.FC = () => {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !user) {
-      setError(
-        'Por favor, selecciona un archivo PDF y asegúrate de estar autenticado',
-      );
+    if (!user) {
+      setError('Por favor, asegúrate de estar autenticado');
       return;
+    }
+    
+    if (!selectedFile) {
+      return; // No mostrar error si no hay archivo seleccionado, ya que es opcional
     }
 
     setIsUploading(true);
@@ -80,14 +82,17 @@ const PDFUpload: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Subir PDF</h2>
+      <h2 className="text-2xl font-bold mb-4">Material de estudio</h2>
 
       <div className="space-y-4">
         {/* Input para seleccionar archivo */}
         <div className="flex flex-col">
           <label className="mb-2 text-sm font-medium text-gray-900">
-            Seleccionar archivo PDF
+            Material de estudio (Opcional) - PDF
           </label>
+          <p className="text-sm text-gray-500 mb-2">
+            Puedes subir material complementario en formato PDF para tus estudiantes
+          </p>
           <input
             type="file"
             accept=".pdf"
@@ -138,7 +143,7 @@ const PDFUpload: React.FC = () => {
         >
           {isUploading
             ? `Subiendo... ${Math.round(uploadProgress)}%`
-            : 'Subir PDF'}
+            : selectedFile ? 'Subir material' : 'Seleccionar material (opcional)'}
         </button>
 
         {/* Mostrar error si existe */}
