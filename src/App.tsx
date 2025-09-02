@@ -5,6 +5,7 @@ import ProtectedRoute from './ProtectedRoute';
 import { AuthProvider } from './AuthContext';
 import Auth from './components/Auth';
 import Dashboard from './Dashboard';
+import Sidebar from './components/Sidebar';
 
 function AppRoutes() {
   return (
@@ -14,7 +15,16 @@ function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <Dashboard />
+            {/* Aquí ponemos el layout con Sidebar y Dashboard */}
+            <div className="flex">
+              <Sidebar activeSection="overview" onSectionChange={() => {}} />{' '}
+              {/* Añadido props activeSection y onSectionChange */}
+              <div className="ml-80 flex-1 min-h-screen bg-gray-100 p-8">
+                {' '}
+                {/* Cambiado ml-64 a ml-80 para coincidir con w-80 del sidebar */}
+                <Dashboard />
+              </div>
+            </div>
           </ProtectedRoute>
         }
       />

@@ -3,6 +3,7 @@ import DatabaseTester from './components/DatabaseTester';
 import { useDatabase } from './hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from './context/authContext';
+import './App.css';
 
 interface Pdf {
   id: number;
@@ -279,7 +280,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container dormir">
       {/* HEADER */}
       <header>
         <div className="logo">

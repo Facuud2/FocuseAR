@@ -2,6 +2,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+/* --- Añade esta línea al inicio de App.css --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ===== ESTILO TITULO animación ===== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+
 .focusear-title {
   font-family: 'Montserrat', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 7em;
@@ -30,17 +36,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  /* Cambiamos 'Poppins' por 'Inter' como fuente principal */
+  font-family: 'Inter', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
-  background: linear-gradient(135deg, #2E86C1, #74ACDF);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 20px;
-}
+body { background: linear-gradient(135deg, #2E86C1, #74ACDF); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+
 
 .container {
   background-color: #FFFFFF;
@@ -675,4 +676,28 @@ h2 i {
     width: 60px;
     height: 60px;
   }
+}
+
+.layout {
+  display: grid;
+  grid-template-areas: 
+    "body sidebar"; /* body a la izquierda, sidebar a la derecha */
+  grid-template-columns: 1fr 250px; /* body ocupa el espacio restante, sidebar ancho fijo */
+  gap: 0; /* sin espacio entre body y sidebar */
+  height: 100vh;
+}
+
+.sidebar {
+  grid-area: sidebar;
+  background-color: #1e293b; /* fondo oscuro */
+  color: white;
+  padding: 2rem;
+  height: 100vh; /* ocupa toda la altura */
+}
+
+.dormir {
+  grid-area: body;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: #f3f4f6; /* gris claro */
 }
