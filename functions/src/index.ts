@@ -14,7 +14,7 @@
  *    firebase emulators:start --only functions
  *
  * 5. Haz un POST a la función:
- *    Invoke-WebRequest -Uri "http://localhost:5001/tu-proyecto/us-central1/geminiResponse"
+ *    Invoke-WebRequest -Uri "ENDPOINT_GEMINI"
  *    -Method POST
  *    -Headers @{"Content-Type"="application/json"}
  *    -Body '{"text": "Tu texto aquí"}'
@@ -25,7 +25,7 @@
  * 7. Prueba en la nube usando la URL pública que te da Firebase.
  *
  * 8. Ejemplo de uso desde cualquier lugar (PowerShell):
- *    Invoke-WebRequest -Uri "https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse" \
+ *    Invoke-WebRequest -Uri "ENDPOINT_GEMINI" \
  *      -Method POST \
  *      -Headers @{"Content-Type"="application/json"} \
  *      -Body '{"text": "Tu texto aquí"}' \
