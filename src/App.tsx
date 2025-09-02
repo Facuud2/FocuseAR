@@ -1,6 +1,6 @@
 // --- START OF FILE App.tsx (Updated for Responsiveness) ---
 import './App.css';
-import React, { useState } from 'react'; // Importar useState de React
+import { useState } from 'react'; // Importar useState de React
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ProtectedRoute from './ProtectedRoute';
@@ -53,9 +53,9 @@ function AppRoutes() {
                 onClick={toggleSidebar}
               >
                 {isSidebarOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
                   <Menu className="h-6 w-6" />
+                ) : (
+                  <X className="h-6 w-6" />
                 )}
               </button>
 

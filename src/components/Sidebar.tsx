@@ -11,7 +11,7 @@ import {
   BarChart3,
   Settings,
   MessageCircle,
-  X, // Importar el ícono de cerrar
+  // Importar el ícono de cerrar
 } from 'lucide-react';
 
 // Definimos las propiedades que el componente recibirá.
@@ -72,8 +72,8 @@ export default function Sidebar({
     <aside
       className={`
         w-80 bg-white flex flex-col shadow-lg rounded-2xl h-full overflow-hidden 
-        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} 
+        fixed inset-y-0 left-0  transform transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? 'translate-x-0 -z-50' : '-translate-x-full z-50'} 
         lg:static lg:translate-x-0 lg:block
       `}
     >
@@ -82,9 +82,7 @@ export default function Sidebar({
         <button
           onClick={onClose}
           className="p-2 bg-gray-200 rounded-full text-gray-700 hover:bg-gray-300"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        ></button>
       </div>
 
       {/* Sección del Logo (sin cambios) */}
