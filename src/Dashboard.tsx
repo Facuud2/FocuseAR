@@ -3,7 +3,7 @@ import DatabaseTester from './components/DatabaseTester';
 import { useDatabase } from './hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from './context/authContext';
-import './App.css';
+import './App.css'; // Asegúrate de que esta importación sea correcta
 
 interface Pdf {
   id: number;
@@ -280,7 +280,12 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="container dormir">
+    // El div raíz del Dashboard ahora toma el 100% del ancho y alto de su contenedor padre
+    // para que el layout en App.tsx lo posicione correctamente.
+    // La clase 'dormir' se mantiene si tiene estilos específicos que no entran en conflicto.
+    <div className="dormir h-full w-full p-4 md:p-8">
+      {' '}
+      {/* Añadido padding aquí, o puedes mantenerlo en App.tsx */}
       {/* HEADER */}
       <header>
         <div className="logo">
@@ -301,7 +306,6 @@ const Dashboard: React.FC = () => {
           <span>usuario@ejemplo.com</span>
         </div>
       </header>
-
       <div className="content">
         {/* PANEL IZQUIERDO */}
         <div className="left-panel">

@@ -2,11 +2,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-/* --- Añade esta línea al inicio de App.css --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* ===== ESTILO TITULO animación ===== */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 
 .focusear-title {
   font-family: 'Montserrat', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -40,11 +42,18 @@
   font-family: 'Inter', 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body { background: linear-gradient(135deg, #2E86C1, #74ACDF); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-
+body {
+  background: linear-gradient(135deg, #2E86C1, #74ACDF); /* Un degradado azul bonito */
+  display: flex; /* Centra el contenido de la app si es necesario */
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Ocupa toda la altura de la ventana */
+  padding: 0; /* Aseguramos que no haya padding en el body para el fondo */
+  margin: 0; /* Aseguramos que no haya margen en el body */
+  overflow-y: auto; /* Permite scroll en el body si el contenido es más grande que la pantalla */
 
 .container {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border-radius: 15px;
   box-shadow: 0 10px 25px rgba(116, 172, 223, 0.3);
   width: 100%;
@@ -689,8 +698,8 @@ h2 i {
 
 .sidebar {
   grid-area: sidebar;
-  background-color: #1e293b; /* fondo oscuro */
-  color: white;
+  background-color: #131f32; /* fondo oscuro */
+  color: rgb(220, 185, 185);
   padding: 2rem;
   height: 100vh; /* ocupa toda la altura */
 }
@@ -699,5 +708,6 @@ h2 i {
   grid-area: body;
   padding: 2rem;
   overflow-y: auto;
-  background-color: #f3f4f6; /* gris claro */
+  background-color: #f7f7f7; /* gris claro */
+}
 }
