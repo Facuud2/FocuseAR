@@ -61,6 +61,8 @@ export const geminiResponse = onRequest(
       res.status(405).json({ error: 'Método no permitido. Usa POST.' });
       return;
     }
+    // Log del body recibido
+    console.log('Body recibido:', req.body);
     const { text } = req.body;
     if (!text) {
       res.status(400).json({ error: "Falta el campo 'text' en el body." });
@@ -68,13 +70,19 @@ export const geminiResponse = onRequest(
     }
     try {
       const ai = new GoogleGenAI({});
+      console.log(
+        'Enviando a Gemini:',
+        `Resume el siguiente texto en español: ${text}`,
+      );
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Resume el siguiente texto en español: ${text}`,
       });
+      console.log('Respuesta cruda de Gemini:', response);
       res.json({ summary: response.text, source: 'gemini' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error interno';
+      console.error('Error en geminiResponse:', error);
       res.status(500).json({ error: message });
     }
   },
@@ -89,6 +97,8 @@ export const geminiResponseTest = functions.https.onRequest(
         res.status(405).json({ error: 'Método no permitido. Usa POST.' });
         return;
       }
+      // Log del body recibido
+      console.log('Body recibido (test):', req.body);
       const { text } = req.body;
       if (!text) {
         res.status(400).json({ error: "Falta el campo 'text' en el body." });
@@ -97,20 +107,18 @@ export const geminiResponseTest = functions.https.onRequest(
       try {
         const ai = new GoogleGenAI({});
         // Prompt fijo para extraer temas, fechas y resumen
-        const prompt = `Analiza el siguiente texto extraído de un cronograma académico o material de clase. Devuélveme:
-1. Una lista de los temas importantes que se mencionan.
-2. Una lista de fechas relevantes (con su evento o tema asociado).
-3. Un resumen general de lo que se habla en el texto.
-Responde en español, en formato claro y estructurado. Texto a analizar:
-${text}`;
+        const prompt = `Analiza el siguiente texto extraído de un cronograma académico o material de clase. Devuélveme:\n1. Una lista de los temas importantes que se mencionan.\n2. Una lista de fechas relevantes (con su evento o tema asociado).\n3. Un resumen general de lo que se habla en el texto.\nResponde en español, en formato claro y estructurado. Texto a analizar:\n${text}`;
+        console.log('Enviando a Gemini (test):', prompt);
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
         });
+        console.log('Respuesta cruda de Gemini (test):', response);
         res.json({ summary: response.text, source: 'gemini' });
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Error interno';
+        console.error('Error en geminiResponseTest:', error);
         res.status(500).json({ error: message });
       }
     });
