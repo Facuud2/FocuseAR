@@ -1,7 +1,6 @@
-import React, { useState, type JSX /* useEffect */ } from 'react';
+import React, { useState, type JSX, useContext } from 'react';
 import DatabaseTester from './components/DatabaseTester';
 import { useDatabase } from './hooks/useDatabase';
-import { useContext } from 'react';
 import { AuthContext } from './context/authContext';
 import './App.css'; // Asegúrate de que esta importación sea correcta
 
@@ -483,19 +482,58 @@ const Dashboard: React.FC = () => {
             )}
           </div>
 
-          {/* Lista de materias */}
+          {/* Lista de materias MEJORADA */}
           <div className="panel">
             <h2>
               <i className="fas fa-list"></i> Mis Materias
             </h2>
             {subjects.length === 0 ? (
-              <p>No hay materias</p>
+              <div className="empty-state">
+                <i className="fas fa-book-open"></i>
+                <p>No hay materias planificadas</p>
+                <small>Agrega tu primera materia arriba</small>
+              </div>
             ) : (
-              subjects.map((s) => (
-                <div key={s.id}>
-                  {s.name} ({s.examDate})
-                </div>
-              ))
+              <div className="subjects-grid">
+                {subjects.map((subject) => {
+                  // Generar ícono basado en la inicial de la materia
+                  const initial = subject.name.charAt(0).toUpperCase();
+                  return (
+                    <div key={subject.id} className="subject-card" style={{ borderLeft: `4px solid ${subject.color}` }}>
+                      <div className="subject-header">
+                        <div className="subject-icon" style={{ backgroundColor: subject.color }}>
+                          <span className="subject-initial">{initial}</span>
+                        </div>
+                        <div className="subject-info">
+                          <h3 className="subject-name">{subject.name}</h3>
+                          <p className="subject-date">
+                            <i className="fas fa-calendar-alt"></i>
+                            {new Date(subject.examDate).toLocaleDateString('es-ES')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="subject-footer">
+                        <span className="pdf-count">
+                          <i className="fas fa-file-pdf"></i>
+                          {subject.pdfs.length} PDF(s)
+                        </span>
+                        <div className="subject-progress">
+                          <div className="progress-bar">
+                            <div 
+                              className="progress-fill" 
+                              style={{ 
+                                width: `${Math.min(100, (subject.pdfs.length / 5) * 100)}%`,
+                                backgroundColor: subject.color
+                              }}
+                            ></div>
+                          </div>
+                          <span className="progress-text">{subject.pdfs.length}/5</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
 

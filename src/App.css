@@ -229,6 +229,144 @@ h2 i {
   border-color: #f3eeee;
 }
 
+/* ===== LISTA DE MATERIAS MEJORADA ===== */
+.subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 15px;
+}
+
+.subject-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(46, 134, 193, 0.1);
+  border: 1px solid #E5E7EB;
+  transition: all 0.3s ease;
+}
+
+.subject-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(46, 134, 193, 0.2);
+}
+
+.subject-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.subject-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-weight: bold;
+}
+
+.subject-initial {
+  color: #FFFFFF;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.subject-info {
+  flex: 1;
+}
+
+.subject-name {
+  color: #2E86C1;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  font-size: 16px;
+}
+
+.subject-date {
+  color: #374151;
+  font-size: 12px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.subject-date i {
+  color: #2E86C1;
+  font-size: 10px;
+}
+
+.subject-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.pdf-count {
+  color: #374151;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pdf-count i {
+  color: #EA4335;
+}
+
+.subject-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar {
+  width: 60px;
+  height: 6px;
+  background-color: #E5E7EB;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  color: #374151;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #9CA3AF;
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: #E5E7EB;
+}
+
+.empty-state p {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.empty-state small {
+  color: #9CA3AF;
+  font-size: 12px;
+}
+
 /* ===== SECCIÓN DE PDF ===== */
 .pdf-section {
   margin: 20px 0;

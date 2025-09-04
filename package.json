@@ -14,8 +14,8 @@
   "dependencies": {
     "@tabler/icons-react": "^3.34.1",
     "@tailwindcss/vite": "^4.1.12",
-    "clsx": "^2.1.1",
     "@types/react-datepicker": "^6.2.0",
+    "clsx": "^2.1.1",
     "firebase": "^12.2.1",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.542.0",
