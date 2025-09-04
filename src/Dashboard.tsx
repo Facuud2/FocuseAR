@@ -301,8 +301,76 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         <div className="user-info">
-          <div className="user-avatar">A</div>
-          <span>usuario@ejemplo.com</span>
+          <div className="user-avatar">
+            {user?.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt="Avatar"
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '2px solid #4285F4',
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  backgroundColor: '#4285F4',
+                  color: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  border: '2px solid #4285F4',
+                }}
+              >
+                {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+              </div>
+            )}
+          </div>
+          <div
+            style={{
+              marginLeft: '12px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            {user?.displayName ? (
+              <>
+                <span
+                  style={{
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    lineHeight: '1.2',
+                  }}
+                >
+                  {user.displayName.split(' ')[0]}
+                </span>
+                <span
+                  style={{
+                    fontSize: '14px',
+                    fontWeight: '400',
+                    lineHeight: '1.2',
+                    color: '#666',
+                  }}
+                >
+                  {user.displayName.split(' ').slice(1).join(' ')}
+                </span>
+              </>
+            ) : (
+              <span style={{ fontSize: '16px', fontWeight: '500' }}>
+                {user?.email || 'Usuario'}
+              </span>
+            )}
+          </div>
         </div>
       </header>
       <div className="content">
