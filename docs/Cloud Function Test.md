@@ -30,7 +30,7 @@ Esta Cloud Function expone un endpoint HTTP que recibe un texto y devuelve un re
 
 5. **Probar la función localmente**
    ```powershell
-   Invoke-WebRequest -Uri "http://localhost:5001/tu-proyecto/us-central1/geminiResponse" `
+   Invoke-WebRequest -Uri "GEMINI_ENDPOINT" `
      -Method POST `
      -Headers @{"Content-Type"="application/json"} `
      -Body '{"text": "Tu texto aquí"}' `
@@ -45,10 +45,10 @@ Esta Cloud Function expone un endpoint HTTP que recibe un texto y devuelve un re
 
 7. **Probar la función en la nube**
    - Endpoint:
-     `https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse`
+     `GEMINI_ENDPOINT`
    - Ejemplo PowerShell:
      ```powershell
-     Invoke-WebRequest -Uri "https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse" `
+     Invoke-WebRequest -Uri "GEMINI_ENDPOINT" `
        -Method POST `
        -Headers @{"Content-Type"="application/json"} `
        -Body '{"text": "Tu texto aquí"}' `
@@ -70,7 +70,7 @@ Esta Cloud Function expone un endpoint HTTP que recibe un texto y devuelve un re
 ## Ejemplo de request desde JavaScript (fetch)
 
 ```js
-fetch('https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse', {
+fetch('GEMINI_ENDPOINT', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ text: 'Tu texto aquí' })
