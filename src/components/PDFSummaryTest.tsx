@@ -1,3 +1,4 @@
+//importaciones
 import React, { useState } from 'react';
 import * as _pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 const pdfjsLib = _pdfjsLib as typeof import('pdfjs-dist/build/pdf.mjs');
