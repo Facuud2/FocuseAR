@@ -3,12 +3,14 @@ import './App.css';
 import { useState } from 'react'; // Importar useState de React
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+
 import ProtectedRoute from './ProtectedRoute';
 import { AuthProvider } from './AuthContext';
 import Auth from './components/Auth';
 import Dashboard from './Dashboard';
 import Sidebar from './components/Sidebar';
 import { Menu, X } from 'lucide-react'; // Importar íconos de menú y cerrar
+import PDFSummaryTest from './components/PDFSummaryTest';
 
 function AppRoutes() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Estado para controlar si el sidebar está abierto
@@ -86,6 +88,14 @@ function AppRoutes() {
                 <Dashboard />
               </div>
             </div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pdf-summary-test"
+        element={
+          <ProtectedRoute>
+            <PDFSummaryTest />
           </ProtectedRoute>
         }
       />
