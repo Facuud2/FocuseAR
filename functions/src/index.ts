@@ -14,7 +14,7 @@
  *    firebase emulators:start --only functions
  *
  * 5. Haz un POST a la función:
- *    Invoke-WebRequest -Uri "http://localhost:5001/tu-proyecto/us-central1/geminiResponse"
+ *    Invoke-WebRequest -Uri "GEMINI_ENDPOINT"
  *    -Method POST
  *    -Headers @{"Content-Type"="application/json"}
  *    -Body '{"text": "Tu texto aquí"}'
@@ -25,7 +25,7 @@
  * 7. Prueba en la nube usando la URL pública que te da Firebase.
  *
  * 8. Ejemplo de uso desde cualquier lugar (PowerShell):
- *    Invoke-WebRequest -Uri "https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse" \
+ *    Invoke-WebRequest -Uri "GEMINI_ENDPOINT" \
  *      -Method POST \
  *      -Headers @{"Content-Type"="application/json"} \
  *      -Body '{"text": "Tu texto aquí"}' \
@@ -44,12 +44,16 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import { onRequest } from 'firebase-functions/v2/https';
+import * as functions from 'firebase-functions';
+import cors from 'cors';
+import { onRequest } from 'firebase-functions/https';
 import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenAI } from '@google/genai';
 
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
+const corsHandler = cors({ origin: true });
 
+// Función original, sin CORS ni cambios, para mantener el comportamiento anterior
 export const geminiResponse = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1' },
   async (req, res) => {
@@ -57,6 +61,8 @@ export const geminiResponse = onRequest(
       res.status(405).json({ error: 'Método no permitido. Usa POST.' });
       return;
     }
+    // Log del body recibido
+    console.log('Body recibido:', req.body);
     const { text } = req.body;
     if (!text) {
       res.status(400).json({ error: "Falta el campo 'text' en el body." });
@@ -64,14 +70,57 @@ export const geminiResponse = onRequest(
     }
     try {
       const ai = new GoogleGenAI({});
+      console.log(
+        'Enviando a Gemini:',
+        `Resume el siguiente texto en español: ${text}`,
+      );
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: `Resume el siguiente texto en español: ${text}`,
       });
+      console.log('Respuesta cruda de Gemini:', response);
       res.json({ summary: response.text, source: 'gemini' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error interno';
+      console.error('Error en geminiResponse:', error);
       res.status(500).json({ error: message });
     }
+  },
+);
+
+// Nueva función para pruebas, con CORS habilitado
+export const geminiResponseTest = functions.https.onRequest(
+  { secrets: [GEMINI_API_KEY], region: 'us-central1' },
+  async (req, res) => {
+    corsHandler(req, res, async () => {
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+        return;
+      }
+      // Log del body recibido
+      console.log('Body recibido (test):', req.body);
+      const { text } = req.body;
+      if (!text) {
+        res.status(400).json({ error: "Falta el campo 'text' en el body." });
+        return;
+      }
+      try {
+        const ai = new GoogleGenAI({});
+        // Prompt fijo para extraer temas, fechas y resumen
+        const prompt = `Analiza el siguiente texto extraído de un cronograma académico o material de clase. Devuélveme:\n1. Una lista de los temas importantes que se mencionan.\n2. Una lista de fechas relevantes (con su evento o tema asociado).\n3. Un resumen general de lo que se habla en el texto.\nResponde en español, en formato claro y estructurado. Texto a analizar:\n${text}`;
+        console.log('Enviando a Gemini (test):', prompt);
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+        });
+        console.log('Respuesta cruda de Gemini (test):', response);
+        res.json({ summary: response.text, source: 'gemini' });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Error interno';
+        console.error('Error en geminiResponseTest:', error);
+        res.status(500).json({ error: message });
+      }
+    });
   },
 );

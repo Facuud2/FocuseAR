@@ -18,6 +18,7 @@
     "@types/react-datepicker": "^6.2.0",
     "firebase": "^12.2.1",
     "framer-motion": "^12.23.12",
+    "pdfjs-dist": "^5.4.149",
     "lucide-react": "^0.542.0",
     "motion": "^12.23.12",
     "react": "^19.1.1",
