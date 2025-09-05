@@ -2,6 +2,7 @@ import React, { useState, type JSX, useContext } from 'react';
 import DatabaseTester from './components/DatabaseTester';
 import { useDatabase } from './hooks/useDatabase';
 import { AuthContext } from './context/authContext';
+import SelectorDeColor from './SelectorDeColor.tsx';
 import './App.css'; // Asegúrate de que esta importación sea correcta
 
 interface Pdf {
@@ -398,17 +399,56 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="form-group">
               <label>Color</label>
-              <div className="color-options">
+              <div
+                className="color-options"
+                style={{ display: 'flex', gap: '8px' }}
+              >
                 {['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9b59b6'].map(
                   (c) => (
                     <div
                       key={c}
                       className={`color-option ${selectedColor === c ? 'selected' : ''}`}
-                      style={{ backgroundColor: c }}
+                      style={{
+                        backgroundColor: c,
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        border:
+                          selectedColor === c
+                            ? '2px solid #000'
+                            : '1px solid #ccc',
+                      }}
                       onClick={() => setSelectedColor(c)}
                     />
                   ),
                 )}
+
+                {/* Sexto botón: selector de color */}
+                <div style={{ position: 'relative' }}>
+                  <SelectorDeColor
+                    color={selectedColor}
+                    onChange={setSelectedColor}
+                  />
+                  {/* Overlay para indicar que se puede clickear */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      pointerEvents: 'none', // para que el click llegue al SelectorDeColor
+                    }}
+                    title="Elegir color"
+                  >
+                    ...
+                  </div>
+                </div>
               </div>
             </div>
 
