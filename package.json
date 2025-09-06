@@ -12,18 +12,29 @@
     "pre-commit": "lint-staged"
   },
   "dependencies": {
+    "@tabler/icons-react": "^3.34.1",
     "@tailwindcss/vite": "^4.1.12",
+    "@types/react-datepicker": "^6.2.0",
+    "clsx": "^2.1.1",
     "firebase": "^12.2.1",
     "framer-motion": "^12.23.12",
+    "lucide-react": "^0.542.0",
+    "motion": "^12.23.12",
     "pdfjs-dist": "^5.4.149",
     "react": "^19.1.1",
+    "react-color": "^2.19.3",
+    "react-colorful": "^5.6.1",
+    "react-datepicker": "^8.7.0",
     "react-dom": "^19.1.1",
     "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^7.8.2"
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.8.2",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@types/react": "^19.1.10",
+    "@types/react-color": "^3.0.13",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react-swc": "^4.0.0",
     "autoprefixer": "^10.4.21",
