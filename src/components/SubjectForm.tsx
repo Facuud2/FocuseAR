@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { HexColorPicker } from 'react-colorful';
 import { es } from 'date-fns/locale/es';
-import "react-datepicker/dist/react-datepicker.css";
+import 'react-datepicker/dist/react-datepicker.css';
 import PDFUpload from './PDFUpload';
 
 // Registrar el idioma español
@@ -21,12 +21,16 @@ interface SubjectData {
   color: string;
 }
 
-const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabled = false }) => {
+const SubjectForm: React.FC<SubjectFormProps> = ({
+  onSubmit,
+  initialData,
+  disabled = false,
+}) => {
   const [formData, setFormData] = useState<SubjectData>({
     name: initialData?.name || '',
     startDate: initialData?.startDate || new Date(),
     endDate: initialData?.endDate || new Date(),
-    color: initialData?.color || '#3B82F6' // Color azul por defecto
+    color: initialData?.color || '#3B82F6', // Color azul por defecto
   });
 
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -34,7 +38,7 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validaciones
     if (!formData.name.trim()) {
       setError('El nombre de la asignatura es obligatorio');
@@ -42,7 +46,9 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
     }
 
     if (formData.endDate < formData.startDate) {
-      setError('La fecha de finalización debe ser posterior a la fecha de inicio');
+      setError(
+        'La fecha de finalización debe ser posterior a la fecha de inicio',
+      );
       return;
     }
 
@@ -51,9 +57,12 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md"
+    >
       <h2 className="text-2xl font-bold mb-6">Crear Asignatura</h2>
-      
+
       {/* Nombre de la asignatura */}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -76,7 +85,9 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
           </label>
           <DatePicker
             selected={formData.startDate}
-            onChange={(date: Date | null) => date && setFormData({ ...formData, startDate: date })}
+            onChange={(date: Date | null) =>
+              date && setFormData({ ...formData, startDate: date })
+            }
             selectsStart
             startDate={formData.startDate}
             endDate={formData.endDate}
@@ -96,32 +107,7 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
             popperPlacement="bottom-start"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Fecha de finalización
-          </label>
-          <DatePicker
-            selected={formData.endDate}
-            onChange={(date: Date | null) => date && setFormData({ ...formData, endDate: date })}
-            selectsEnd
-            startDate={formData.startDate}
-            endDate={formData.endDate}
-            minDate={formData.startDate}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md
-                     focus:outline-none focus:ring-2 focus:ring-blue-500
-                     disabled:bg-gray-100 disabled:cursor-not-allowed"
-            dateFormat="dd/MM/yyyy"
-            locale="es"
-            placeholderText="Seleccionar fecha"
-            showMonthDropdown
-            showYearDropdown
-            dropdownMode="select"
-            isClearable
-            disabled={disabled}
-            todayButton="Hoy"
-            popperPlacement="bottom-start"
-          />
-        </div>
+        <div></div>
       </div>
 
       {/* Selector de color */}
@@ -142,7 +128,9 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
               className="w-6 h-6 rounded-md mr-2 shadow-inner"
               style={{ backgroundColor: formData.color }}
             />
-            <span className="text-gray-700 flex-grow text-left">{formData.color}</span>
+            <span className="text-gray-700 flex-grow text-left">
+              {formData.color}
+            </span>
             {!disabled && (
               <span className="text-gray-400 text-sm ml-2">
                 Clic para cambiar
@@ -151,8 +139,8 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
           </button>
           {showColorPicker && !disabled && (
             <div className="absolute z-50 mt-2">
-              <div 
-                className="fixed inset-0 bg-black bg-opacity-25" 
+              <div
+                className="fixed inset-0 bg-black bg-opacity-25"
                 onClick={() => setShowColorPicker(false)}
               />
               <div className="relative bg-white p-4 rounded-lg shadow-xl border border-gray-200">
@@ -164,11 +152,13 @@ const SubjectForm: React.FC<SubjectFormProps> = ({ onSubmit, initialData, disabl
                 />
                 <div className="mt-4 flex items-center justify-between">
                   <div className="flex items-center">
-                    <div 
+                    <div
                       className="w-8 h-8 rounded-md shadow-inner mr-2"
                       style={{ backgroundColor: formData.color }}
                     />
-                    <span className="text-sm font-medium">{formData.color.toUpperCase()}</span>
+                    <span className="text-sm font-medium">
+                      {formData.color.toUpperCase()}
+                    </span>
                   </div>
                   <button
                     type="button"

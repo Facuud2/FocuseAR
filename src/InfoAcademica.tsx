@@ -29,14 +29,12 @@ const InfoAcademica = () => {
             Crear Nueva Asignatura
           </h2>
           <p className="text-blue-600">
-            Complete el formulario para agregar una nueva asignatura a su perfil académico.
+            Complete el formulario para agregar una nueva asignatura a su perfil
+            académico.
           </p>
         </div>
-        
-        <SubjectForm 
-          onSubmit={handleSubmit}
-          disabled={isLoading}
-        />
+
+        <SubjectForm onSubmit={handleSubmit} disabled={isLoading} />
       </div>
     </div>
   );

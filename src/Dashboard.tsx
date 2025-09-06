@@ -1,9 +1,16 @@
-import React, { useState, type JSX, useContext } from 'react';
-import DatabaseTester from './components/DatabaseTester';
+import React, {
+  useState,
+  useContext,
+  useCallback,
+  type JSX,
+  useEffect,
+} from 'react';
 import { useDatabase } from './hooks/useDatabase';
 import { AuthContext } from './context/authContext';
-import SelectorDeColor from './SelectorDeColor.tsx';
-import './App.css'; // Asegúrate de que esta importación sea correcta
+import SelectorDeColor from './SelectorDeColor';
+import './App.css';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface Pdf {
   id: number;
@@ -41,14 +48,97 @@ const Dashboard: React.FC = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [subjectName, setSubjectName] = useState('');
-  const [examDate, setExamDate] = useState('');
+  const [examDate, setExamDate] = useState<Date | null>(new Date());
   const [selectedColor, setSelectedColor] = useState('#4285F4');
   const [pdfs, setPdfs] = useState<Pdf[]>([]);
   const [question, setQuestion] = useState('');
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [dragActive, setDragActive] = React.useState(false);
+  const [dragActive, setDragActive] = useState(false);
+
+  // Wrap handlePdfUpload in useCallback to prevent unnecessary re-renders
+  const handlePdfUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!e.target.files) return;
+      const files = Array.from(e.target.files);
+      if (pdfs.length + files.length > 5) {
+        alert('Máximo 5 archivos PDF permitidos');
+        return;
+      }
+      const newPdfs = files.map((file) => ({
+        id: Date.now() + Math.random(),
+        name: file.name,
+        size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+      }));
+      setPdfs((prevPdfs) => [...prevPdfs, ...newPdfs]);
+    },
+    [pdfs.length],
+  );
+
+  // Wrap generateEvents in useCallback to prevent unnecessary re-renders
+  const generateEvents = useCallback((subject: Subject) => {
+    const examDate = new Date(subject.examDate);
+    const today = new Date();
+    const daysUntilExam = Math.ceil(
+      (examDate.getTime() - today.getTime()) / (1000 * 3600 * 24),
+    );
+
+    const newEvents: Event[] = [];
+
+    // Examen
+    newEvents.push({
+      id: Date.now(),
+      subjectId: subject.id,
+      subject: subject.name,
+      type: 'exam',
+      date: subject.examDate,
+      title: `Examen: ${subject.name}`,
+      color: subject.color,
+    });
+
+    // Estudio
+    const studySessions = Math.min((daysUntilExam * 3) / 7, 15);
+    for (let i = 1; i <= studySessions; i++) {
+      const studyDate = new Date(today);
+      studyDate.setDate(
+        today.getDate() + Math.floor((i * daysUntilExam) / (studySessions + 1)),
+      );
+      newEvents.push({
+        id: Date.now() + i,
+        subjectId: subject.id,
+        subject: subject.name,
+        type: 'study',
+        date: studyDate.toISOString().split('T')[0],
+        title: `Estudio: ${subject.name}`,
+        color: subject.color,
+      });
+    }
+
+    // Repaso
+    if (daysUntilExam > 7) {
+      const reviewDate = new Date(examDate);
+      reviewDate.setDate(reviewDate.getDate() - 2);
+      newEvents.push({
+        id: Date.now() + 999,
+        subjectId: subject.id,
+        subject: subject.name,
+        type: 'task',
+        date: reviewDate.toISOString().split('T')[0],
+        title: `Repaso: ${subject.name}`,
+        color: subject.color,
+      });
+    }
+
+    setEvents((prevEvents) => [...prevEvents, ...newEvents]);
+  }, []);
+
+  // Add cleanup for any potential subscriptions or timeouts
+  useEffect(() => {
+    return () => {
+      // Cleanup function
+    };
+  }, []);
 
   // === LOGICA DE MATERIAS Y PLANIFICACIÓN ===
   const handlePlanify = async () => {
@@ -104,7 +194,7 @@ const Dashboard: React.FC = () => {
       const newSubject: Subject = {
         id: Date.now(),
         name: subjectName,
-        examDate,
+        examDate: examDate.toISOString().split('T')[0],
         color: selectedColor,
         pdfs,
       };
@@ -113,7 +203,7 @@ const Dashboard: React.FC = () => {
       generateEvents(newSubject);
 
       setSubjectName('');
-      setExamDate('');
+      setExamDate(new Date());
       setPdfs([]);
 
       alert('Materia creada exitosamente con plan de estudio en Firestore!');
@@ -123,81 +213,10 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const generateEvents = (subject: Subject) => {
-    const examDate = new Date(subject.examDate);
-    const today = new Date();
-    const daysUntilExam = Math.ceil(
-      (examDate.getTime() - today.getTime()) / (1000 * 3600 * 24),
-    );
-
-    const newEvents: Event[] = [];
-
-    // Examen
-    newEvents.push({
-      id: Date.now(),
-      subjectId: subject.id,
-      subject: subject.name,
-      type: 'exam',
-      date: subject.examDate,
-      title: `Examen: ${subject.name}`,
-      color: subject.color,
-    });
-
-    // Estudio
-    const studySessions = Math.min((daysUntilExam * 3) / 7, 15);
-    for (let i = 1; i <= studySessions; i++) {
-      const studyDate = new Date(today);
-      studyDate.setDate(
-        today.getDate() + Math.floor((i * daysUntilExam) / (studySessions + 1)),
-      );
-      newEvents.push({
-        id: Date.now() + i,
-        subjectId: subject.id,
-        subject: subject.name,
-        type: 'study',
-        date: studyDate.toISOString().split('T')[0],
-        title: `Estudio: ${subject.name}`,
-        color: subject.color,
-      });
-    }
-
-    // Repaso
-    if (daysUntilExam > 7) {
-      const reviewDate = new Date(examDate);
-      reviewDate.setDate(reviewDate.getDate() - 2);
-      newEvents.push({
-        id: Date.now() + 999,
-        subjectId: subject.id,
-        subject: subject.name,
-        type: 'task',
-        date: reviewDate.toISOString().split('T')[0],
-        title: `Repaso: ${subject.name}`,
-        color: subject.color,
-      });
-    }
-
-    setEvents((prev) => [...prev, ...newEvents]);
-  };
-
   // === LOGICA DE PDFs ===
-  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    if (pdfs.length + files.length > 5) {
-      alert('Máximo 5 PDF');
-      return;
-    }
-    const newPdfs = files.map((file) => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-    }));
-    setPdfs([...pdfs, ...newPdfs]);
-  };
-
-  const removePdf = (id: number) => {
-    setPdfs(pdfs.filter((p) => p.id !== id));
-  };
+  // const removePdf = (id: number) => {
+  //   setPdfs(pdfs.filter((p) => p.id !== id));
+  // };
 
   // === LOGICA DEL CALENDARIO ===
   const monthNames = [
@@ -390,11 +409,25 @@ const Dashboard: React.FC = () => {
               />
             </div>
             <div className="form-group">
-              <label>Fecha de Examen</label>
-              <input
-                type="date"
-                value={examDate}
-                onChange={(e) => setExamDate(e.target.value)}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Fecha de Examen
+              </label>
+              <DatePicker
+                selected={examDate}
+                onChange={(date: Date | null) => setExamDate(date)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md
+                         focus:outline-none focus:ring-2 focus:ring-blue-500
+                         disabled:bg-gray-100 disabled:cursor-not-allowed"
+                dateFormat="dd/MM/yyyy"
+                locale="es"
+                placeholderText="Seleccionar fecha de examen"
+                showMonthDropdown
+                showYearDropdown
+                dropdownMode="select"
+                isClearable
+                minDate={new Date()}
+                todayButton="Hoy"
+                popperPlacement="bottom-start"
               />
             </div>
             <div className="form-group">
@@ -453,12 +486,14 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* PDFs */}
-            <div className="pdf-section">
-              <h3>
-                <i className="fas fa-file-pdf"></i> Material (PDF)
+            <div className="pdf-section mt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">
+                <i className="fas fa-file-pdf mr-2"></i>
+                Subida de PDF (Programa o cronograma de la asignatura)
               </h3>
+
               <div
-                className={`upload-area${dragActive ? ' dragover' : ''}`}
+                className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400'}`}
                 onClick={() => document.getElementById('pdf-upload')?.click()}
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -472,7 +507,7 @@ const Dashboard: React.FC = () => {
                     (f) => f.type === 'application/pdf',
                   );
                   if (pdfs.length + files.length > 5) {
-                    alert('Máximo 5 PDF');
+                    alert('Máximo 5 archivos PDF permitidos');
                     return;
                   }
                   const newPdfs = files.map((file) => ({
@@ -482,66 +517,62 @@ const Dashboard: React.FC = () => {
                   }));
                   setPdfs([...pdfs, ...newPdfs]);
                 }}
-                style={{ cursor: 'pointer' }}
               >
-                <input
-                  id="pdf-upload"
-                  type="file"
-                  multiple
-                  accept=".pdf"
-                  style={{ display: 'none' }}
-                  onChange={handlePdfUpload}
-                />
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                  }}
-                >
-                  <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
-                    <path
-                      d="M24 32V18M24 18L18 24M24 18L30 24"
-                      stroke="#4285F4"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                    <path
-                      d="M36 36H12C8.68629 36 6 33.3137 6 30C6 26.6863 8.68629 24 12 24H14.5C15.3284 24 16 23.3284 16 22.5C16 19.4624 18.4624 17 21.5 17C23.9853 17 26 19.0147 26 21.5V22.5C26 23.3284 26.6716 24 27.5 24H36C39.3137 24 42 26.6863 42 30C42 33.3137 39.3137 36 36 36Z"
-                      stroke="#4285F4"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <span
-                    style={{
-                      marginTop: '10px',
-                      color: '#4285F4',
-                      fontWeight: '500',
-                      fontSize: '15px',
-                      textAlign: 'center',
-                    }}
-                  >
-                    Haz click o arrastra el contenido de la materia
-                  </span>
+                <div className="flex flex-col items-center justify-center py-4">
+                  <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                  <p className="text-sm text-gray-600">
+                    Arrastra y suelta archivos PDF aquí o haz clic para
+                    seleccionar
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Tamaño máximo por archivo: 10MB
+                  </p>
                 </div>
               </div>
-              <div className="pdf-list">
-                {pdfs.length === 0 ? (
-                  <p>No hay PDFs</p>
-                ) : (
-                  pdfs.map((p) => (
-                    <div key={p.id} className="pdf-item">
-                      <span>
-                        {p.name} ({p.size})
-                      </span>
-                      <button onClick={() => removePdf(p.id)}>X</button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+              <input
+                id="pdf-upload"
+                type="file"
+                accept="application/pdf"
+                multiple
+                onChange={handlePdfUpload}
+                className="hidden"
+              />
 
+              {/* Lista de PDFs seleccionados */}
+              {pdfs.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-sm font-medium text-gray-700">
+                    Archivos seleccionados:
+                  </p>
+                  <div className="space-y-2">
+                    {pdfs.map((pdf) => (
+                      <div
+                        key={pdf.id}
+                        className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                      >
+                        <div className="flex items-center">
+                          <i className="fas fa-file-pdf text-red-500 mr-2"></i>
+                          <span className="text-sm text-gray-700 truncate max-w-xs">
+                            {pdf.name}
+                          </span>
+                          <span className="text-xs text-gray-500 ml-2">
+                            {pdf.size}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() =>
+                            setPdfs(pdfs.filter((p) => p.id !== pdf.id))
+                          }
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <i className="fas fa-times"></i>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               className="planify-btn"
               onClick={handlePlanify}
@@ -654,11 +685,6 @@ const Dashboard: React.FC = () => {
                 })}
               </div>
             )}
-          </div>
-
-          {/* Probador de Base de Datos */}
-          <div className="panel">
-            <DatabaseTester />
           </div>
         </div>
 
