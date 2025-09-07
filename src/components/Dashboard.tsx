@@ -5,10 +5,10 @@ import React, {
   type JSX,
   useEffect,
 } from 'react';
-import { useDatabase } from './hooks/useDatabase';
-import { AuthContext } from './context/authContext';
+import { useDatabase } from '../hooks/useDatabase';
+import { AuthContext } from '../hooks/authContext';
 import SelectorDeColor from './SelectorDeColor';
-import './App.css';
+import '../App.css';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
