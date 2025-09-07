@@ -1,7 +1,7 @@
-import SubjectForm from './components/SubjectForm';
+import SubjectForm from './SubjectForm';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import type { SubjectData } from './types/subject';
+import type { SubjectData } from '../types/subject';
 
 const InfoAcademica = () => {
   const [isLoading, setIsLoading] = useState(false);

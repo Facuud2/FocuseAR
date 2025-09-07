@@ -1,7 +1,7 @@
 import { useState, useCallback, useContext } from 'react';
 import { DatabaseService } from '../services/DatabaseService';
 import type { Material, StudyPlan } from '../services/DatabaseService';
-import { AuthContext } from '../context/authContext';
+import { AuthContext } from './authContext';
 
 export const useDatabase = () => {
   const { user } = useContext(AuthContext);

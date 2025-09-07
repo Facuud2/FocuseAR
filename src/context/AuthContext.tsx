@@ -6,9 +6,9 @@ import {
   type User,
   type AuthError,
 } from 'firebase/auth';
-import { auth, googleProvider } from './firebase';
-import { AuthContext } from './context/authContext';
-import { DatabaseService } from './services/DatabaseService';
+import { auth, googleProvider } from '../firebase';
+import { AuthContext } from '../hooks/authContext';
+import { DatabaseService } from '../services/DatabaseService';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
