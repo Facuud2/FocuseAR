@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import * as _pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
 const pdfjsLib = _pdfjsLib as typeof import('pdfjs-dist/build/pdf.mjs');
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+const CMAP_URL = 'https://unpkg.com/pdfjs-dist@3.4.120/cmaps/';
+const STANDARD_FONT_DATA_URL =
+  'https://unpkg.com/pdfjs-dist@3.4.120/standard_fonts/';
 
 const PDFSummaryTest: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -26,7 +29,12 @@ const PDFSummaryTest: React.FC = () => {
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const pdf = await pdfjsLib.getDocument({
+      data: arrayBuffer,
+      cMapUrl: CMAP_URL,
+      standardFontDataUrl: STANDARD_FONT_DATA_URL,
+      cMapPacked: true,
+    }).promise;
     let fullText = '';
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
