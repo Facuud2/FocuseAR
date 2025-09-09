@@ -1,4 +1,4 @@
-// --- START OF FILE Sidebar.tsx (Updated with new CSS classes) ---
+// src/components/Sidebar.tsx
 import { Outlet } from 'react-router-dom';
 
 import './Sidebar.css';
@@ -16,7 +16,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 
-// Definimos las propiedades que el componente recibirá.
+// Define the properties that the component will receive.
 interface SidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
@@ -27,42 +27,85 @@ interface SidebarProps {
 export default function Sidebar({
   activeSection,
   onSectionChange,
+  isSidebarOpen,
 }: SidebarProps) {
   const menuSections = [
     {
       title: 'Dashboard',
       items: [
-        { id: 'overview', label: 'Overview', icon: Home },
-        { id: 'schedule', label: 'Study Schedule', icon: Clock },
+        { id: 'overview', label: 'Overview', icon: Home, path: '/dashboard' },
+        {
+          id: 'schedule',
+          label: 'Study Schedule',
+          icon: Clock,
+          path: '/study-schedule',
+        },
       ],
     },
     {
       title: 'Study Management',
       items: [
-        { id: 'subjects', label: 'Subjects', icon: BookOpen },
-        { id: 'documents', label: 'Documents', icon: FileText },
-        { id: 'pomodoro', label: 'Pomodoro Timer', icon: Timer },
-        { id: 'ai-planner', label: 'AI Planner', icon: Brain },
-        { id: 'profile', label: 'Profile', icon: User },
+        {
+          id: 'subjects',
+          label: 'Subjects',
+          icon: BookOpen,
+          path: '/subjects',
+        },
+        {
+          id: 'documents',
+          label: 'Documents',
+          icon: FileText,
+          path: '/documents',
+        },
+        {
+          id: 'pomodoro',
+          label: 'Pomodoro Timer',
+          icon: Timer,
+          path: '/pomodoro',
+        },
+        {
+          id: 'ai-planner',
+          label: 'AI Planner',
+          icon: Brain,
+          path: '/ai-planner',
+        },
+        { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
       ],
     },
     {
       title: 'Analytics',
       items: [
-        { id: 'progress', label: 'Progress', icon: TrendingUp },
-        { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+        {
+          id: 'progress',
+          label: 'Progress',
+          icon: TrendingUp,
+          path: '/progress',
+        },
+        {
+          id: 'analytics',
+          label: 'Analytics',
+          icon: BarChart3,
+          path: '/analytics',
+        },
       ],
     },
     {
       title: 'Settings',
-      items: [{ id: 'settings', label: 'Settings', icon: Settings }],
+      items: [
+        {
+          id: 'settings',
+          label: 'Account Settings',
+          icon: Settings,
+          path: '/settings',
+        },
+      ],
     },
   ];
 
   return (
     <>
-      <aside className="sidebar-container">
-        {/* Sección del Logo */}
+      <aside className={`sidebar-container ${isSidebarOpen ? '' : 'closed'}`}>
+        {/* Logo Section */}
         <div className="sidebar-logo-section">
           <div className="sidebar-logo-icon">
             <BookOpen />
@@ -71,7 +114,7 @@ export default function Sidebar({
           <p className="sidebar-logo-subtext">AI Study Planner</p>
         </div>
 
-        {/* Navegación principal */}
+        {/* Main Navigation */}
         <nav className="sidebar-nav">
           {menuSections.map((section) => (
             <div key={section.title} className="sidebar-section">
@@ -79,13 +122,14 @@ export default function Sidebar({
               <div>
                 {section.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = activeSection === item.id;
+                  // Aquí se usa la prop `activeSection` para determinar el estado activo
+                  const isActive = activeSection === item.path;
                   return (
                     <button
                       key={item.id}
                       className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
                       onClick={() => {
-                        onSectionChange(item.id);
+                        onSectionChange(item.path);
                       }}
                     >
                       <Icon className="sidebar-nav-icon" />
@@ -98,7 +142,7 @@ export default function Sidebar({
           ))}
         </nav>
 
-        {/* Sección de "Need Help?" al final */}
+        {/* "Need Help?" Section at the end */}
         <div className="sidebar-help-section">
           <div className="sidebar-help-content">
             <div className="sidebar-help-header">
@@ -119,4 +163,3 @@ export default function Sidebar({
     </>
   );
 }
-// --- END OF FILE Sidebar.tsx ---

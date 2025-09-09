@@ -45,6 +45,11 @@ body {
   padding: 0;
   color: var(--text-primary);
   line-height: 1.6;
+  background: linear-gradient(135deg, #b7e9ff 0%, #286fb6 100%);
+  display: flex;
+  justify-content: center; /* Centra el contenido horizontalmente */
+  align-items: center; /* Centra el contenido verticalmente */
+  height: 130vh
 }
 
 

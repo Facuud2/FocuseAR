@@ -45,8 +45,8 @@ body {
 /* ===== LAYOUT PRINCIPAL ===== */
 .dormir {
   min-height: 100px;
-  background: linear-gradient(135deg, #1668ea 0%, #abd5ff 100%);
-  height: 240vh;
+  background: linear-gradient(135deg, #b7e9ff 0%, #286fb6 100%);
+  height: 340vh;
   width: 173vh;
 }
 
