@@ -1,3 +1,18 @@
+// Tipado explícito para los días del plan de estudio
+type StudyPlanDay = {
+  date: string;
+  dayNumber: number;
+  topics: {
+    name: string;
+    summary: string;
+    estimatedTime: string;
+  }[];
+  totalTime: string;
+  recommendations: string;
+  completed: boolean;
+  title?: string;
+};
+
 import React, { useState, type JSX /* useEffect */ } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { useContext } from 'react';
@@ -30,16 +45,6 @@ interface Subject {
   }[];
 }
 
-interface Event {
-  id: number;
-  subjectId: number;
-  subject: string;
-  type: 'exam' | 'study' | 'task';
-  date: string;
-  title: string;
-  color: string;
-}
-
 interface Topic {
   id: number;
   name: string;
@@ -56,7 +61,7 @@ const Dashboard: React.FC = () => {
   const { loading: dbLoading, error: dbError } = useDatabase();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [events] = useState<Event[]>([]);
+  // const [events] = useState<Event[]>([]); // Eliminado: no se usa
   const [subjectName, setSubjectName] = useState('');
   const [selectedColor, setSelectedColor] = useState('#4285F4');
 
@@ -118,6 +123,18 @@ const Dashboard: React.FC = () => {
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  // Estado para el día seleccionado en el calendario
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<
+    string | null
+  >(null);
+  // Estado para mostrar el modal de detalles del día
+  const [showDayModal, setShowDayModal] = useState(false);
+  // Estado para almacenar los detalles del día seleccionado
+  const [selectedDayDetails, setSelectedDayDetails] = useState<Array<{
+    planId: number;
+    day: StudyPlanDay;
+    color?: string;
+  }> | null>(null);
   const [dragActive, setDragActive] = React.useState(false);
 
   // Estados para el análisis de PDF
@@ -645,6 +662,29 @@ Genera el JSON del plan de estudio:`;
     setCurrentYear(y);
   };
 
+  // Días del plan de estudio (puede haber varios planes en el mismo día)
+  const studyPlanDays: {
+    [date: string]: Array<{
+      planId: number;
+      day: StudyPlanDay;
+      color?: string;
+    }>;
+  } = {};
+  studyPlans.forEach((plan) => {
+    if (plan.structuredPlan && Array.isArray(plan.structuredPlan.days)) {
+      plan.structuredPlan.days.forEach((day: StudyPlanDay) => {
+        if (!studyPlanDays[day.date]) studyPlanDays[day.date] = [];
+        // Buscar color de la materia si existe
+        const subject = subjects.find((s) => s.name === plan.subjectName);
+        studyPlanDays[day.date].push({
+          planId: plan.id,
+          day,
+          color: subject?.color,
+        });
+      });
+    }
+  });
+
   const renderDays = () => {
     const firstDay = new Date(currentYear, currentMonth, 1);
     const lastDay = new Date(currentYear, currentMonth + 1, 0);
@@ -660,23 +700,56 @@ Genera el JSON del plan de estudio:`;
       days.push(<div key={'e' + i} className="calendar-cell"></div>);
 
     for (let d = 1; d <= daysInMonth; d++) {
+      // Crear la fecha local correctamente (sin desfase de zona horaria)
+      // Formato YYYY-MM-DD local
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-      const dayEvents = events.filter((e) => e.date === dateStr);
+      const isToday =
+        today.getDate() === d &&
+        today.getMonth() === currentMonth &&
+        today.getFullYear() === currentYear;
+      const plansForDay = studyPlanDays[dateStr] || [];
       days.push(
         <div
           key={d}
-          className={`calendar-cell ${today.getDate() === d && today.getMonth() === currentMonth ? 'today' : ''}`}
+          className={`calendar-cell${isToday ? ' today' : ''}`}
+          style={{
+            cursor: plansForDay.length > 0 ? 'pointer' : 'default',
+            position: 'relative',
+          }}
+          onClick={() => {
+            if (plansForDay.length > 0) {
+              setSelectedCalendarDate(dateStr);
+              setSelectedDayDetails(plansForDay);
+              setShowDayModal(true);
+            }
+          }}
         >
           <div className="day-number">{d}</div>
-          {dayEvents.map((ev) => (
+          {/* Mostrar una bolita por cada plan en ese día */}
+          {plansForDay.length > 0 && (
             <div
-              key={ev.id}
-              className={`event event-${ev.type}`}
-              style={{ backgroundColor: ev.color }}
+              style={{
+                display: 'flex',
+                gap: 2,
+                position: 'absolute',
+                top: 4,
+                right: 4,
+              }}
             >
-              {ev.title}
+              {plansForDay.map((plan, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: plan.color || '#10b981',
+                    border: '1px solid #fff',
+                  }}
+                />
+              ))}
             </div>
-          ))}
+          )}
         </div>,
       );
     }
@@ -2559,6 +2632,115 @@ Genera el JSON del plan de estudio:`;
               {renderDays()}
             </div>
           </div>
+
+          {/* Modal de detalles del día */}
+          {showDayModal &&
+            selectedDayDetails &&
+            Array.isArray(selectedDayDetails) && (
+              <div
+                style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: '100vw',
+                  height: '100vh',
+                  background: 'rgba(0,0,0,0.3)',
+                  zIndex: 1000,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onClick={() => setShowDayModal(false)}
+              >
+                <div
+                  style={{
+                    background: 'white',
+                    borderRadius: 12,
+                    padding: 32,
+                    minWidth: 320,
+                    maxWidth: 420,
+                    boxShadow: '0 2px 16px rgba(0,0,0,0.15)',
+                    position: 'relative',
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    style={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      background: 'none',
+                      border: 'none',
+                      fontSize: 22,
+                      cursor: 'pointer',
+                    }}
+                    onClick={() => setShowDayModal(false)}
+                  >
+                    ×
+                  </button>
+                  <h3 style={{ marginBottom: 12, color: '#10b981' }}>
+                    {formatDate(selectedCalendarDate || '')}
+                  </h3>
+                  {selectedDayDetails.map((planDetail, idx: number) => (
+                    <div
+                      key={idx}
+                      style={{
+                        marginBottom: 24,
+                        borderLeft: `4px solid ${planDetail.color || '#10b981'}`,
+                        paddingLeft: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          color: planDetail.color || '#10b981',
+                          marginBottom: 4,
+                        }}
+                      >
+                        {planDetail.day.title || `Plan #${planDetail.planId}`}
+                      </div>
+                      <div style={{ marginBottom: 10 }}>
+                        <strong>Día {planDetail.day.dayNumber}</strong>
+                      </div>
+                      <div style={{ marginBottom: 10 }}>
+                        <strong>Temas:</strong>
+                        <ul style={{ margin: 0, paddingLeft: 18 }}>
+                          {planDetail.day.topics.map((topic, idx2: number) => (
+                            <li key={idx2} style={{ marginBottom: 6 }}>
+                              <span style={{ fontWeight: 500 }}>
+                                {topic.name}
+                              </span>
+                              {topic.estimatedTime && (
+                                <span style={{ color: '#666', marginLeft: 6 }}>
+                                  ({topic.estimatedTime})
+                                </span>
+                              )}
+                              <div style={{ fontSize: 13, color: '#666' }}>
+                                {topic.summary}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      {planDetail.day.recommendations && (
+                        <div
+                          style={{
+                            background: '#fef7cd',
+                            borderRadius: 6,
+                            padding: 10,
+                            color: '#92400e',
+                            fontSize: 14,
+                          }}
+                        >
+                          <strong>💡 Recomendaciones:</strong>{' '}
+                          {planDetail.day.recommendations}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
           {/* Asistente */}
           <div className="panel" style={{ padding: '20px' }}>
