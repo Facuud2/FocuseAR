@@ -19,7 +19,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Exporta los servicios de Firebase para poder usarlos en otras partes de la aplicación
-// Esto es lo que permite que tu `import { auth } from ...` funcione.
+// Esto es lo que permite que tu import { auth } from ... funcione.
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider(); // Si usas Google Sign-In

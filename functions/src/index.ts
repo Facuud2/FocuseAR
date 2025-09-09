@@ -113,15 +113,11 @@ export const geminiResponse = onRequest(
           }
         } catch (geminiError) {
           console.error('Error al llamar a Gemini:', geminiError);
-          res
-            .status(500)
-            .json({
-              error: 'Error al llamar a Gemini',
-              details:
-                geminiError instanceof Error
-                  ? geminiError.message
-                  : geminiError,
-            });
+          res.status(500).json({
+            error: 'Error al llamar a Gemini',
+            details:
+              geminiError instanceof Error ? geminiError.message : geminiError,
+          });
         }
       } catch (error) {
         const message =

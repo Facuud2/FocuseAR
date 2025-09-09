@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import './Dashboard.css';
 
 interface Pdf {
   id: number;
@@ -643,7 +644,6 @@ Genera el JSON del plan de estudio:`;
     setPdfs(pdfs.filter((p) => p.id !== id));
   };
 
-  // === LOGICA DEL CALENDARIO ===
   const monthNames = [
     'Enero',
     'Febrero',
@@ -708,8 +708,9 @@ Genera el JSON del plan de estudio:`;
     const today = new Date();
     const days: JSX.Element[] = [];
 
-    for (let i = 0; i < startDay; i++)
+    for (let i = 0; i < startDay; i++) {
       days.push(<div key={'e' + i} className="calendar-cell"></div>);
+    }
 
     for (let d = 1; d <= daysInMonth; d++) {
       // Crear la fecha local correctamente (sin desfase de zona horaria)
@@ -768,7 +769,6 @@ Genera el JSON del plan de estudio:`;
     return days;
   };
 
-  // === LOGICA DE ASISTENTE ===
   const askAI = () => {
     if (!question) return;
     setAnswers([
@@ -790,11 +790,7 @@ Genera el JSON del plan de estudio:`;
       <header>
         <div className="logo">
           <div className="logo-icon">
-            <img
-              src="/logo.png"
-              alt="FocuseAR Icon"
-              className="w-[110px] h-[110px] object-cover rounded-full"
-            />
+            <img src="/logo.png" alt="FocuseAR Icon" />
           </div>
           <div className="logo-text">
             <img src="Texto.png" alt="FocuseAR" className="focusear-title" />
@@ -804,72 +800,26 @@ Genera el JSON del plan de estudio:`;
         <div className="user-info">
           <div className="user-avatar">
             {user?.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt="Avatar"
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  border: '2px solid #4285F4',
-                }}
-              />
+              <img src={user.photoURL} alt="Avatar" />
             ) : (
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  backgroundColor: '#4285F4',
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  border: '2px solid #4285F4',
-                }}
-              >
+              <div>
                 {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
               </div>
             )}
+            <span className="online-dot"></span>
           </div>
-          <div
-            style={{
-              marginLeft: '12px',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
+          <div className="user-details">
             {user?.displayName ? (
               <>
-                <span
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    lineHeight: '1.2',
-                  }}
-                >
+                <span className="user-name">
                   {user.displayName.split(' ')[0]}
                 </span>
-                <span
-                  style={{
-                    fontSize: '14px',
-                    fontWeight: '400',
-                    lineHeight: '1.2',
-                    color: '#666',
-                  }}
-                >
+                <span className="user-lastname">
                   {user.displayName.split(' ').slice(1).join(' ')}
                 </span>
               </>
             ) : (
-              <span style={{ fontSize: '16px', fontWeight: '500' }}>
-                {user?.email || 'Usuario'}
-              </span>
+              <span className="user-email">{user?.email || 'Usuario'}</span>
             )}
           </div>
         </div>
@@ -881,12 +831,13 @@ Genera el JSON del plan de estudio:`;
             <h2>
               <i className="fas fa-book"></i> Nueva Materia
             </h2>
-
             <div className="form-group">
               <label>Nombre</label>
               <input
+                type="text"
                 value={subjectName}
                 onChange={(e) => setSubjectName(e.target.value)}
+                placeholder="Ej: Álgebra Lineal"
               />
 
               {/* Fechas siempre visibles */}
@@ -1055,7 +1006,6 @@ Genera el JSON del plan de estudio:`;
               <h3>
                 <i className="fas fa-file-pdf"></i> Programa de la materia (PDF)
               </h3>
-
               <div
                 className={`upload-area${dragActive ? ' dragover' : ''}`}
                 onClick={() => {
@@ -1079,7 +1029,8 @@ Genera el JSON del plan de estudio:`;
                     (f) => f.type === 'application/pdf',
                   );
                   if (pdfs.length + files.length > 5) {
-                    alert('Máximo 5 archivos PDF permitidos');
+                    // Usar un modal en lugar de alert
+                    console.log('Máximo 5 archivos PDF permitidos');
                     return;
                   }
 
@@ -1255,10 +1206,10 @@ Genera el JSON del plan de estudio:`;
             <button
               className="planify-btn"
               onClick={handlePlanify}
-              disabled={dbLoading}
+              disabled={dbLoading || !user}
             >
               {dbLoading ? (
-                <span>⏳ Guardando en Firestore...</span>
+                <span>⏳ Guardando...</span>
               ) : (
                 <span>
                   <i className="fas fa-upload"></i> Cargar materia
@@ -1372,20 +1323,15 @@ Genera el JSON del plan de estudio:`;
             ) : (
               <div className="subjects-grid">
                 {subjects.map((subject) => {
-                  // Generar ícono basado en la inicial de la materia
                   const initial = subject.name.charAt(0).toUpperCase();
                   return (
-                    <div
-                      key={subject.id}
-                      className="subject-card"
-                      style={{ borderLeft: `4px solid ${subject.color}` }}
-                    >
+                    <div key={subject.id} className="subject-card">
                       <div className="subject-header">
                         <div
                           className="subject-icon"
                           style={{ backgroundColor: subject.color }}
                         >
-                          <span className="subject-initial">{initial}</span>
+                          <span>{initial}</span>
                         </div>
                         <div className="subject-info">
                           <h3 className="subject-name">{subject.name}</h3>
