@@ -1,6 +1,6 @@
 // src/components/PomodoroTimer.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './PomodoroTimer.css';
 import { Play, Pause, RotateCcw, Coffee, Sun, Brain } from 'lucide-react';
 
