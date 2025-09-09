@@ -19,39 +19,26 @@ export class PDFProcessor {
     'https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse';
 
   /**
-   * Procesa un PDF y extrae los temas usando Gemini AI
+   * Procesa el texto extraído de un PDF y extrae los temas usando Gemini AI
    */
-  static async processPDFWithGemini(
-    file: File,
+  static async processPDFTextWithGemini(
+    text: string,
     subjectName: string,
   ): Promise<PDFProcessingResult> {
     try {
-      console.log('🚀 INICIANDO PROCESAMIENTO DE PDF CON IA');
-      console.log(
-        `📄 Archivo: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`,
-      );
-      console.log(`📚 Materia: ${subjectName}`);
+      console.log('🚀 INICIANDO PROCESAMIENTO DE TEXTO DE PDF CON IA');
+      console.log(` Materia: ${subjectName}`);
+      console.log(`📝 Longitud del texto: ${text.length} caracteres`);
 
-      // 1. Convertir PDF a Base64 para enviar directamente
-      console.log('🔄 PASO 1: Convirtiendo PDF a Base64...');
-      const base64Data = await this.fileToBase64(file);
-      console.log('✅ PDF convertido a Base64 exitosamente');
-      console.log(`📏 Tamaño Base64: ${base64Data.length} caracteres`);
-
-      // 2. Crear prompt específico para extracción de temas
-      console.log('📝 PASO 2: Creando prompt para Gemini AI...');
-      const prompt = this.createTopicExtractionPromptWithBase64(
+      // Crear prompt específico para extracción de temas
+      const prompt = this.createTopicExtractionPromptWithText(
         subjectName,
-        base64Data,
-        file.name,
+        text,
       );
       console.log('✅ Prompt creado exitosamente');
       console.log(`📏 Longitud del prompt: ${prompt.length} caracteres`);
 
-      // 3. Llamar a la función Gemini
-      console.log('🤖 PASO 3: Enviando solicitud a Gemini AI...');
-      console.log(`🌐 URL de la función: ${this.GEMINI_FUNCTION_URL}`);
-
+      // Llamar a la función Gemini
       const response = await fetch(this.GEMINI_FUNCTION_URL, {
         method: 'POST',
         headers: {
@@ -74,11 +61,10 @@ export class PDFProcessor {
       console.log('✅ Respuesta JSON parseada exitosamente');
       console.log('📊 Contenido de la respuesta:', result);
 
-      // 4. Procesar respuesta de Gemini
-      console.log('🔄 PASO 4: Procesando respuesta de Gemini...');
+      // Procesar respuesta de Gemini
       return this.parseGeminiResponse(result);
     } catch (error) {
-      console.error('❌ Error procesando PDF:', error);
+      console.error('❌ Error procesando texto de PDF:', error);
       return {
         topics: [],
         summary: '',
@@ -89,78 +75,21 @@ export class PDFProcessor {
   }
 
   /**
-   * Convierte un archivo a Base64
+   * Crea el prompt específico para extraer temas del PDF usando texto plano
+   * NO BORRAR {{"topics":[{"id":"tema_1","name":"Tema 1","order":1}]} O UTILIZARLO EN EL SIGUIENTE PROMPT
    */
-  private static fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remover el prefijo "data:application/pdf;base64,"
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = (error) => reject(error);
-    });
-  }
-
-  /**
-   * Crea el prompt específico para extraer temas del PDF usando Base64
-   */
-  private static createTopicExtractionPromptWithBase64(
+  private static createTopicExtractionPromptWithText(
     subjectName: string,
-    base64Data: string,
-    fileName: string,
+    text: string,
   ): string {
     return `
-Eres un asistente especializado en análisis de programas académicos universitarios.
-
-TAREA: Analiza el programa de la materia "${subjectName}" y extrae ÚNICAMENTE los temas PRINCIPALES de estudio.
-
-ARCHIVO: ${fileName}
-CONTENIDO PDF (Base64): ${base64Data.substring(0, 1000)}...
-
-CRITERIOS DE SELECCIÓN - SOLO incluye:
-1. UNIDADES TEMÁTICAS PRINCIPALES (ej: "Álgebra Lineal", "Cálculo Diferencial")
-2. CAPÍTULOS PRINCIPALES del programa académico
-3. MÓDULOS DE ESTUDIO centrales de la materia
-4. TEMAS que aparezcan en el índice o tabla de contenidos principal
-
-NO incluyas:
-- Subtemas específicos o detalles menores
-- Ejercicios o actividades particulares
-- Metodologías de evaluación
-- Bibliografía o referencias
-- Fechas, horarios o información administrativa
-- Objetivos generales o competencias
-
-LÍMITES:
-- MÁXIMO 30 temas principales
-- Prioriza los temas más importantes y centrales
-- Si hay más de 30, selecciona los más relevantes para el estudio
-
-FORMATO DE RESPUESTA (JSON):
-{
-  "topics": [
-    {
-      "id": "tema_1",
-      "name": "Nombre del Tema Principal",
-      "description": "Breve descripción del alcance del tema",
-      "order": 1
-    }
-  ],
-  "summary": "Resumen de los temas principales identificados en el programa"
-}
-
-IMPORTANTE:
-- Responde SOLO con el JSON válido
-- No agregues texto adicional antes o después del JSON
-- Máximo 30 temas en total
-- Solo temas PRINCIPALES, no subtemas
-- Los IDs deben ser únicos y usar formato snake_case
-
-Analiza el contenido del PDF y extrae ÚNICAMENTE los temas principales de estudio:`;
+Eres un asistente de planificación de estudios. Analiza el siguiente texto del programa de la materia "${subjectName}" y genera un plan de estudio diario.
+El plan debe ser un JSON con la siguiente estructura:
+{{"topics":[{"id":"tema_1","name":"Tema 1","order":1}]}
+No incluyas resúmenes, recomendaciones ni texto adicional. Solo el tema, el día y la cantidad de horas por día.
+Texto extraído del PDF:
+${text.substring(0, 2000)}
+`;
   }
 
   /**
@@ -215,11 +144,32 @@ Analiza el contenido del PDF y extrae ÚNICAMENTE los temas principales de estud
       console.log('✅ JSON parseado exitosamente');
       console.log('📊 Estructura parseada:', parsedData);
 
+      // Si no hay topics, intentar parsear el campo summary como JSON
       if (!parsedData.topics || !Array.isArray(parsedData.topics)) {
-        console.log('❌ Error: No se encontraron temas en la respuesta');
-        throw new Error(
-          'Formato de respuesta inválido: no se encontraron temas',
+        console.log(
+          '⚠️ No se encontraron temas en el primer intento. Intentando parsear summary...',
         );
+        if (parsedData.summary && typeof parsedData.summary === 'string') {
+          try {
+            const summaryParsed = JSON.parse(parsedData.summary);
+            if (summaryParsed.topics && Array.isArray(summaryParsed.topics)) {
+              console.log('✅ Temas encontrados dentro de summary.');
+              parsedData.topics = summaryParsed.topics;
+              parsedData.summary = summaryParsed.summary || parsedData.summary;
+            } else {
+              throw new Error('No se encontraron temas en summary');
+            }
+          } catch (e) {
+            console.log('❌ Error parseando summary:', e);
+            throw new Error(
+              'Formato de respuesta inválido: no se encontraron temas',
+            );
+          }
+        } else {
+          throw new Error(
+            'Formato de respuesta inválido: no se encontraron temas',
+          );
+        }
       }
 
       console.log(
@@ -270,7 +220,7 @@ Analiza el contenido del PDF y extrae ÚNICAMENTE los temas principales de estud
 
       return {
         topics,
-        summary: parsedData.summary || 'Programa procesado exitosamente',
+        summary: '', // No incluir summary en la respuesta final
         success: true,
       };
     } catch (error) {

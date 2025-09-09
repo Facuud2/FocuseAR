@@ -3,6 +3,7 @@ import { useDatabase } from '../hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from '../hooks/authContext';
 import { PDFProcessor, type ExtractedTopic } from '../services/PDFProcessor';
+import { extractTextFromPDF } from '../services/PDFTextExtractor';
 import SelectorDeColor from './SelectorDeColor';
 import { AnalysisModal } from './AnalysisModal';
 import { format } from 'date-fns';
@@ -563,86 +564,42 @@ Genera el JSON del plan de estudio:`;
 
   const processPDFWithGemini = async (file: File) => {
     if (!subjectName.trim()) {
-      console.log('⚠️ ADVERTENCIA: No se ingresó nombre de materia');
       alert('Por favor ingresa el nombre de la materia antes de subir el PDF');
       return;
     }
-
-    console.log('🎯 INICIANDO PROCESAMIENTO EN DASHBOARD');
-    console.log(`📋 Materia seleccionada: "${subjectName}"`);
-    console.log(`📄 Archivo a procesar: ${file.name}`);
-
     updateAnalysisStatus({
       isAnalyzing: true,
       progress: 10,
-      statusMessage: 'Iniciando análisis del PDF...',
+      statusMessage: 'Extrayendo texto del PDF...',
     });
-
     try {
+      // 1. Extraer texto del PDF
+      const text = await extractTextFromPDF(file);
       updateAnalysisStatus({
-        progress: 30,
-        statusMessage: 'Procesando contenido con IA...',
+        progress: 40,
+        statusMessage: 'Enviando texto a la IA...',
       });
-
-      const result = await PDFProcessor.processPDFWithGemini(file, subjectName);
-
+      // 2. Procesar texto con Gemini
+      const result = await PDFProcessor.processPDFTextWithGemini(
+        text,
+        subjectName,
+      );
       if (result.success) {
         updateAnalysisStatus({
           progress: 100,
           statusMessage: '¡Análisis completado!',
         });
-
-        // Small delay to show 100% before closing
         await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        console.log('📥 RESULTADO RECIBIDO DEL PROCESADOR:');
-        console.log('✨ Éxito:', result.success);
-        console.log('📊 Número de temas:', result.topics?.length || 0);
-        console.log('📝 Resumen:', result.summary);
-        if (result.error) console.log('❌ Error:', result.error);
-
-        if (result.success) {
-          console.log('🎉 PROCESAMIENTO EXITOSO - GUARDANDO TEMAS EN ESTADO');
-          setExtractedTopics(result.topics);
-
-          console.log('📚 TEMAS GUARDADOS EN EL ESTADO:');
-          result.topics.forEach((topic, index) => {
-            console.log(
-              `   ${index + 1}. ID: ${topic.id} | Nombre: "${topic.name}"`,
-            );
-            if (topic.description) {
-              console.log(`      📝 Descripción: "${topic.description}"`);
-            }
-          });
-
-          console.log(
-            '✅ Los temas ahora están disponibles en la sección de Planificación',
-          );
-          alert(
-            `¡Éxito! Se extrajeron ${result.topics.length} temas del PDF. Puedes verlos en la sección de Planificación.`,
-          );
-        } else {
-          console.error('❌ PROCESAMIENTO FALLÓ');
-          console.error('🔍 Detalles del error:', result.error);
-          alert(`Error procesando PDF: ${result.error}`);
-        }
+        setExtractedTopics(result.topics);
+        alert(
+          `¡Éxito! Se extrajeron ${result.topics.length} temas del PDF. Puedes verlos en la sección de Planificación.`,
+        );
       } else {
-        throw new Error(result.error || 'Error desconocido al procesar el PDF');
+        alert(`Error procesando PDF: ${result.error}`);
       }
-    } catch (error) {
-      console.error('💥 EXCEPCIÓN EN PROCESAMIENTO:');
-      console.error('🔍 Tipo de error:', typeof error);
-      console.error(
-        '📄 Mensaje:',
-        error instanceof Error ? error.message : String(error),
-      );
-      console.error(
-        '🔗 Stack trace:',
-        error instanceof Error ? error.stack : 'No disponible',
-      );
+    } catch {
       alert('Error procesando el PDF. Inténtalo de nuevo.');
     } finally {
-      // Small delay before hiding the modal
       setTimeout(() => {
         updateAnalysisStatus({
           isAnalyzing: false,

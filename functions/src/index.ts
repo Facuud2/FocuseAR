@@ -80,32 +80,53 @@ export const geminiResponse = onRequest(
 
         let prompt;
         if (isTopicExtraction) {
-          // Para extracción de temas, usar el prompt tal como viene
-          prompt = text;
+          // Limitar el tamaño del prompt para evitar errores de tokens
+          prompt = text.substring(0, 8000);
           console.log('Procesando extracción de temas del PDF');
         } else {
           // Para resúmenes normales, usar el formato original
-          prompt = `Resume el siguiente texto en español: ${text}`;
+          prompt = `Resume el siguiente texto en español: ${text.substring(0, 8000)}`;
           console.log('Procesando resumen normal');
         }
 
-        console.log('Enviando a Gemini:', prompt.substring(0, 200) + '...');
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-        });
-        console.log('Respuesta cruda de Gemini:', response);
+        console.log(
+          'Enviando a Gemini (primeros 200 chars):',
+          prompt.substring(0, 200),
+        );
+        try {
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: prompt }],
+              },
+            ],
+          });
+          console.log('Respuesta cruda de Gemini:', response);
 
-        // Devolver en formato compatible
-        if (isTopicExtraction) {
-          res.json({ raw_response: response.text, source: 'gemini' });
-        } else {
-          res.json({ summary: response.text, source: 'gemini' });
+          // Devolver en formato compatible
+          if (isTopicExtraction) {
+            res.json({ raw_response: response.text, source: 'gemini' });
+          } else {
+            res.json({ summary: response.text, source: 'gemini' });
+          }
+        } catch (geminiError) {
+          console.error('Error al llamar a Gemini:', geminiError);
+          res
+            .status(500)
+            .json({
+              error: 'Error al llamar a Gemini',
+              details:
+                geminiError instanceof Error
+                  ? geminiError.message
+                  : geminiError,
+            });
         }
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Error interno';
-        console.error('Error en geminiResponse:', error);
+        console.error('Error en geminiResponse (bloque externo):', error);
         res.status(500).json({ error: message });
       }
     });
@@ -135,7 +156,12 @@ export const geminiResponseTest = functions.https.onRequest(
         console.log('Enviando a Gemini (test):', prompt);
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
-          contents: prompt,
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
         });
         console.log('Respuesta cruda de Gemini (test):', response);
         res.json({ summary: response.text, source: 'gemini' });
