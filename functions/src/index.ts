@@ -53,42 +53,87 @@ import { GoogleGenAI } from '@google/genai';
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 const corsHandler = cors({ origin: true });
 
-// Función original, sin CORS ni cambios, para mantener el comportamiento anterior
+// Función principal con CORS habilitado para desarrollo y producción
 export const geminiResponse = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1' },
   async (req, res) => {
-    if (req.method !== 'POST') {
-      res.status(405).json({ error: 'Método no permitido. Usa POST.' });
-      return;
-    }
-    // Log del body recibido
-    console.log('Body recibido:', req.body);
-    const { text } = req.body;
-    if (!text) {
-      res.status(400).json({ error: "Falta el campo 'text' en el body." });
-      return;
-    }
-    try {
-      const ai = new GoogleGenAI({});
-      console.log(
-        'Enviando a Gemini:',
-        `Resume el siguiente texto en español: ${text}`,
-      );
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: `Resume el siguiente texto en español: ${text}`,
-      });
-      console.log('Respuesta cruda de Gemini:', response);
-      res.json({ summary: response.text, source: 'gemini' });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error interno';
-      console.error('Error en geminiResponse:', error);
-      res.status(500).json({ error: message });
-    }
+    corsHandler(req, res, async () => {
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+        return;
+      }
+      // Log del body recibido
+      console.log('Body recibido:', req.body);
+      const { text } = req.body;
+      if (!text) {
+        res.status(400).json({ error: "Falta el campo 'text' en el body." });
+        return;
+      }
+      try {
+        const ai = new GoogleGenAI({});
+
+        // Detectar si es un prompt de extracción de temas (contiene Base64 o palabras clave)
+        const isTopicExtraction =
+          text.includes('TAREA: Analiza el programa') ||
+          text.includes('FORMATO DE RESPUESTA (JSON)') ||
+          text.includes('Base64');
+
+        let prompt;
+        if (isTopicExtraction) {
+          // Limitar el tamaño del prompt para evitar errores de tokens
+          prompt = text.substring(0, 8000);
+          console.log('Procesando extracción de temas del PDF');
+        } else {
+          // Para resúmenes normales, usar el formato original
+          prompt = `Resume el siguiente texto en español: ${text.substring(0, 8000)}`;
+          console.log('Procesando resumen normal');
+        }
+
+        console.log(
+          'Enviando a Gemini (primeros 200 chars):',
+          prompt.substring(0, 200),
+        );
+        try {
+          const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: prompt }],
+              },
+            ],
+          });
+          console.log('Respuesta cruda de Gemini:', response);
+
+          // Devolver en formato compatible
+          if (isTopicExtraction) {
+            res.json({ raw_response: response.text, source: 'gemini' });
+          } else {
+            res.json({ summary: response.text, source: 'gemini' });
+          }
+        } catch (geminiError) {
+          console.error('Error al llamar a Gemini:', geminiError);
+          res
+            .status(500)
+            .json({
+              error: 'Error al llamar a Gemini',
+              details:
+                geminiError instanceof Error
+                  ? geminiError.message
+                  : geminiError,
+            });
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Error interno';
+        console.error('Error en geminiResponse (bloque externo):', error);
+        res.status(500).json({ error: message });
+      }
+    });
   },
 );
 
-// Nueva función para pruebas, con CORS habilitado
+// Función de prueba mantenida para compatibilidad
 export const geminiResponseTest = functions.https.onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1' },
   async (req, res) => {
@@ -111,7 +156,12 @@ export const geminiResponseTest = functions.https.onRequest(
         console.log('Enviando a Gemini (test):', prompt);
         const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
-          contents: prompt,
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
         });
         console.log('Respuesta cruda de Gemini (test):', response);
         res.json({ summary: response.text, source: 'gemini' });
