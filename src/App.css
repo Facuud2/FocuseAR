@@ -84,6 +84,7 @@ header {
   padding: 2rem 3rem;
   margin-bottom: 2.5rem;
   transition: var(--transition);
+  width: 100%;
 }
 
 .logo {
