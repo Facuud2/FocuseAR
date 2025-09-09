@@ -5,6 +5,10 @@ import { AuthContext } from '../hooks/authContext';
 import { PDFProcessor, type ExtractedTopic } from '../services/PDFProcessor';
 import SelectorDeColor from './SelectorDeColor';
 import { AnalysisModal } from './AnalysisModal';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface Pdf {
   id: number;
@@ -56,11 +60,11 @@ const Dashboard: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState('#4285F4');
 
   // Estados para el formulario de fechas
-  const [firstPartialDate, setFirstPartialDate] = useState('');
-  const [secondPartialDate, setSecondPartialDate] = useState('');
-  const [tpDate, setTpDate] = useState('');
+  const [firstPartialDate, setFirstPartialDate] = useState<Date | null>(null);
+  const [secondPartialDate, setSecondPartialDate] = useState<Date | null>(null);
+  const [tpDate, setTpDate] = useState<Date | null>(null);
   const [otherDates, setOtherDates] = useState<
-    { id: number; name: string; date: string }[]
+    { id: number; name: string; date: Date | null }[]
   >([]);
 
   // Estados para la planificación
@@ -138,24 +142,28 @@ const Dashboard: React.FC = () => {
     if (firstPartialDate)
       importantDates.push({
         name: 'Primer Parcial',
-        date: firstPartialDate,
+        date: format(firstPartialDate, 'yyyy-MM-dd'),
         type: 'exam',
       });
     if (secondPartialDate)
       importantDates.push({
         name: 'Segundo Parcial',
-        date: secondPartialDate,
+        date: format(secondPartialDate, 'yyyy-MM-dd'),
         type: 'exam',
       });
     if (tpDate)
       importantDates.push({
         name: 'Trabajo Práctico',
-        date: tpDate,
+        date: format(tpDate, 'yyyy-MM-dd'),
         type: 'tp',
       });
     otherDates.forEach((d) => {
       if (d.name && d.date)
-        importantDates.push({ name: d.name, date: d.date, type: 'other' });
+        importantDates.push({
+          name: d.name,
+          date: format(d.date, 'yyyy-MM-dd'),
+          type: 'other',
+        });
     });
 
     if (!subjectName || pdfs.length === 0 || importantDates.length === 0) {
@@ -181,9 +189,9 @@ const Dashboard: React.FC = () => {
     // Limpiar el formulario
     setSubjectName('');
     setPdfs([]);
-    setFirstPartialDate('');
-    setSecondPartialDate('');
-    setTpDate('');
+    setFirstPartialDate(null);
+    setSecondPartialDate(null);
+    setTpDate(null);
     setOtherDates([]);
     // NO limpiar extractedTopics para mantener los temas disponibles en Planificación
 
@@ -195,7 +203,7 @@ const Dashboard: React.FC = () => {
     const newDate = {
       id: Date.now(),
       name: '',
-      date: '',
+      date: null,
     };
     setOtherDates([...otherDates, newDate]);
   };
@@ -203,10 +211,15 @@ const Dashboard: React.FC = () => {
   const updateOtherDate = (
     id: number,
     field: 'name' | 'date',
-    value: string,
+    value: string | Date | null,
   ) => {
     setOtherDates(
-      otherDates.map((d) => (d.id === id ? { ...d, [field]: value } : d)),
+      otherDates.map((d) => {
+        if (d.id === id) {
+          return { ...d, [field]: value };
+        }
+        return d;
+      }),
     );
   };
 
@@ -850,10 +863,16 @@ Genera el JSON del plan de estudio:`;
 
                   <div className="form-group">
                     <label>Fecha Primer Parcial</label>
-                    <input
-                      type="date"
-                      value={firstPartialDate}
-                      onChange={(e) => setFirstPartialDate(e.target.value)}
+                    <DatePicker
+                      selected={firstPartialDate}
+                      onChange={(date: Date | null) =>
+                        setFirstPartialDate(date)
+                      }
+                      dateFormat="P"
+                      locale={es}
+                      className="w-full p-2 border rounded"
+                      placeholderText="Selecciona una fecha"
+                      minDate={new Date()}
                     />
                   </div>
 
@@ -884,16 +903,16 @@ Genera el JSON del plan de estudio:`;
                       </div>
                       <div style={{ flex: 1 }}>
                         <label>Fecha</label>
-                        <input
-                          type="date"
-                          value={otherDate.date}
-                          onChange={(e) =>
-                            updateOtherDate(
-                              otherDate.id,
-                              'date',
-                              e.target.value,
-                            )
+                        <DatePicker
+                          selected={otherDate.date}
+                          onChange={(date: Date | null) =>
+                            updateOtherDate(otherDate.id, 'date', date)
                           }
+                          dateFormat="P"
+                          locale={es}
+                          className="w-full p-2 border rounded"
+                          placeholderText="Selecciona una fecha"
+                          minDate={new Date()}
                         />
                       </div>
                       <button
