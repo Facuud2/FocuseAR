@@ -46,7 +46,7 @@ interface Subject {
 }
 
 interface Topic {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -143,6 +143,9 @@ const Dashboard: React.FC = () => {
     progress: 0,
     statusMessage: '',
   });
+
+  // Estados para el contador de temas
+  const [topicCounter, setTopicCounter] = useState(1);
 
   // Función para actualizar el estado del análisis
   const updateAnalysisStatus = (status: Partial<AnalysisState>) => {
@@ -265,18 +268,26 @@ const Dashboard: React.FC = () => {
     return days;
   };
 
+  // Función para normalizar fechas a formato YYYY-MM-DD
+  const normalizeDate = (dateString: string) => {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toISOString().split('T')[0];
+  };
+
   // Función para formatear fecha legible
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Asegurarse de que la fecha se interprete correctamente como UTC
+    const date = new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC', // Usar UTC para evitar problemas de zona horaria
     });
   };
 
-  const removeTopic = (id: number) => {
+  const removeTopic = (id: string) => {
     setTopics(topics.filter((t) => t.id !== id));
   };
 
@@ -451,6 +462,7 @@ Genera el JSON del plan de estudio:`;
               recommendations: string;
             }) => ({
               ...day,
+              date: normalizeDate(day.date), // Normalizar la fecha
               completed: false,
             }),
           );
@@ -606,7 +618,7 @@ Genera el JSON del plan de estudio:`;
           progress: 100,
           statusMessage: '¡Análisis completado!',
         });
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 0));
         setExtractedTopics(result.topics);
         alert(
           `¡Éxito! Se extrajeron ${result.topics.length} temas del PDF. Puedes verlos en la sección de Planificación.`,
@@ -1151,7 +1163,7 @@ Genera el JSON del plan de estudio:`;
                       style={{
                         maxHeight: '150px',
                         overflowY: 'auto',
-                        border: '1px solid #E5E7EB',
+                        border: '1px solid #e5e7eb',
                         borderRadius: '6px',
                         padding: '8px',
                       }}
@@ -1532,10 +1544,11 @@ Genera el JSON del plan de estudio:`;
                                       onClick={() => {
                                         if (!isAlreadyAdded) {
                                           const newTopic = {
-                                            id: Date.now(),
+                                            id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
                                             name: extractedTopic.name,
                                           };
                                           setTopics([...topics, newTopic]);
+                                          setTopicCounter((prev) => prev + 1);
                                         }
                                       }}
                                       disabled={isAlreadyAdded}
@@ -1574,12 +1587,15 @@ Genera el JSON del plan de estudio:`;
                                     );
                                     return !isAlreadyAdded;
                                   })
-                                  .map((extractedTopic) => ({
-                                    id: Date.now() + Math.random(),
+                                  .map((extractedTopic, index) => ({
+                                    id: `topic-${selectedSubjectForPlanning}-${topicCounter + index}`,
                                     name: extractedTopic.name,
                                   }));
 
                                 setTopics([...topics, ...newTopics]);
+                                setTopicCounter(
+                                  (prev) => prev + newTopics.length,
+                                );
                               }}
                               style={{
                                 backgroundColor: '#16a34a',
@@ -1874,7 +1890,7 @@ Genera el JSON del plan de estudio:`;
                                   style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
-                                    alignItems: 'center',
+                                    alignItems: 'flex-start',
                                     padding: '8px',
                                     backgroundColor: '#f3f4f6',
                                     borderRadius: '4px',
@@ -2707,7 +2723,7 @@ Genera el JSON del plan de estudio:`;
                         <ul style={{ margin: 0, paddingLeft: 18 }}>
                           {planDetail.day.topics.map((topic, idx2: number) => (
                             <li key={idx2} style={{ marginBottom: 6 }}>
-                              <span style={{ fontWeight: 500 }}>
+                              <span style={{ fontWeight: '500' }}>
                                 {topic.name}
                               </span>
                               {topic.estimatedTime && (
