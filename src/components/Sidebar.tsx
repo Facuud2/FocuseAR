@@ -1,4 +1,6 @@
 // --- START OF FILE Sidebar.tsx (Updated with new CSS classes) ---
+import { Outlet } from 'react-router-dom';
+
 import './Sidebar.css';
 import {
   Home,
@@ -12,7 +14,6 @@ import {
   BarChart3,
   Settings,
   MessageCircle,
-  X, // Importar el ícono de cerrar
 } from 'lucide-react';
 
 // Definimos las propiedades que el componente recibirá.
@@ -26,8 +27,6 @@ interface SidebarProps {
 export default function Sidebar({
   activeSection,
   onSectionChange,
-  isSidebarOpen,
-  onClose,
 }: SidebarProps) {
   const menuSections = [
     {
@@ -61,64 +60,63 @@ export default function Sidebar({
   ];
 
   return (
-    <aside className="sidebar-container">
-      {/* Sección del Logo */}
-      <div className="sidebar-logo-section">
-        <div className="sidebar-logo-icon">
-          <BookOpen />
-        </div>
-        <h1 className="sidebar-logo-text">FocuseAr</h1>
-        <p className="sidebar-logo-subtext">AI Study Planner</p>
-      </div>
-
-      {/* Navegación principal */}
-      <nav className="sidebar-nav">
-        {menuSections.map((section) => (
-          <div key={section.title} className="sidebar-section">
-            <h3 className="sidebar-section-title">
-              {section.title}
-            </h3>
-            <div>
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeSection === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
-                    onClick={() => {
-                      onSectionChange(item.id);
-                    }}
-                  >
-                    <Icon className="sidebar-nav-icon" />
-                    <span className="sidebar-nav-label">{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+    <>
+      <aside className="sidebar-container">
+        {/* Sección del Logo */}
+        <div className="sidebar-logo-section">
+          <div className="sidebar-logo-icon">
+            <BookOpen />
           </div>
-        ))}
-      </nav>
-
-      {/* Sección de "Need Help?" al final */}
-      <div className="sidebar-help-section">
-        <div className="sidebar-help-content">
-          <div className="sidebar-help-header">
-            <div className="sidebar-help-icon">
-              <MessageCircle />
-            </div>
-            <p className="sidebar-help-title">Need Help?</p>
-          </div>
-          <p className="sidebar-help-text">
-            Chat with our AI assistant
-          </p>
-          <button className="sidebar-chat-button">
-            <MessageCircle size={16} />
-            Open Chat
-          </button>
+          <h1 className="sidebar-logo-text">FocuseAr</h1>
+          <p className="sidebar-logo-subtext">AI Study Planner</p>
         </div>
-      </div>
-    </aside>
+
+        {/* Navegación principal */}
+        <nav className="sidebar-nav">
+          {menuSections.map((section) => (
+            <div key={section.title} className="sidebar-section">
+              <h3 className="sidebar-section-title">{section.title}</h3>
+              <div>
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeSection === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                      onClick={() => {
+                        onSectionChange(item.id);
+                      }}
+                    >
+                      <Icon className="sidebar-nav-icon" />
+                      <span className="sidebar-nav-label">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        {/* Sección de "Need Help?" al final */}
+        <div className="sidebar-help-section">
+          <div className="sidebar-help-content">
+            <div className="sidebar-help-header">
+              <div className="sidebar-help-icon">
+                <MessageCircle />
+              </div>
+              <p className="sidebar-help-title">Need Help?</p>
+            </div>
+            <p className="sidebar-help-text">Chat with our AI assistant</p>
+            <button className="sidebar-chat-button">
+              <MessageCircle size={16} />
+              Open Chat
+            </button>
+          </div>
+        </div>
+      </aside>
+      <Outlet />
+    </>
   );
 }
 // --- END OF FILE Sidebar.tsx ---

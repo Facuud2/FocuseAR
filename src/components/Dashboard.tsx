@@ -8,9 +8,12 @@ import React, {
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import SelectorDeColor from './SelectorDeColor';
-import '../App.css';
-import DatePicker from 'react-datepicker';
+import './Dashboard.css';
 import 'react-datepicker/dist/react-datepicker.css';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { es } from 'date-fns/locale/es';
+
+registerLocale('es', es);
 
 interface Pdf {
   id: number;
@@ -57,7 +60,6 @@ const Dashboard: React.FC = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [dragActive, setDragActive] = useState(false);
 
-  // Wrap handlePdfUpload in useCallback to prevent unnecessary re-renders
   const handlePdfUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (!e.target.files) return;
@@ -76,7 +78,6 @@ const Dashboard: React.FC = () => {
     [pdfs.length],
   );
 
-  // Wrap generateEvents in useCallback to prevent unnecessary re-renders
   const generateEvents = useCallback((subject: Subject) => {
     const examDate = new Date(subject.examDate);
     const today = new Date();
@@ -133,27 +134,25 @@ const Dashboard: React.FC = () => {
     setEvents((prevEvents) => [...prevEvents, ...newEvents]);
   }, []);
 
-  // Add cleanup for any potential subscriptions or timeouts
   useEffect(() => {
     return () => {
       // Cleanup function
     };
   }, []);
 
-  // === LOGICA DE MATERIAS Y PLANIFICACIÓN ===
   const handlePlanify = async () => {
     if (!subjectName || !examDate || pdfs.length === 0) {
-      alert('Completa todos los campos');
+      // Usar un modal en lugar de alert
+      console.log('Completa todos los campos');
       return;
     }
 
     if (!user) {
-      alert('Debes estar autenticado para crear materias');
+      console.log('Debes estar autenticado para crear materias');
       return;
     }
 
     try {
-      // Crear materiales en Firestore
       const materialIds: string[] = [];
       for (const pdf of pdfs) {
         const materialId = await createMaterial({
@@ -166,7 +165,6 @@ const Dashboard: React.FC = () => {
         }
       }
 
-      // Crear plan de estudio en Firestore
       if (materialIds.length > 0) {
         const examDateObj = new Date(examDate);
         const today = new Date();
@@ -183,14 +181,13 @@ const Dashboard: React.FC = () => {
         }
 
         await createStudyPlan({
-          materialId: materialIds[0], // Usar el primer material
+          materialId: materialIds[0],
           title: `Plan de estudio: ${subjectName}`,
           durationDays: Math.min(daysUntilExam, 10),
           dailyTasks,
         });
       }
 
-      // Crear materia local
       const newSubject: Subject = {
         id: Date.now(),
         name: subjectName,
@@ -206,19 +203,23 @@ const Dashboard: React.FC = () => {
       setExamDate(new Date());
       setPdfs([]);
 
-      alert('Materia creada exitosamente con plan de estudio en Firestore!');
+      // Usar un modal en lugar de alert
+      console.log(
+        'Materia creada exitosamente con plan de estudio en Firestore!',
+      );
     } catch (error) {
       console.error('Error al crear materia:', error);
-      alert('Error al crear la materia. Revisa la consola para más detalles.');
+      // Usar un modal en lugar de alert
+      console.log(
+        'Error al crear la materia. Revisa la consola para más detalles.',
+      );
     }
   };
 
-  // === LOGICA DE PDFs ===
-  // const removePdf = (id: number) => {
-  //   setPdfs(pdfs.filter((p) => p.id !== id));
-  // };
+  const removePdf = (id: number) => {
+    setPdfs(pdfs.filter((p) => p.id !== id));
+  };
 
-  // === LOGICA DEL CALENDARIO ===
   const monthNames = [
     'Enero',
     'Febrero',
@@ -260,8 +261,9 @@ const Dashboard: React.FC = () => {
     const today = new Date();
     const days: JSX.Element[] = [];
 
-    for (let i = 0; i < startDay; i++)
+    for (let i = 0; i < startDay; i++) {
       days.push(<div key={'e' + i} className="calendar-cell"></div>);
+    }
 
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -269,7 +271,7 @@ const Dashboard: React.FC = () => {
       days.push(
         <div
           key={d}
-          className={`calendar-cell ${today.getDate() === d && today.getMonth() === currentMonth ? 'today' : ''}`}
+          className={`calendar-cell ${today.getDate() === d && today.getMonth() === currentMonth && today.getFullYear() === currentYear ? 'today' : ''}`}
         >
           <div className="day-number">{d}</div>
           {dayEvents.map((ev) => (
@@ -287,7 +289,6 @@ const Dashboard: React.FC = () => {
     return days;
   };
 
-  // === LOGICA DE ASISTENTE ===
   const askAI = () => {
     if (!question) return;
     setAnswers([
@@ -299,21 +300,11 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    // El div raíz del Dashboard ahora toma el 100% del ancho y alto de su contenedor padre
-    // para que el layout en App.tsx lo posicione correctamente.
-    // La clase 'dormir' se mantiene si tiene estilos específicos que no entran en conflicto.
-    <div className="dormir h-full w-full p-4 md:p-8">
-      {' '}
-      {/* Añadido padding aquí, o puedes mantenerlo en App.tsx */}
-      {/* HEADER */}
+    <div className="dormir">
       <header>
         <div className="logo">
           <div className="logo-icon">
-            <img
-              src="/logo.png"
-              alt="FocuseAR Icon"
-              className="w-[110px] h-[110px] object-cover rounded-full"
-            />
+            <img src="/logo.png" alt="FocuseAR Icon" />
           </div>
           <div className="logo-text">
             <img src="Texto.png" alt="FocuseAR" className="focusear-title" />
@@ -323,177 +314,84 @@ const Dashboard: React.FC = () => {
         <div className="user-info">
           <div className="user-avatar">
             {user?.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt="Avatar"
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  border: '2px solid #4285F4',
-                }}
-              />
+              <img src={user.photoURL} alt="Avatar" />
             ) : (
-              <div
-                style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  backgroundColor: '#4285F4',
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  border: '2px solid #4285F4',
-                }}
-              >
+              <div>
                 {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
               </div>
             )}
+            <span className="online-dot"></span>
           </div>
-          <div
-            style={{
-              marginLeft: '12px',
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
+          <div className="user-details">
             {user?.displayName ? (
               <>
-                <span
-                  style={{
-                    fontSize: '16px',
-                    fontWeight: '600',
-                    lineHeight: '1.2',
-                  }}
-                >
+                <span className="user-name">
                   {user.displayName.split(' ')[0]}
                 </span>
-                <span
-                  style={{
-                    fontSize: '14px',
-                    fontWeight: '400',
-                    lineHeight: '1.2',
-                    color: '#666',
-                  }}
-                >
+                <span className="user-lastname">
                   {user.displayName.split(' ').slice(1).join(' ')}
                 </span>
               </>
             ) : (
-              <span style={{ fontSize: '16px', fontWeight: '500' }}>
-                {user?.email || 'Usuario'}
-              </span>
+              <span className="user-email">{user?.email || 'Usuario'}</span>
             )}
           </div>
         </div>
       </header>
       <div className="content">
-        {/* PANEL IZQUIERDO */}
         <div className="left-panel">
           <div className="panel">
             <h2>
               <i className="fas fa-book"></i> Nueva Materia
             </h2>
-
             <div className="form-group">
               <label>Nombre</label>
               <input
+                type="text"
                 value={subjectName}
                 onChange={(e) => setSubjectName(e.target.value)}
+                placeholder="Ej: Álgebra Lineal"
               />
             </div>
             <div className="form-group">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha de Examen
-              </label>
+              <label>Fecha de Examen</label>
               <DatePicker
                 selected={examDate}
                 onChange={(date: Date | null) => setExamDate(date)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md
-                         focus:outline-none focus:ring-2 focus:ring-blue-500
-                         disabled:bg-gray-100 disabled:cursor-not-allowed"
                 dateFormat="dd/MM/yyyy"
                 locale="es"
                 placeholderText="Seleccionar fecha de examen"
-                showMonthDropdown
-                showYearDropdown
-                dropdownMode="select"
-                isClearable
                 minDate={new Date()}
-                todayButton="Hoy"
-                popperPlacement="bottom-start"
+                className="date-picker-input"
               />
             </div>
             <div className="form-group">
               <label>Color</label>
-              <div
-                className="color-options"
-                style={{ display: 'flex', gap: '8px' }}
-              >
+              <div className="color-options">
                 {['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9b59b6'].map(
                   (c) => (
                     <div
                       key={c}
                       className={`color-option ${selectedColor === c ? 'selected' : ''}`}
-                      style={{
-                        backgroundColor: c,
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        border:
-                          selectedColor === c
-                            ? '2px solid #000'
-                            : '1px solid #ccc',
-                      }}
+                      style={{ backgroundColor: c }}
                       onClick={() => setSelectedColor(c)}
                     />
                   ),
                 )}
-
-                {/* Sexto botón: selector de color */}
-                <div style={{ position: 'relative' }}>
+                <div className="color-option-picker">
                   <SelectorDeColor
                     color={selectedColor}
                     onChange={setSelectedColor}
                   />
-                  {/* Overlay para indicar que se puede clickear */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      pointerEvents: 'none', // para que el click llegue al SelectorDeColor
-                    }}
-                    title="Elegir color"
-                  >
-                    ...
-                  </div>
                 </div>
               </div>
             </div>
-
-            {/* PDFs */}
-            <div className="pdf-section mt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                <i className="fas fa-file-pdf mr-2"></i>
-                Subida de PDF (Programa o cronograma de la asignatura)
+            <div className="pdf-section">
+              <h3 className="pdf-title">
+                <i className="fas fa-file-pdf"></i> Subida de PDF
               </h3>
-
               <div
-                className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400'}`}
+                className={`drag-drop-area ${dragActive ? 'drag-active' : ''}`}
                 onClick={() => document.getElementById('pdf-upload')?.click()}
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -507,7 +405,8 @@ const Dashboard: React.FC = () => {
                     (f) => f.type === 'application/pdf',
                   );
                   if (pdfs.length + files.length > 5) {
-                    alert('Máximo 5 archivos PDF permitidos');
+                    // Usar un modal en lugar de alert
+                    console.log('Máximo 5 archivos PDF permitidos');
                     return;
                   }
                   const newPdfs = files.map((file) => ({
@@ -518,16 +417,9 @@ const Dashboard: React.FC = () => {
                   setPdfs([...pdfs, ...newPdfs]);
                 }}
               >
-                <div className="flex flex-col items-center justify-center py-4">
-                  <i className="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
-                  <p className="text-sm text-gray-600">
-                    Arrastra y suelta archivos PDF aquí o haz clic para
-                    seleccionar
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Tamaño máximo por archivo: 10MB
-                  </p>
-                </div>
+                <i className="fas fa-cloud-upload-alt"></i>
+                <p>Arrastra y suelta PDF aquí o haz clic para seleccionar</p>
+                <small>Máximo 5 archivos, 10MB c/u</small>
               </div>
               <input
                 id="pdf-upload"
@@ -537,91 +429,51 @@ const Dashboard: React.FC = () => {
                 onChange={handlePdfUpload}
                 className="hidden"
               />
-
-              {/* Lista de PDFs seleccionados */}
               {pdfs.length > 0 && (
-                <div className="mt-3 space-y-2">
-                  <p className="text-sm font-medium text-gray-700">
-                    Archivos seleccionados:
-                  </p>
-                  <div className="space-y-2">
-                    {pdfs.map((pdf) => (
-                      <div
-                        key={pdf.id}
-                        className="flex items-center justify-between bg-gray-50 p-2 rounded"
-                      >
-                        <div className="flex items-center">
-                          <i className="fas fa-file-pdf text-red-500 mr-2"></i>
-                          <span className="text-sm text-gray-700 truncate max-w-xs">
-                            {pdf.name}
-                          </span>
-                          <span className="text-xs text-gray-500 ml-2">
-                            {pdf.size}
-                          </span>
-                        </div>
-                        <button
-                          onClick={() =>
-                            setPdfs(pdfs.filter((p) => p.id !== pdf.id))
-                          }
-                          className="text-gray-400 hover:text-red-500"
-                        >
-                          <i className="fas fa-times"></i>
-                        </button>
+                <div className="pdf-list">
+                  <p>Archivos seleccionados:</p>
+                  {pdfs.map((pdf) => (
+                    <div key={pdf.id} className="pdf-item">
+                      <div className="pdf-info">
+                        <i className="fas fa-file-pdf"></i>
+                        <span className="pdf-name">{pdf.name}</span>
+                        <span className="pdf-size">({pdf.size})</span>
                       </div>
-                    ))}
-                  </div>
+                      <button
+                        onClick={() => removePdf(pdf.id)}
+                        className="remove-pdf-btn"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
             <button
               className="planify-btn"
               onClick={handlePlanify}
-              disabled={dbLoading}
+              disabled={dbLoading || !user}
             >
               {dbLoading ? (
-                <span>⏳ Guardando en Firestore...</span>
+                <span>⏳ Guardando...</span>
               ) : (
                 <span>
                   <i className="fas fa-robot"></i> Planificar
                 </span>
               )}
             </button>
-
-            {/* Mostrar errores de base de datos */}
             {dbError && (
-              <div
-                style={{
-                  backgroundColor: '#FEF2F2',
-                  border: '1px solid #FECACA',
-                  borderRadius: '6px',
-                  padding: '15px',
-                  marginTop: '15px',
-                  color: '#DC2626',
-                }}
-              >
+              <div className="alert-error">
                 <strong>❌ Error en base de datos:</strong> {dbError}
               </div>
             )}
-
-            {/* Mostrar estado de conexión */}
             {user && (
-              <div
-                style={{
-                  backgroundColor: '#ECFDF5',
-                  border: '1px solid #BBF7D0',
-                  borderRadius: '6px',
-                  padding: '10px',
-                  marginTop: '15px',
-                  color: '#047857',
-                  fontSize: '14px',
-                }}
-              >
-                <strong>✅ Conectado a Firestore como:</strong> {user.email}
+              <div className="alert-success">
+                <strong>✅ Conectado como:</strong> {user.email}
               </div>
             )}
           </div>
-
-          {/* Lista de materias MEJORADA */}
           <div className="panel">
             <h2>
               <i className="fas fa-list"></i> Mis Materias
@@ -635,20 +487,15 @@ const Dashboard: React.FC = () => {
             ) : (
               <div className="subjects-grid">
                 {subjects.map((subject) => {
-                  // Generar ícono basado en la inicial de la materia
                   const initial = subject.name.charAt(0).toUpperCase();
                   return (
-                    <div
-                      key={subject.id}
-                      className="subject-card"
-                      style={{ borderLeft: `4px solid ${subject.color}` }}
-                    >
+                    <div key={subject.id} className="subject-card">
                       <div className="subject-header">
                         <div
                           className="subject-icon"
                           style={{ backgroundColor: subject.color }}
                         >
-                          <span className="subject-initial">{initial}</span>
+                          <span>{initial}</span>
                         </div>
                         <div className="subject-info">
                           <h3 className="subject-name">{subject.name}</h3>
@@ -687,8 +534,6 @@ const Dashboard: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* PANEL DERECHO */}
         <div className="right-panel">
           <div className="panel">
             <h2>
@@ -710,8 +555,6 @@ const Dashboard: React.FC = () => {
               {renderDays()}
             </div>
           </div>
-
-          {/* Asistente */}
           <div className="panel">
             <h2>
               <i className="fas fa-robot"></i> Asistente IA
@@ -721,14 +564,17 @@ const Dashboard: React.FC = () => {
                 <p key={i}>{a}</p>
               ))}
             </div>
-            <input
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Pregunta algo..."
-            />
-            <button onClick={askAI}>
-              <i className="fas fa-paper-plane"></i>
-            </button>
+            <div className="ai-input-group">
+              <input
+                type="text"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Pregunta algo..."
+              />
+              <button onClick={askAI}>
+                <i className="fas fa-paper-plane"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>

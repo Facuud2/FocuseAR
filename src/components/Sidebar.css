@@ -2,11 +2,11 @@
 
 /* Variables de diseño */
 :root {
-  --primary: #4f46e5;
+  --primary: #2988e0;
   --primary-light: #6366f1;
   --primary-dark: #4338ca;
-  --secondary: #10b981;
-  --accent: #f59e0b;
+  --secondary: #71d8fb;
+  --accent: #0bf5ed;
   --text-dark: #1f2937;
   --text-light: #6b7280;
   --bg-light: #f9fafb;
@@ -14,8 +14,8 @@
   --border-light: #e5e7eb;
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-  --gradient-logo: linear-gradient(135deg, #51cf66 0%, #22b8cf 100%);
-  --gradient-help: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  --gradient-logo: linear-gradient(135deg, #6051cf 0%, #22b8cf 100%);
+  --gradient-help: linear-gradient(135deg, #a0def9 0%, #8448ec 100%);
 }
 
 /* Estructura principal del sidebar */
