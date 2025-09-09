@@ -1,22 +1,34 @@
+// src/components/AccountSettings.tsx
+
 import { useState } from 'react';
 import './AccountSettings.css';
 
+// Mueve la definición del estado inicial fuera del componente.
+const initialAvailability: { [key: string]: boolean } = {
+  lunes: false,
+  martes: true,
+  miércoles: false,
+  jueves: true,
+  viernes: true,
+  sábado: false,
+  domingo: false,
+};
+
+// Array con los nombres de los días en español.
+const diasSemana = [
+  'lunes',
+  'martes',
+  'miércoles',
+  'jueves',
+  'viernes',
+  'sábado',
+  'domingo',
+];
+
 const AccountSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
-
-  // Define la configuración de los días disponibles
-  const initialAvailability: { [key: string]: boolean } = {
-    monday: false,
-    tuesday: true,
-    wednesday: false,
-    thursday: true,
-    friday: true,
-    saturday: false,
-    sunday: false,
-  };
   const [availability, setAvailability] = useState(initialAvailability);
 
-  // Solución al error: el parámetro 'day' ahora tiene el tipo 'string'
   const handleAvailabilityChange = (day: string) => {
     setAvailability((prev) => ({ ...prev, [day]: !prev[day] }));
   };
@@ -126,12 +138,14 @@ const AccountSettings = () => {
                 estudio para ti.
               </p>
               <div className="availability-grid">
-                {Object.keys(initialAvailability).map((day) => (
+                {/* Iteramos sobre el nuevo array 'diasSemana' */}
+                {diasSemana.map((day) => (
                   <button
                     key={day}
                     className={`day-button ${availability[day] ? 'active' : ''}`}
                     onClick={() => handleAvailabilityChange(day)}
                   >
+                    {/* El nombre completo del día */}
                     {day.charAt(0).toUpperCase() + day.slice(1)}
                   </button>
                 ))}

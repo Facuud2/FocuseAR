@@ -1,3 +1,5 @@
+/* src/components/AccountSettings.css */
+
 /* ===== VARIABLES Y BASE (REPETIDAS PARA MANTENER LA CONSISTENCIA) ===== */
 :root {
   --primary-color: #4285f4;
@@ -34,7 +36,6 @@ body.settings-page {
   margin: 4rem auto; /* Centra el contenedor y añade espacio */
   padding: 0 2rem; /* Espaciado interno */
   animation: fadeInUp 0.8s ease-out; /* Reutiliza la animación */
-
 }
 
 /* ===== TARJETAS DE CONFIGURACIÓN ===== */
@@ -46,7 +47,6 @@ body.settings-page {
   border: 1px solid var(--border-color);
   margin-bottom: 2.5rem;
   transition: var(--transition);
-  
 }
 
 .settings-card:hover {
@@ -182,6 +182,53 @@ body.settings-page {
   flex: 1;
 }
 
+/* ===== NUEVAS REGLAS PARA BOTONES DE DÍAS DISPONIBLES ===== */
+
+/* Estilo para el contenedor de los botones */
+.availability-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap; 
+}
+
+/* Estilo base del botón */
+.day-button {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+    
+    /* === SOLUCIÓN CLAVE AQUÍ === */
+    flex: 1 1 auto; /* Permite que el ancho se adapte al contenido */
+    /* ========================== */
+
+    text-align: center;
+}
+
+/* Estilo del botón cuando está activo (seleccionado) */
+.day-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+/* Solución de especificidad: 
+  El hover solo se aplica si el botón NO tiene la clase 'active'
+*/
+.day-button:not(.active):hover {
+    background-color: var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transform: none; /* Desactiva la animación de translateY para el hover no activo */
+}
+
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .settings-container {
@@ -201,16 +248,21 @@ body.settings-page {
     flex-direction: column;
     gap: 1rem;
   }
+
+  /* Ajusta la visualización de los botones en pantallas pequeñas */
+  .availability-grid {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .day-button {
+    flex-basis: auto;
+    width: auto;
+  }
 }
 
-/* ===== ANIMACIONES (REUTILIZADAS) ===== */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@media (max-width: 480px) {
+    .day-button {
+        flex-basis: auto;
+        width: auto;
+    }
 }
