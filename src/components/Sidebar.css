@@ -1,6 +1,4 @@
-/* Sidebar.css - Versión simplificada y corregida */
-
-/* Variables de diseño */
+/* Sidebar.css - Versión completa y corregida para el modo colapsado */
 :root {
   --primary: #2988e0;
   --primary-light: #6366f1;
@@ -18,10 +16,18 @@
   --gradient-help: linear-gradient(135deg, #a0def9 0%, #8448ec 100%);
 }
 
-/* Estructura principal del sidebar */
+[data-theme='dark'] {
+  --text-dark: #f9fafb;
+  --text-light: #9ca3af;
+  --bg-light: #1f2937;
+  --bg-white: #111827;
+  --border-light: #4b5563;
+  --shadow-md: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
+}
+
 .sidebar-container {
-  width: 320px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  width: 320px; /* Ancho completo por defecto */
+  background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-light) 100%);
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-md);
@@ -31,14 +37,39 @@
   height: 100vh;
   z-index: 40;
   border-radius: 0 18px 18px 0;
-  overflow: hidden;
+  overflow-x: hidden; /* Oculta el overflow horizontal para la transición */
+  transition: width 0.3s ease-in-out; /* Transición para el ancho */
 }
 
-/* Logo section */
+/* Estado colapsado del sidebar */
+.sidebar-container.collapsed {
+  width: 80px; /* Ancho reducido para solo mostrar los iconos */
+  
+  /* Esconde los elementos de texto */
+  .sidebar-logo-text,
+  .sidebar-logo-subtext,
+  .sidebar-section-title,
+  .sidebar-nav-label,
+  .dark-mode-toggle-section .toggle-label,
+  .sidebar-help-title,
+  .sidebar-help-text,
+  .sidebar-chat-button {
+      display: none;
+  }
+  
+  /* Ajusta el padding para los iconos */
+  .sidebar-nav-item {
+      justify-content: center;
+  }
+}
 .sidebar-logo-section {
   padding: 28px 24px;
   text-align: center;
   border-bottom: 1px solid var(--border-light);
+  transition: all 0.3s ease-in-out;
+}
+.sidebar-container.collapsed .sidebar-logo-section {
+    padding: 24px 12px;
 }
 
 .sidebar-logo-icon {
@@ -51,6 +82,13 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.sidebar-container.collapsed .sidebar-logo-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
 }
 
 .sidebar-logo-icon svg {
@@ -73,7 +111,6 @@
   margin-top: 4px;
 }
 
-/* Navegación */
 .sidebar-nav {
   flex: 1;
   padding: 24px;
@@ -167,15 +204,58 @@
   flex: 1;
 }
 
-/* Help section */
+.dark-mode-toggle-section {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+  text-align: center;
+}
+
+.dark-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  background: var(--bg-light);
+  color: var(--text-dark);
+  border: 1px solid var(--border-light);
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.dark-mode-btn:hover {
+  background-color: var(--border-light);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-theme='dark'] .dark-mode-btn {
+  background: var(--bg-white);
+  color: var(--text-dark);
+  border: 1px solid var(--border-light);
+}
+
 .sidebar-help-section {
   padding: 24px;
   border-top: 1px solid var(--border-light);
-  background-color: #f9fafb;
+  background-color: var(--bg-light);
+  transition: all 0.3s ease-in-out;
+}
+
+.sidebar-container.collapsed .sidebar-help-section {
+  padding: 1rem;
+  
+  .sidebar-help-content {
+      display: none;
+  }
 }
 
 .sidebar-help-content {
-  background: white;
+  background: var(--bg-white);
   border-radius: 16px;
   padding: 22px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -228,7 +308,7 @@
   color: #7c3aed;
   transition: background-color 0.2s ease, color 0.2s ease;
   cursor: pointer;
-  background: white;
+  background: var(--bg-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -239,7 +319,6 @@
   background-color: #ede9fe;
 }
 
-/* Scrollbar personalizada */
 .sidebar-nav::-webkit-scrollbar {
   width: 4px;
 }
