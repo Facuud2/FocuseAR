@@ -224,6 +224,7 @@ const AccountSettings = () => {
                   name="exam-prep"
                   rows={3}
                   placeholder="Ej: 'Necesito reforzar álgebra y física para mi examen final del 20 de diciembre.'"
+                  className="form-control" // Añade esta clase
                 />
               </div>
             </div>
