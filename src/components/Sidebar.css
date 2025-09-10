@@ -20,7 +20,7 @@
 
 /* Estructura principal del sidebar */
 .sidebar-container {
-  width: 320px;
+  width: 350px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   display: flex;
   flex-direction: column;
