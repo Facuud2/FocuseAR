@@ -82,6 +82,7 @@ const Dashboard: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [extractedTopics, setExtractedTopics] = useState<ExtractedTopic[]>([]);
   const [selectedStudyDays, setSelectedStudyDays] = useState<string[]>([]);
+  const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [generatingPlan, setGeneratingPlan] = useState(false);
 
@@ -251,22 +252,29 @@ const Dashboard: React.FC = () => {
 
   // === LOGICA DE PLANIFICACIÓN ===
 
-  // Función para calcular días disponibles entre hoy y la fecha del examen
-  const calculateAvailableDays = (examDate: string) => {
+  // Nueva función para generar fechas basadas en días de la semana seleccionados
+  const generateStudyDatesFromWeekDays = (
+    examDate: string,
+    weekDays: number[],
+  ) => {
     const today = new Date();
     const exam = new Date(examDate);
-    const days: string[] = [];
+    const studyDates: string[] = [];
 
     // Empezar desde mañana
     const current = new Date(today);
     current.setDate(current.getDate() + 1);
 
     while (current <= exam) {
-      days.push(current.toISOString().split('T')[0]);
+      // Verificar si el día actual está en los días de la semana seleccionados
+      // getDay() devuelve: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
+      if (weekDays.includes(current.getDay())) {
+        studyDates.push(current.toISOString().split('T')[0]);
+      }
       current.setDate(current.getDate() + 1);
     }
 
-    return days;
+    return studyDates;
   };
 
   // Función para normalizar fechas a formato YYYY-MM-DD
@@ -298,10 +306,10 @@ const Dashboard: React.FC = () => {
       !selectedSubjectForPlanning ||
       !selectedEvent ||
       topics.length === 0 ||
-      selectedStudyDays.length === 0
+      selectedWeekDays.length === 0
     ) {
       alert(
-        'Por favor completa todos los campos: materia, evento, temas y días de estudio.',
+        'Por favor completa todos los campos: materia, evento, temas y días de la semana.',
       );
       return;
     }
@@ -334,6 +342,19 @@ const Dashboard: React.FC = () => {
         examDate = segundoParcial?.date || '';
       }
 
+      // Generar fechas automáticamente basadas en los días de la semana seleccionados
+      const generatedStudyDates = generateStudyDatesFromWeekDays(
+        examDate,
+        selectedWeekDays,
+      );
+
+      if (generatedStudyDates.length === 0) {
+        alert(
+          'No hay fechas disponibles con los días de la semana seleccionados hasta la fecha del examen.',
+        );
+        return;
+      }
+
       // Crear prompt para el plan de estudio
       const prompt = `
 Eres un asistente especializado en crear planes de estudio personalizados.
@@ -342,14 +363,14 @@ DATOS DEL ESTUDIANTE:
 - Materia: ${selectedSubject.name}
 - Evento de estudio: ${selectedEvent.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
 - Fecha del examen: ${examDate ? formatDate(examDate) : 'No especificada'}
-- Días disponibles para estudiar: ${selectedStudyDays.length} días
-- Fechas de estudio: ${selectedStudyDays.map((day) => formatDate(day)).join(', ')}
+- Días disponibles para estudiar: ${generatedStudyDates.length} días
+- Fechas de estudio: ${generatedStudyDates.map((day) => formatDate(day)).join(', ')}
 
 TEMAS A ESTUDIAR:
 ${topics.map((topic, topicIndex) => `${topicIndex + 1}. ${topic.name}`).join('\n')}
 
 INSTRUCCIONES:
-1. Distribuye los ${topics.length} temas entre los ${selectedStudyDays.length} días disponibles de manera equilibrada
+1. Distribuye los ${topics.length} temas entre los ${generatedStudyDates.length} días disponibles de manera equilibrada
 2. Para cada día asignado, especifica qué temas estudiar y proporciona un resumen breve de cada tema
 3. Incluye recomendaciones de tiempo de estudio por tema
 4. Organiza el plan cronológicamente por fechas
@@ -381,7 +402,7 @@ Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:
 IMPORTANTE: 
 - Devuelve SOLO el JSON, sin texto adicional, sin markdown, sin explicaciones
 - Asegúrate de que el JSON sea válido
-- Usa las fechas exactas: ${selectedStudyDays.map((day) => formatDate(day)).join(', ')}
+- Usa las fechas exactas: ${generatedStudyDates.map((day) => formatDate(day)).join(', ')}
 - Distribuye todos los temas entre todos los días disponibles
 
 Genera el JSON del plan de estudio:`;
@@ -486,7 +507,7 @@ Genera el JSON del plan de estudio:`;
           .replace(/\b\w/g, (l) => l.toUpperCase()),
         examDate: examDate || '',
         topics: topics.map((t) => t.name),
-        studyDays: selectedStudyDays,
+        studyDays: generatedStudyDates,
         content: studyPlan,
         structuredPlan: structuredPlan,
         progress: 0,
@@ -1391,6 +1412,8 @@ Genera el JSON del plan de estudio:`;
                       setSelectedSubjectForPlanning(subjectId);
                       setSelectedEvent('');
                       setTopics([]);
+                      setSelectedWeekDays([]);
+                      setSelectedStudyDays([]);
                     }}
                   >
                     <option value="">-- Selecciona una materia --</option>
@@ -1411,6 +1434,8 @@ Genera el JSON del plan de estudio:`;
                         onChange={(e) => {
                           setSelectedEvent(e.target.value);
                           setTopics([]);
+                          setSelectedWeekDays([]);
+                          setSelectedStudyDays([]);
                         }}
                       >
                         <option value="">-- Selecciona un evento --</option>
@@ -1561,7 +1586,7 @@ Genera el JSON del plan de estudio:`;
                           </div>
                         )}
 
-                        {/* Selección de días de estudio disponibles */}
+                        {/* Selección de días de la semana */}
                         <div
                           className="form-group"
                           style={{ marginBottom: '20px' }}
@@ -1573,9 +1598,83 @@ Genera el JSON del plan de estudio:`;
                               display: 'block',
                             }}
                           >
-                            📅 Selecciona los días que tienes disponibles para
-                            estudiar
+                            📅 Selecciona los días de la semana que tienes
+                            disponibles para estudiar
                           </label>
+                          <div
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns:
+                                'repeat(auto-fit, minmax(120px, 1fr))',
+                              gap: '10px',
+                              marginBottom: '15px',
+                            }}
+                          >
+                            {[
+                              { day: 1, name: 'Lunes' },
+                              { day: 2, name: 'Martes' },
+                              { day: 3, name: 'Miércoles' },
+                              { day: 4, name: 'Jueves' },
+                              { day: 5, name: 'Viernes' },
+                              { day: 6, name: 'Sábado' },
+                              { day: 0, name: 'Domingo' },
+                            ].map(({ day, name }) => (
+                              <div
+                                key={day}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '12px',
+                                  cursor: 'pointer',
+                                  borderRadius: '8px',
+                                  backgroundColor: selectedWeekDays.includes(
+                                    day,
+                                  )
+                                    ? '#dbeafe'
+                                    : 'white',
+                                  border: selectedWeekDays.includes(day)
+                                    ? '2px solid #3b82f6'
+                                    : '1px solid #e5e7eb',
+                                  transition: 'all 0.2s ease',
+                                }}
+                                onClick={() => {
+                                  if (selectedWeekDays.includes(day)) {
+                                    setSelectedWeekDays(
+                                      selectedWeekDays.filter((d) => d !== day),
+                                    );
+                                  } else {
+                                    setSelectedWeekDays([
+                                      ...selectedWeekDays,
+                                      day,
+                                    ]);
+                                  }
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedWeekDays.includes(day)}
+                                  onChange={() => {}} // Manejado por el onClick del div
+                                  style={{
+                                    marginRight: '8px',
+                                    width: '16px',
+                                    height: '16px',
+                                    cursor: 'pointer',
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    fontSize: '14px',
+                                    fontWeight: '500',
+                                    color: selectedWeekDays.includes(day)
+                                      ? '#1e40af'
+                                      : '#374151',
+                                  }}
+                                >
+                                  {name}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                           {(() => {
                             // Obtener la materia seleccionada y sus fechas
                             const selectedSubject = subjects.find(
@@ -1591,7 +1690,7 @@ Genera el JSON del plan de estudio:`;
                               );
                             }
 
-                            // Calcular días disponibles basado en la fecha del evento seleccionado
+                            // Calcular fecha del examen basado en el evento seleccionado
                             let examDate = '';
                             const importantDates =
                               selectedSubject.importantDates || [];
@@ -1616,197 +1715,128 @@ Genera el JSON del plan de estudio:`;
                               return (
                                 <p style={{ color: '#666', fontSize: '14px' }}>
                                   No se encontró la fecha del {eventName} para
-                                  esta materia. Asegúrate de haber configurado
-                                  esta fecha cuando creaste la materia.
+                                  esta materia.
                                 </p>
                               );
                             }
 
-                            const availableDays =
-                              calculateAvailableDays(examDate);
+                            // Generar fechas automáticamente basadas en los días de la semana seleccionados
+                            const generatedDates =
+                              selectedWeekDays.length > 0
+                                ? generateStudyDatesFromWeekDays(
+                                    examDate,
+                                    selectedWeekDays,
+                                  )
+                                : [];
 
-                            if (availableDays.length === 0) {
-                              return (
-                                <p
-                                  style={{ color: '#ef4444', fontSize: '14px' }}
-                                >
-                                  ⚠️ La fecha del examen ya pasó o es hoy. No
-                                  hay días disponibles para estudiar.
-                                </p>
-                              );
+                            // Actualizar selectedStudyDays cuando cambien los días de la semana
+                            if (
+                              JSON.stringify(generatedDates) !==
+                              JSON.stringify(selectedStudyDays)
+                            ) {
+                              setSelectedStudyDays(generatedDates);
                             }
 
                             return (
                               <div>
-                                <p
-                                  style={{
-                                    fontSize: '12px',
-                                    color: '#666',
-                                    marginBottom: '10px',
-                                  }}
-                                >
-                                  Tienes {availableDays.length} días disponibles
-                                  hasta el {formatDate(examDate)}
-                                </p>
-                                <div
-                                  style={{
-                                    maxHeight: '200px',
-                                    overflowY: 'auto',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '6px',
-                                    padding: '10px',
-                                    backgroundColor: '#f9fafb',
-                                  }}
-                                >
-                                  {availableDays.map((day) => (
-                                    <div
-                                      key={day}
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        padding: '12px',
-                                        cursor: 'pointer',
-                                        borderRadius: '6px',
-                                        marginBottom: '6px',
-                                        backgroundColor:
-                                          selectedStudyDays.includes(day)
-                                            ? '#dbeafe'
-                                            : 'white',
-                                        border: selectedStudyDays.includes(day)
-                                          ? '2px solid #3b82f6'
-                                          : '1px solid #e5e7eb',
-                                        transition: 'all 0.2s ease',
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (!selectedStudyDays.includes(day)) {
-                                          e.currentTarget.style.backgroundColor =
-                                            '#f8fafc';
-                                          e.currentTarget.style.borderColor =
-                                            '#cbd5e1';
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (!selectedStudyDays.includes(day)) {
-                                          e.currentTarget.style.backgroundColor =
-                                            'white';
-                                          e.currentTarget.style.borderColor =
-                                            '#e5e7eb';
-                                        }
-                                      }}
-                                      onClick={() => {
-                                        if (selectedStudyDays.includes(day)) {
-                                          setSelectedStudyDays(
-                                            selectedStudyDays.filter(
-                                              (d) => d !== day,
-                                            ),
-                                          );
-                                        } else {
-                                          setSelectedStudyDays([
-                                            ...selectedStudyDays,
-                                            day,
-                                          ]);
-                                        }
-                                      }}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedStudyDays.includes(
-                                          day,
-                                        )}
-                                        onChange={() => {}} // Manejado por el onClick del div
-                                        style={{
-                                          marginRight: '12px',
-                                          width: '16px',
-                                          height: '16px',
-                                          cursor: 'pointer',
-                                        }}
-                                      />
-                                      <span
-                                        style={{
-                                          fontSize: '14px',
-                                          fontWeight: '500',
-                                          color: selectedStudyDays.includes(day)
-                                            ? '#1e40af'
-                                            : '#374151',
-                                          flex: 1,
-                                        }}
-                                      >
-                                        {formatDate(day)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-
-                                {selectedStudyDays.length > 0 && (
+                                {selectedWeekDays.length > 0 && (
                                   <div
                                     style={{
-                                      marginTop: '10px',
-                                      padding: '10px',
-                                      backgroundColor: '#ecfdf5',
-                                      border: '1px solid #bbf7d0',
-                                      borderRadius: '6px',
+                                      marginTop: '15px',
+                                      padding: '15px',
+                                      backgroundColor: '#f0f9ff',
+                                      border: '1px solid #0ea5e9',
+                                      borderRadius: '8px',
                                       fontSize: '14px',
                                     }}
                                   >
-                                    <strong>
-                                      ✅ Días seleccionados para estudiar:{' '}
-                                      {selectedStudyDays.length}
-                                    </strong>
                                     <div
                                       style={{
-                                        fontSize: '12px',
-                                        marginTop: '5px',
-                                        color: '#047857',
+                                        fontWeight: '600',
+                                        marginBottom: '8px',
                                       }}
                                     >
-                                      Esto te dará aproximadamente{' '}
-                                      {Math.floor(
-                                        selectedStudyDays.length /
-                                          (topics.length || 1),
-                                      )}{' '}
-                                      días por tema
+                                      📊 Resumen de tu planificación:
                                     </div>
+                                    <div
+                                      style={{
+                                        fontSize: '13px',
+                                        color: '#0369a1',
+                                      }}
+                                    >
+                                      • Días de la semana seleccionados:{' '}
+                                      {selectedWeekDays.length}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: '13px',
+                                        color: '#0369a1',
+                                      }}
+                                    >
+                                      • Fecha del examen: {formatDate(examDate)}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: '13px',
+                                        color: '#0369a1',
+                                      }}
+                                    >
+                                      • Sesiones de estudio generadas:{' '}
+                                      {generatedDates.length}
+                                    </div>
+                                    {topics.length > 0 && (
+                                      <div
+                                        style={{
+                                          fontSize: '13px',
+                                          color: '#0369a1',
+                                        }}
+                                      >
+                                        • Aproximadamente{' '}
+                                        {Math.ceil(
+                                          generatedDates.length / topics.length,
+                                        )}{' '}
+                                        sesiones por tema
+                                      </div>
+                                    )}
                                   </div>
                                 )}
 
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    gap: '10px',
-                                    marginTop: '10px',
-                                  }}
-                                >
-                                  <button
-                                    onClick={() =>
-                                      setSelectedStudyDays(availableDays)
-                                    }
+                                {selectedWeekDays.length > 0 &&
+                                  generatedDates.length === 0 && (
+                                    <div
+                                      style={{
+                                        marginTop: '15px',
+                                        padding: '15px',
+                                        backgroundColor: '#fef3c7',
+                                        border: '1px solid #f59e0b',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        color: '#92400e',
+                                      }}
+                                    >
+                                      ⚠️ No hay fechas disponibles con los días
+                                      de la semana seleccionados hasta la fecha
+                                      del examen.
+                                    </div>
+                                  )}
+
+                                {selectedWeekDays.length === 0 && (
+                                  <div
                                     style={{
-                                      backgroundColor: '#3b82f6',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      padding: '6px 12px',
-                                      cursor: 'pointer',
-                                      fontSize: '12px',
+                                      marginTop: '15px',
+                                      padding: '15px',
+                                      backgroundColor: '#f3f4f6',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '8px',
+                                      fontSize: '14px',
+                                      color: '#6b7280',
+                                      textAlign: 'center',
                                     }}
                                   >
-                                    Seleccionar todos
-                                  </button>
-                                  <button
-                                    onClick={() => setSelectedStudyDays([])}
-                                    style={{
-                                      backgroundColor: '#6b7280',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      padding: '6px 12px',
-                                      cursor: 'pointer',
-                                      fontSize: '12px',
-                                    }}
-                                  >
-                                    Limpiar selección
-                                  </button>
-                                </div>
+                                    👆 Selecciona los días de la semana que
+                                    tienes disponibles para estudiar
+                                  </div>
+                                )}
                               </div>
                             );
                           })()}
@@ -1873,7 +1903,7 @@ Genera el JSON del plan de estudio:`;
                         )}
 
                         {/* Botón para generar plan de estudio */}
-                        {topics.length > 0 && selectedStudyDays.length > 0 && (
+                        {topics.length > 0 && selectedWeekDays.length > 0 && (
                           <div style={{ marginTop: '20px' }}>
                             <button
                               onClick={generateStudyPlan}
