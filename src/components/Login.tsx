@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './Login.css';
 
 interface LoginProps {
   onLogin: (email: string, pass: string) => void;
@@ -19,69 +20,97 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
   };
 
   return (
-    <div className="login-container">
-      {/* LADO IZQUIERDO - LOGO */}
-      <div className="login-left">
-        <div className="login-logo-full">
-          <div className="login-logo-icon">
+    <div className="login-page-wrapper">
+      <div className="login-container">
+        {/* LADO IZQUIERDO - LOGO Y DESCRIPCIÓN */}
+        <div className="login-left">
+          <div className="login-logo-container">
             <img
               src="/logo.png"
               alt="FocuseAR Icon"
-              className="w-[180px] h-[180px] object-cover rounded-full mx-auto"
+              className="login-logo"
             />
+            <div className="login-title-container">
+              <h1 className="login-title">FocuseAR</h1>
+              <p className="login-subtitle">Tu asistente de estudio con IA</p>
+            </div>
           </div>
-          <div className="login-title-container">
-            <img
-              src="Texto.png"
-              alt="FocuseAR Logo"
-              className="login-title-img"
-            />
-            <p className="login-subtitle">Tu asistente de estudio con IA</p>
+          
+          <div className="login-features">
+            <h3 className="login-features-title">¿Qué ofrece FocuseAR?</h3>
+            <ul className="login-features-list">
+              <li className="login-feature-item">Planificación automática de estudios</li>
+              <li className="login-feature-item">Organización inteligente de materias</li>
+              <li className="login-feature-item">Asistente con IA para dudas académicas</li>
+              <li className="login-feature-item">Seguimiento de tu progreso</li>
+            </ul>
           </div>
         </div>
-      </div>
 
-      <div className="login-right">
-        <div className="login-box">
-          <h2>
-            <i className="fas fa-user"></i> Iniciar Sesión
-          </h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="usuario@ejemplo.com"
-              />
+        {/* LADO DERECHO - FORMULARIO */}
+        <div className="login-right">
+          <div className="login-form-container">
+            <div className="login-form-header">
+              <h2 className="login-form-title">Iniciar Sesión</h2>
+              <p className="login-form-subtitle">Accede a tu cuenta para continuar</p>
             </div>
-            <div className="form-group">
-              <label>Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="********"
-              />
+
+            <form onSubmit={handleSubmit} className="login-form">
+              <div className="login-input-group">
+                <label htmlFor="email" className="login-label">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="usuario@ejemplo.com"
+                  className="login-input"
+                  required
+                />
+              </div>
+
+              <div className="login-input-group">
+                <label htmlFor="password" className="login-label">Contraseña</label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="********"
+                  className="login-input"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="login-button">
+                Entrar
+              </button>
+            </form>
+
+            <div className="login-separator">
+              <span className="login-separator-text">O continúa con</span>
             </div>
-            <button type="submit" className="planify-btn">
-              Entrar
-            </button>
-          </form>
-          <div className="mt-4">
+
             <button
               onClick={onGoogleLogin}
               type="button"
-              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50"
+              className="login-google-button"
             >
               <img
                 src="https://www.google.com/favicon.ico"
                 alt="Google logo"
-                className="w-5 h-5"
+                className="login-google-icon"
               />
               Continuar con Google
             </button>
+
+            <div className="login-signup-link">
+              <p>¿No tienes una cuenta? <a href="#" className="login-link">Regístrate</a></p>
+            </div>
+          </div>
+
+          <div className="login-terms">
+            <p className="login-terms-text">Al iniciar sesión, aceptas nuestros <a href="#" className="login-link">Términos de servicio</a> y <a href="#" className="login-link">Política de privacidad</a></p>
           </div>
         </div>
       </div>

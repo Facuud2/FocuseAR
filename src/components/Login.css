@@ -1,0 +1,323 @@
+/* Login.css - Estilos específicos para el componente Login */
+.login-page-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+.login-container {
+  display: flex;
+  max-width: 1200px;
+  width: 100%;
+  background: transparent;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0 auto;
+}
+
+.login-left {
+  flex: 1;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.login-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: white;
+}
+
+.login-logo-container {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.login-logo {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  margin-bottom: 1.5rem;
+}
+
+.login-title-container {
+  margin-bottom: 2rem;
+}
+
+.login-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.login-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.login-features {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 400px;
+}
+
+.login-features-title {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.login-features-list {
+  text-align: left;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.login-feature-item {
+  margin-bottom: 0.8rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.login-feature-item::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #93c5fd;
+  font-weight: bold;
+}
+
+.login-form-container {
+  background: white;
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #e5e7eb;
+}
+
+.login-form-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-form-title {
+  color: #1f2937;
+  font-size: 1.8rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: bold;
+}
+
+.login-form-subtitle {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.login-form {
+  margin-bottom: 1.5rem;
+}
+
+.login-input-group {
+  margin-bottom: 1.5rem;
+}
+
+.login-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.login-button {
+  width: 100%;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.login-button:hover {
+  background-color: #1d4ed8;
+}
+
+.login-separator {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.login-separator::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.login-separator-text {
+  position: relative;
+  background: white;
+  padding: 0 12px;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.login-google-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-google-button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.login-google-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.login-signup-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.login-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+.login-terms {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.75rem;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.login-terms-text {
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .login-page-wrapper {
+    padding: 10px;
+    position: relative;
+  }
+  
+  .login-container {
+    flex-direction: column;
+    max-width: 100%;
+    border-radius: 16px;
+  }
+  
+  .login-left, .login-right {
+    padding: 2rem 1.5rem;
+  }
+  
+  .login-logo {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .login-title {
+    font-size: 2rem;
+  }
+  
+  .login-features {
+    display: none;
+  }
+  
+  .login-form-container {
+    padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-left, .login-right {
+    padding: 1.5rem 1rem;
+  }
+  
+  .login-form-container {
+    padding: 1.5rem;
+  }
+  
+  .login-form-title {
+    font-size: 1.5rem;
+  }
+}
