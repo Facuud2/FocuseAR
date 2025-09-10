@@ -9,6 +9,7 @@ import {
   query,
   where,
   getDocs,
+  deleteDoc,
   Timestamp,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
@@ -39,7 +40,29 @@ export interface StudyPlan {
   materialId: string;
   generatedPlan: {
     title: string;
+    summary?: string;
     durationDays: number;
+    examDate?: string;
+    selectedWeekDays?: number[];
+    topics?: string[];
+    studyDates?: string[];
+    structuredPlan?: {
+      title: string;
+      summary: string;
+      days: Array<{
+        date: string;
+        dayNumber: number;
+        topics: Array<{
+          name: string;
+          summary: string;
+          estimatedTime: string;
+        }>;
+        totalTime: string;
+        recommendations: string;
+        completed: boolean;
+      }>;
+      finalRecommendations: string;
+    } | null;
     dailyTasks: Array<{
       day: number;
       task: string;
@@ -242,19 +265,29 @@ export class DatabaseService {
       );
 
       const plansSnap = await getDocs(plansQuery);
-      const deletePromises = plansSnap.docs.map((doc) =>
-        setDoc(doc.ref, {}, { merge: false }),
-      );
+      const deletePromises = plansSnap.docs.map((doc) => deleteDoc(doc.ref));
 
       await Promise.all(deletePromises);
       console.log('✅ Planes de estudio eliminados');
 
       // Eliminar material
       const materialRef = doc(db, 'materials', materialId);
-      await setDoc(materialRef, {}, { merge: false });
+      await deleteDoc(materialRef);
       console.log('✅ Material eliminado');
     } catch (error) {
       console.error('❌ Error al eliminar material y planes:', error);
+      throw error;
+    }
+  }
+
+  // 9. Eliminar un plan de estudio específico
+  static async deleteStudyPlan(planId: string): Promise<void> {
+    try {
+      const planRef = doc(db, 'studyPlans', planId);
+      await deleteDoc(planRef);
+      console.log('✅ Plan de estudio eliminado');
+    } catch (error) {
+      console.error('❌ Error al eliminar plan de estudio:', error);
       throw error;
     }
   }

@@ -13,7 +13,7 @@ type StudyPlanDay = {
   title?: string;
 };
 
-import React, { useState, type JSX /* useEffect */ } from 'react';
+import React, { useState, useEffect, type JSX } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from '../hooks/authContext';
@@ -34,7 +34,7 @@ interface Pdf {
 }
 
 interface Subject {
-  id: number;
+  id: string | number;
   name: string;
   examDate: string;
   color: string;
@@ -59,7 +59,16 @@ interface AnalysisState {
 
 const Dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { loading: dbLoading, error: dbError } = useDatabase();
+  const {
+    loading: dbLoading,
+    error: dbError,
+    getUserMaterials,
+    getUserStudyPlans,
+    createMaterial,
+    createStudyPlan,
+    deleteStudyPlan,
+    deleteMaterialAndPlans,
+  } = useDatabase();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   // const [events] = useState<Event[]>([]); // Eliminado: no se usa
@@ -89,30 +98,33 @@ const Dashboard: React.FC = () => {
   // Estados para planes de estudio guardados
   const [studyPlans, setStudyPlans] = useState<
     Array<{
-      id: number;
+      id: string | number;
       subjectName: string;
       eventName: string;
       examDate: string;
       topics: string[];
       studyDays: string[];
       content: string;
-      structuredPlan: {
-        title: string;
-        summary: string;
-        days: Array<{
-          date: string;
-          dayNumber: number;
-          topics: Array<{
-            name: string;
+      structuredPlan:
+        | {
+            title: string;
             summary: string;
-            estimatedTime: string;
-          }>;
-          totalTime: string;
-          recommendations: string;
-          completed: boolean;
-        }>;
-        finalRecommendations: string;
-      } | null;
+            days: Array<{
+              date: string;
+              dayNumber: number;
+              topics: Array<{
+                name: string;
+                summary: string;
+                estimatedTime: string;
+              }>;
+              totalTime: string;
+              recommendations: string;
+              completed: boolean;
+            }>;
+            finalRecommendations: string;
+          }
+        | null
+        | undefined;
       progress: number;
       createdAt: string;
       expanded: boolean;
@@ -133,7 +145,7 @@ const Dashboard: React.FC = () => {
   const [showDayModal, setShowDayModal] = useState(false);
   // Estado para almacenar los detalles del día seleccionado
   const [selectedDayDetails, setSelectedDayDetails] = useState<Array<{
-    planId: number;
+    planId: string | number;
     day: StudyPlanDay;
     color?: string;
   }> | null>(null);
@@ -153,6 +165,96 @@ const Dashboard: React.FC = () => {
   const updateAnalysisStatus = (status: Partial<AnalysisState>) => {
     setAnalysisStatus((prev) => ({ ...prev, ...status }));
   };
+
+  // useEffect para cargar datos del usuario al montar el componente
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) return;
+
+      try {
+        // Cargar materiales del usuario
+        const materials = await getUserMaterials();
+
+        // Convertir materiales de Firebase a formato Subject local
+        const convertedSubjects: Subject[] = materials.map(
+          (material, index) => {
+            console.log('🔍 DEBUG - Material de Firebase:', material);
+            console.log(
+              '🔍 DEBUG - material.id:',
+              material.id,
+              'tipo:',
+              typeof material.id,
+            );
+
+            // Usar el ID de Firebase directamente como string, o generar uno único
+            const subjectId = material.id || `subject-${Date.now()}-${index}`;
+            console.log('🔍 DEBUG - ID asignado:', subjectId);
+
+            return {
+              id: subjectId, // Usar string directamente, no parseInt
+              name: material.fileName.replace(/\.(pdf|docx|doc)$/i, ''), // Remover extensiones comunes
+              examDate: '', // Se puede agregar fecha de examen en el futuro
+              color: '#4285F4', // Color por defecto
+              pdfs: [
+                {
+                  id: 1,
+                  name: material.fileName,
+                  size: '0 MB', // Se puede calcular el tamaño real
+                },
+              ],
+              importantDates: [], // Se pueden agregar fechas importantes
+            };
+          },
+        );
+
+        setSubjects(convertedSubjects);
+
+        // Cargar planes de estudio del usuario
+        const studyPlans = await getUserStudyPlans();
+        console.log('Planes de estudio cargados:', studyPlans);
+
+        // Convertir planes de Firebase a formato local
+        const convertedPlans = studyPlans.map((plan, index) => {
+          console.log('🔍 DEBUG - Plan de Firebase:', plan);
+          console.log('🔍 DEBUG - plan.id:', plan.id, 'tipo:', typeof plan.id);
+
+          // Usar el ID de Firebase directamente como string, o generar uno único
+          const planId = plan.id || `plan-${Date.now()}-${index}`;
+          console.log('🔍 DEBUG - Plan ID asignado:', planId);
+
+          return {
+            id: planId, // Usar string directamente, no parseInt
+            subjectName: plan.generatedPlan.title || 'Plan de Estudio',
+            eventName: 'Examen',
+            examDate: plan.generatedPlan.examDate || '',
+            topics: plan.generatedPlan.topics || [],
+            studyDays: plan.generatedPlan.studyDates || [],
+            content: JSON.stringify(plan.generatedPlan.structuredPlan || {}),
+            structuredPlan: plan.generatedPlan.structuredPlan,
+            progress: 0,
+            createdAt:
+              plan.createdAt?.toDate?.()?.toISOString() ||
+              new Date().toISOString(),
+            expanded: false,
+          };
+        });
+
+        setStudyPlans(convertedPlans);
+
+        // Restaurar días de la semana seleccionados del último plan
+        if (
+          studyPlans.length > 0 &&
+          studyPlans[0].generatedPlan.selectedWeekDays
+        ) {
+          setSelectedWeekDays(studyPlans[0].generatedPlan.selectedWeekDays);
+        }
+      } catch (error: unknown) {
+        console.error('Error al cargar datos del usuario:', error);
+      }
+    };
+
+    loadUserData();
+  }, [user, getUserMaterials, getUserStudyPlans]);
 
   // === LOGICA DE MATERIAS ===
   const handlePlanify = async () => {
@@ -194,31 +296,47 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // Crear materia local (sin Firestore por ahora)
-    const newSubject: Subject = {
-      id: Date.now(),
-      name: subjectName,
-      examDate:
-        importantDates.length > 0
-          ? importantDates.map((d) => d.date).sort()[0]
-          : '',
-      color: selectedColor,
-      pdfs,
-      importantDates,
-    };
+    try {
+      // Crear material en Firebase primero
+      if (pdfs.length > 0) {
+        const materialId = await createMaterial({
+          fileName: pdfs[0].name,
+          storagePath: `materials/${user?.uid}/${pdfs[0].name}`,
+          fileType: 'pdf',
+        });
 
-    setSubjects([...subjects, newSubject]);
+        if (materialId) {
+          // Crear materia local con referencia a Firebase
+          const newSubject: Subject = {
+            id: Date.now(),
+            name: subjectName,
+            examDate:
+              importantDates.length > 0
+                ? importantDates.map((d) => d.date).sort()[0]
+                : '',
+            color: selectedColor,
+            pdfs,
+            importantDates,
+          };
 
-    // Limpiar el formulario
-    setSubjectName('');
-    setPdfs([]);
-    setFirstPartialDate(null);
-    setSecondPartialDate(null);
-    setTpDate(null);
-    setOtherDates([]);
-    // NO limpiar extractedTopics para mantener los temas disponibles en Planificación
+          setSubjects([...subjects, newSubject]);
 
-    alert('Materia añadida exitosamente a "Mis materias"!');
+          // Limpiar el formulario
+          setSubjectName('');
+          setPdfs([]);
+          setFirstPartialDate(null);
+          setSecondPartialDate(null);
+          setTpDate(null);
+          setOtherDates([]);
+          // NO limpiar extractedTopics para mantener los temas disponibles en Planificación
+
+          alert('Materia añadida exitosamente y guardada en Firebase!');
+        }
+      }
+    } catch (error: unknown) {
+      console.error('Error al guardar materia en Firebase:', error);
+      alert('Error al guardar la materia. Inténtalo de nuevo.');
+    }
   };
 
   // === LOGICA DE FECHAS DINÁMICAS ===
@@ -491,14 +609,70 @@ Genera el JSON del plan de estudio:`;
           structuredPlan = parsedPlan;
           console.log('✅ JSON parseado correctamente:', structuredPlan);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.log(
           '⚠️ No se pudo parsear como JSON, usando formato texto:',
           error,
         );
       }
 
-      // Guardar el plan en la lista de planes de estudio
+      // Guardar el plan completo en Firebase
+      try {
+        const planId = await createStudyPlan({
+          materialId: selectedSubject.id.toString(),
+          generatedPlan: {
+            title:
+              structuredPlan?.title ||
+              `Plan de Estudio - ${selectedSubject.name}`,
+            summary:
+              structuredPlan?.summary || 'Plan de estudio generado con IA',
+            durationDays: generatedStudyDates.length,
+            examDate: examDate,
+            selectedWeekDays: selectedWeekDays,
+            topics: topics.map((t) => t.name),
+            studyDates: generatedStudyDates,
+            structuredPlan: structuredPlan as
+              | {
+                  title: string;
+                  summary: string;
+                  days: Array<{
+                    date: string;
+                    dayNumber: number;
+                    topics: Array<{
+                      name: string;
+                      summary: string;
+                      estimatedTime: string;
+                    }>;
+                    totalTime: string;
+                    recommendations: string;
+                    completed: boolean;
+                  }>;
+                  finalRecommendations: string;
+                }
+              | undefined,
+            dailyTasks: structuredPlan?.days
+              ? structuredPlan.days.map((day: StudyPlanDay, index: number) => ({
+                  day: index + 1,
+                  task: `${day.topics.map((t: { name: string; summary: string; estimatedTime: string }) => t.name).join(', ')} - ${day.recommendations}`,
+                  completed: false,
+                }))
+              : generatedStudyDates.map((date, index) => ({
+                  day: index + 1,
+                  task: `Estudiar temas asignados para ${formatDate(date)}`,
+                  completed: false,
+                })),
+          },
+        });
+
+        if (planId) {
+          console.log('✅ Plan completo guardado en Firebase con ID:', planId);
+        }
+      } catch (firebaseError: unknown) {
+        console.error('❌ Error guardando plan en Firebase:', firebaseError);
+        // Continuar con el guardado local aunque falle Firebase
+      }
+
+      // Guardar el plan en la lista local de planes de estudio
       const newPlan = {
         id: nextPlanId,
         subjectName: selectedSubject.name,
@@ -519,7 +693,7 @@ Genera el JSON del plan de estudio:`;
       setNextPlanId(nextPlanId + 1);
 
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ Error generando plan de estudio:', error);
       alert('Error generando el plan de estudio. Inténtalo de nuevo.');
     } finally {
@@ -528,7 +702,7 @@ Genera el JSON del plan de estudio:`;
   };
 
   // Funciones para manejar planes de estudio
-  const togglePlanExpansion = (planId: number) => {
+  const togglePlanExpansion = (planId: string | number) => {
     setStudyPlans((prevPlans) =>
       prevPlans.map((plan) =>
         plan.id === planId ? { ...plan, expanded: !plan.expanded } : plan,
@@ -536,7 +710,7 @@ Genera el JSON del plan de estudio:`;
     );
   };
 
-  const toggleDayCompletion = (planId: number, dayIndex: number) => {
+  const toggleDayCompletion = (planId: string | number, dayIndex: number) => {
     setStudyPlans((prevPlans) =>
       prevPlans.map((plan) => {
         if (plan.id === planId && plan.structuredPlan) {
@@ -566,10 +740,136 @@ Genera el JSON del plan de estudio:`;
     );
   };
 
-  const deletePlan = (planId: number) => {
-    setStudyPlans((prevPlans) =>
-      prevPlans.filter((plan) => plan.id !== planId),
-    );
+  const deletePlan = async (planId: string | number) => {
+    try {
+      console.log(
+        '🗑️ Iniciando eliminación de plan con ID:',
+        planId,
+        'tipo:',
+        typeof planId,
+      );
+
+      // Buscar el plan en Firebase ANTES de eliminar del estado local
+      const firebasePlans = await getUserStudyPlans();
+      console.log('📦 Planes de Firebase:', firebasePlans);
+
+      // Buscar por múltiples criterios para asegurar coincidencia
+      const firebasePlan = firebasePlans.find((plan) => {
+        const planIdStr = String(plan.id);
+        const localIdStr = String(planId);
+        console.log(
+          `🔍 Comparando: Firebase "${planIdStr}" vs Local "${localIdStr}"`,
+        );
+        return planIdStr === localIdStr;
+      });
+
+      console.log('🎯 Plan encontrado en Firebase:', firebasePlan);
+
+      if (firebasePlan && firebasePlan.id) {
+        // Eliminar de Firebase PRIMERO
+        console.log('🔥 Eliminando plan de Firebase con ID:', firebasePlan.id);
+        await deleteStudyPlan(firebasePlan.id);
+        console.log('✅ Plan eliminado de Firebase correctamente');
+
+        // Solo después eliminar del estado local
+        setStudyPlans((prevPlans) => {
+          const filtered = prevPlans.filter(
+            (plan) => String(plan.id) !== String(planId),
+          );
+          console.log(
+            '📋 Planes después del filtro:',
+            filtered.length,
+            'de',
+            prevPlans.length,
+          );
+          return filtered;
+        });
+
+        console.log('✅ Plan eliminado completamente');
+      } else {
+        console.warn('⚠️ Plan no encontrado en Firebase');
+        alert(
+          'El plan no se encontró en la base de datos. Puede que ya haya sido eliminado.',
+        );
+      }
+    } catch (error: unknown) {
+      console.error('❌ Error al eliminar plan:', error);
+      alert('Error al eliminar el plan. Inténtalo de nuevo.');
+    }
+  };
+
+  // Función para eliminar materia y sus planes asociados
+  const deleteSubject = async (subjectId: string | number) => {
+    try {
+      console.log('🗑️ Iniciando eliminación de materia con ID:', subjectId);
+      console.log('📋 Materias actuales:', subjects);
+
+      // Buscar el material en Firebase usando el ID local
+      const materials = await getUserMaterials();
+      console.log('📦 Materiales de Firebase:', materials);
+
+      const firebaseMaterial = materials.find((material) => {
+        console.log(
+          `🔍 Comparando: Firebase ID "${material.id}" vs Local ID "${subjectId}"`,
+        );
+        return material.id === subjectId || material.id === String(subjectId);
+      });
+
+      console.log('🎯 Material encontrado en Firebase:', firebaseMaterial);
+
+      if (firebaseMaterial && firebaseMaterial.id) {
+        // Eliminar material y planes asociados de Firebase
+        console.log('🔥 Eliminando de Firebase...');
+        await deleteMaterialAndPlans(firebaseMaterial.id);
+        console.log('✅ Eliminado de Firebase correctamente');
+      }
+
+      // Obtener el nombre de la materia antes de eliminarla
+      const subjectToDelete = subjects.find((s) => s.id === subjectId);
+      const subjectName = subjectToDelete?.name;
+      console.log('📝 Materia a eliminar:', subjectToDelete);
+
+      // Eliminar del estado local
+      console.log('🔄 Actualizando estado local de subjects...');
+      setSubjects((prevSubjects) => {
+        const newSubjects = prevSubjects.filter(
+          (subject) => subject.id !== subjectId,
+        );
+        console.log('📋 Nuevas materias después del filtro:', newSubjects);
+        return newSubjects;
+      });
+
+      // También eliminar planes de estudio asociados del estado local
+      console.log('🔄 Actualizando estado local de studyPlans...');
+      setStudyPlans((prevPlans) => {
+        console.log('📋 Planes antes del filtro:', prevPlans);
+        console.log(
+          '🔍 Buscando planes con subjectName que contenga:',
+          subjectName,
+        );
+
+        const newPlans = prevPlans.filter((plan) => {
+          console.log(
+            `🔍 Comparando plan "${plan.subjectName}" con materia "${subjectName}"`,
+          );
+          // Comparar tanto por nombre exacto como por nombre contenido
+          const matches =
+            plan.subjectName === subjectName ||
+            plan.subjectName.includes(subjectName || '') ||
+            (subjectName && subjectName.includes(plan.subjectName));
+          console.log(`🎯 ¿Coincide? ${matches}`);
+          return !matches; // Mantener los que NO coinciden
+        });
+
+        console.log('📋 Nuevos planes después del filtro:', newPlans);
+        return newPlans;
+      });
+
+      console.log('✅ Materia y planes eliminados correctamente');
+    } catch (error: unknown) {
+      console.error('❌ Error al eliminar materia:', error);
+      alert('Error al eliminar la materia. Inténtalo de nuevo.');
+    }
   };
 
   // === LOGICA DE PDFs ===
@@ -698,7 +998,7 @@ Genera el JSON del plan de estudio:`;
   // Días del plan de estudio (puede haber varios planes en el mismo día)
   const studyPlanDays: {
     [date: string]: Array<{
-      planId: number;
+      planId: string | number;
       day: StudyPlanDay;
       color?: string;
     }>;
@@ -890,9 +1190,9 @@ Genera el JSON del plan de estudio:`;
                     />
                   </div>
 
-                  {otherDates.map((otherDate) => (
+                  {otherDates.map((otherDate, index) => (
                     <div
-                      key={otherDate.id}
+                      key={`other-date-${otherDate.id || index}`}
                       className="form-group"
                       style={{
                         display: 'flex',
@@ -1140,9 +1440,9 @@ Genera el JSON del plan de estudio:`;
                         padding: '8px',
                       }}
                     >
-                      {pdfs.map((pdf) => (
+                      {pdfs.map((pdf, index) => (
                         <div
-                          key={pdf.id}
+                          key={`pdf-${pdf.id || index}`}
                           style={{
                             display: 'flex',
                             justifyContent: 'space-between',
@@ -1322,7 +1622,10 @@ Genera el JSON del plan de estudio:`;
                 }}
               >
                 {extractedTopics.map((topic, i) => (
-                  <div key={topic.id} style={{ marginBottom: '2px' }}>
+                  <div
+                    key={`extracted-topic-${topic.id || i}`}
+                    style={{ marginBottom: '2px' }}
+                  >
                     {i + 1}. {topic.name}
                   </div>
                 ))}
@@ -1343,10 +1646,13 @@ Genera el JSON del plan de estudio:`;
               </div>
             ) : (
               <div className="subjects-grid">
-                {subjects.map((subject) => {
+                {subjects.map((subject, index) => {
                   const initial = subject.name.charAt(0).toUpperCase();
                   return (
-                    <div key={subject.id} className="subject-card">
+                    <div
+                      key={`subject-${subject.id || index}`}
+                      className="subject-card"
+                    >
                       <div className="subject-header">
                         <div
                           className="subject-icon"
@@ -1358,9 +1664,11 @@ Genera el JSON del plan de estudio:`;
                           <h3 className="subject-name">{subject.name}</h3>
                           <p className="subject-date">
                             <i className="fas fa-calendar-alt"></i>
-                            {new Date(subject.examDate).toLocaleDateString(
-                              'es-ES',
-                            )}
+                            {subject.examDate && subject.examDate !== ''
+                              ? new Date(subject.examDate).toLocaleDateString(
+                                  'es-ES',
+                                )
+                              : 'Fecha no definida'}
                           </p>
                         </div>
                       </div>
@@ -1383,6 +1691,53 @@ Genera el JSON del plan de estudio:`;
                             {subject.pdfs.length}/5
                           </span>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log(
+                              '🔍 DEBUG - subject completo:',
+                              subject,
+                            );
+                            console.log(
+                              '🔍 DEBUG - subject.id:',
+                              subject.id,
+                              'tipo:',
+                              typeof subject.id,
+                            );
+                            if (
+                              confirm(
+                                `¿Estás seguro de que quieres eliminar la materia "${subject.name}" y todos sus planes de estudio asociados?`,
+                              )
+                            ) {
+                              // Usar el ID directamente (ahora puede ser string o number)
+                              deleteSubject(subject.id);
+                            }
+                          }}
+                          style={{
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 10px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginTop: '8px',
+                            transition: 'background-color 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#dc2626';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#ef4444';
+                          }}
+                        >
+                          <i className="fas fa-trash"></i>
+                          Eliminar
+                        </button>
                       </div>
                     </div>
                   );
@@ -1417,8 +1772,11 @@ Genera el JSON del plan de estudio:`;
                     }}
                   >
                     <option value="">-- Selecciona una materia --</option>
-                    {subjects.map((subject) => (
-                      <option key={subject.id} value={subject.id}>
+                    {subjects.map((subject, index) => (
+                      <option
+                        key={`option-${subject.id || index}`}
+                        value={subject.id || ''}
+                      >
                         {subject.name}
                       </option>
                     ))}
@@ -1479,7 +1837,7 @@ Genera el JSON del plan de estudio:`;
 
                                 return (
                                   <div
-                                    key={extractedTopic.id}
+                                    key={`planning-topic-${extractedTopic.id || index}`}
                                     style={{
                                       display: 'flex',
                                       justifyContent: 'space-between',
@@ -1860,9 +2218,9 @@ Genera el JSON del plan de estudio:`;
                             <div
                               style={{ maxHeight: '150px', overflowY: 'auto' }}
                             >
-                              {topics.map((topic) => (
+                              {topics.map((topic, index) => (
                                 <div
-                                  key={topic.id}
+                                  key={`topic-${topic.id || index}`}
                                   style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
@@ -2070,9 +2428,9 @@ Genera el JSON del plan de estudio:`;
                   gap: '16px',
                 }}
               >
-                {studyPlans.map((plan) => (
+                {studyPlans.map((plan, index) => (
                   <div
-                    key={plan.id}
+                    key={`plan-${plan.id || index}`}
                     style={{
                       border: '1px solid #e5e7eb',
                       borderRadius: '12px',
@@ -2180,7 +2538,13 @@ Genera el JSON del plan de estudio:`;
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              deletePlan(plan.id);
+                              if (
+                                confirm(
+                                  `¿Estás seguro de que quieres eliminar el plan de estudio "${plan.subjectName}"?`,
+                                )
+                              ) {
+                                deletePlan(plan.id);
+                              }
                             }}
                             style={{
                               backgroundColor: '#ef4444',
