@@ -63,7 +63,7 @@ body {
   padding: 0;
   color: var(--text-primary);
   line-height: 1.6;
-  background: linear-gradient(135deg, #b7e9ff 0%, #286fb6 100%);
+  background: linear-gradient(135deg, #19baff 0%, #0e065c 100%);
   display: flex;
   justify-content: center;
   align-items: center;
