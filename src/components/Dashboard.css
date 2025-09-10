@@ -51,6 +51,7 @@ body {
 }
 
 /* ===== HEADER ===== */
+
 header {
   display: flex;
   justify-content: space-between;
@@ -59,8 +60,9 @@ header {
   padding: 1.5rem 2.5rem;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  margin: 0 auto 2.5rem; /* Ajuste para centrar el header */
-  max-width: 1400px; /* Limita el ancho del header para una apariencia más alineada */
+  margin: 0 auto 2.5rem;
+  max-width: none; /* Elimina cualquier limitación de ancho */
+  width: 85%; /* Ocupa el 100% del contenedor padre */
   transition: var(--transition);
 }
 
@@ -71,11 +73,11 @@ header {
 }
 
 .logo-icon img {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   object-fit: cover;
-  border-radius: 50%;
-  border: 4px solid var(--primary-color);
+  border-radius: 60%;
+  border: 3px solid var(--primary-color);
   transition: var(--transition);
   
 }
@@ -89,17 +91,21 @@ header {
 .logo-text h2 {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 0.95rem;
-  font-weight: 500;
-}
+  font-size: 0.60rem;
+  font-weight: 200;
+  position: relative;
+  top: -30px
+  }
 
 .focusear-title {
-  height: 40px;
-  object-fit: contain;
-  height: 10vh; /* Ocupa el 100% de la altura del contenedor padre */
-  width: 25vh;
+  width: 90%;
+  max-width: 250px;
+  height: auto;
+  animation: focusear-zoom 2.2s cubic-bezier(.4,0,.2,1) infinite alternate;
+  margin-left: 0px;
+  position: relative;
+  top: 0;
 }
-
 .user-info {
   display: flex;
   align-items: center;
