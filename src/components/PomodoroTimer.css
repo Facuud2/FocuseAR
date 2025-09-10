@@ -22,6 +22,7 @@
   max-width: 1000px;
   margin: 0 auto;
   text-align: center;
+  margin-top: -900px;
 }
 
 .pomodoro-header {
@@ -44,6 +45,31 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative; /* Agrega esto para que el video se posicione relativo a este contenedor */
+}
+
+.video-container-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translate(2rem, -50%);
+  width: 600px;  /* Ancho más grande y cuadrado */
+  height: 600px; /* Alto igual al ancho para hacerlo cuadrado */
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.video-container-wrapper.visible {
+  opacity: 1;
+}
+
+.video-aesthetics {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Esto es clave para que el video se adapte sin distorsionarse */
 }
 
 .timer-panel {
@@ -108,10 +134,10 @@
   transition: stroke-dashoffset 1s linear;
 }
 .progress-ring-foreground.mode-short-break {
-    stroke: var(--secondary-color);
+  stroke: var(--secondary-color);
 }
 .progress-ring-foreground.mode-long-break {
-    stroke: var(--warning-color);
+  stroke: var(--warning-color);
 }
 
 .timer-countdown {
@@ -204,5 +230,13 @@
     width: 100%;
     justify-content: center;
     padding: 1rem;
+  }
+  .video-container-wrapper {
+    top: auto;
+    left: 50%;
+    bottom: -320px; /* Ajustado para el nuevo tamaño del video en móviles */
+    transform: translateX(-50%);
+    width: 250px; /* Tamaño cuadrado en móviles */
+    height: 250px; /* Tamaño cuadrado en móviles */
   }
 }

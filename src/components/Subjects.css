@@ -1,256 +1,409 @@
-/* src/components/Subjects.css */
-
-/* Reutilizamos las variables del Dashboard */
+/* Variables de Color - Modo Claro */
 :root {
-  --primary-color: #4285f4;
-  --secondary-color: #34a853;
-  --danger-color: #ea4335;
-  --warning-color: #fbbc05;
-  --background-color: #f0f4f8;
-  --surface-color: #ffffff;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
+  --gradient-start: #3b82f6;
+  --gradient-end: #6366f1;
+  --card-bg: #ffffff;
+  --text-dark: #1f2937;
+  --text-light: #4b5563;
+  --text-muted: #9ca3af;
   --border-color: #e5e7eb;
-  --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 12px 20px -4px rgba(0, 0, 0, 0.15), 0 8px 12px -2px rgba(0, 0, 0, 0.08);
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --button-gradient-start: #8b5cf6;
+  --button-gradient-end: #6366f1;
+  --button-text-color: #ffffff;
+  --color-violet: #6d28d9;
+  --color-blue: #2563eb;
+  --color-emerald: #059669;
+  --color-amber: #d97706;
 }
 
-.subjects-container {
-  padding: 2.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
+/* Variables de Color - Modo Oscuro */
+body[data-theme='dark'] {
+  --gradient-start: #0f172a;
+  --gradient-end: #1e293b;
+  --card-bg: #1f2937;
+  --text-dark: #f3f4f6;
+  --text-light: #9ca3af;
+  --text-muted: #6b7280;
+  --border-color: #374151;
+  --button-gradient-start: #4c1d95;
+  --button-gradient-end: #3730a3;
+  --button-text-color: #f3f4f6;
+  --color-violet: #a78bfa;
+  --color-blue: #60a5fa;
+  --color-emerald: #34d399;
+  --color-amber: #fbbf24;
 }
 
-.subjects-header {
-  margin-bottom: 2.5rem;
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
-.subjects-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.subjects-subtitle {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-}
-
-.subjects-main-content {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 2.5rem;
-}
-
-/* Paneles */
-.add-subject-panel,
-.subjects-list-panel {
-  background: var(--surface-color);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
-  transition: var(--transition);
-}
-
-.panel-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 1.5rem;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 0.75rem;
+  min-height: 170vh;
+  margin-left: 145px;
+  background: linear-gradient(135deg, #19baff 0%, #0e065c 100%);
+  transition: background 0.5s ease;
 }
 
-.panel-icon {
-  font-size: 1.25rem;
+.main-container {
+  max-width: 800px;
+  width: 3500px;
+}
+
+.content-card {
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 2.5rem;
+  transition: background-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+/* Sección del encabezado (título y subtítulo) */
+.header-section {
+  text-align: left;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-bottom 0.5s ease;
+}
+
+.main-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  transition: color 0.5s ease;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-top: 0.5rem;
+  transition: color 0.5s ease;
 }
 
 /* Formulario */
-.add-subject-form .form-group {
-  margin-bottom: 1.5rem;
-}
-.add-subject-form label {
-  display: block;
-  margin-bottom: 0.6rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-.add-subject-form input[type="text"] {
-  width: 100%;
-  padding: 0.9rem 1.2rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  transition: var(--transition);
-  background: var(--background-color);
-  color: var(--text-primary);
-}
-.add-subject-form input[type="text"]:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
-  background: var(--surface-color);
-}
-.color-picker-container {
-  position: relative;
-  width: 100%;
-  height: 48px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-.color-picker-container input[type="color"] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-  padding: 0;
-  background: none;
+.add-form {
+  margin-bottom: 2rem;
 }
 
-/* Botón de añadir */
-.add-subject-btn {
+.form-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.5s ease;
+}
+
+.form-title::before {
+  content: '+';
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-blue);
+  transition: color 0.5s ease;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group-full {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  transition: color 0.5s ease;
+}
+
+.form-input, .add-form select, .add-form textarea {
   width: 100%;
-  padding: 1.1rem 1.5rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #1a73e8 100%);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
   font-size: 1rem;
+  background-color: var(--card-bg);
+  color: var(--text-dark);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.5s ease, color 0.5s ease;
+}
+
+.form-input:focus, .add-form select:focus, .add-form textarea:focus {
+  outline: none;
+  border-color: var(--color-blue);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.add-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Selector de color */
+.color-picker-container {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.color-option-label {
+  cursor: pointer;
+  display: block;
+}
+
+.color-option-label input {
+  display: none;
+}
+
+.color-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  display: block;
+}
+
+.color-circle-violet { background-color: var(--color-violet); }
+.color-circle-blue { background-color: var(--color-blue); }
+.color-circle-emerald { background-color: var(--color-emerald); }
+.color-circle-amber { background-color: var(--color-amber); }
+
+.color-option-label input:checked + .color-circle {
+  transform: scale(1.15);
+  border-color: var(--text-dark);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón de añadir materia */
+.submit-button {
+  width: 100%;
+  background: linear-gradient(90deg, var(--button-gradient-start), var(--button-gradient-end));
+  border: none;
+  border-radius: 0.5rem;
+  color: var(--button-text-color);
+  padding: 0.75rem 1.5rem;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  box-shadow: var(--shadow-md);
+  gap: 0.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.5s ease;
 }
-.add-subject-btn:hover {
-  background: linear-gradient(135deg, #1a73e8 0%, var(--primary-color) 100%);
+
+.submit-button:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Sección "Mis Materias" */
+.subjects-list-section {
+  margin-top: 2.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--border-color);
+  transition: border-top 0.5s ease;
+}
+
+.list-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: color 0.5s ease;
+}
+
+.list-title-icon {
+  color: var(--color-blue);
+  transition: color 0.5s ease;
+}
+
+.subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 600px) {
+  .subjects-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tarjetas de Materias */
+.subject-card {
+  background-color: var(--card-bg);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.5s ease, border-color 0.5s ease;
+  border: 1px solid var(--border-color);
+}
+
+.subject-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Estilos específicos por color de tarjeta */
+.subject-card-violet { border-left: 5px solid var(--color-violet); }
+.subject-card-blue { border-left: 5px solid var(--color-blue); }
+.subject-card-emerald { border-left: 5px solid var(--color-emerald); }
+.subject-card-amber { border-left: 5px solid var(--color-amber); }
+
+.card-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.card-icon-wrapper {
+  background-color: var(--border-color);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  transition: background-color 0.5s ease;
+}
+
+.card-icon {
+  color: var(--text-dark);
+  transition: color 0.5s ease;
+}
+
+.card-info { flex-grow: 1; }
+.card-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  background-color: var(--border-color);
+  color: var(--text-light);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.subject-card-violet .card-info .card-badge { background-color: #eef2ff; color: var(--color-violet); }
+.subject-card-blue .card-info .card-badge { background-color: #eff6ff; color: var(--color-blue); }
+.subject-card-emerald .card-info .card-badge { background-color: #ecfdf5; color: var(--color-emerald); }
+.subject-card-amber .card-info .card-badge { background-color: #fffbeb; color: var(--color-amber); }
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-dark);
+  transition: color 0.5s ease;
+}
+
+.card-description {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: 1rem;
+  transition: color 0.5s ease;
+}
+
+.card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  border-top: 1px dashed var(--border-color);
+  padding-top: 1.5rem;
+  transition: border-top 0.5s ease;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  transition: color 0.5s ease;
+}
+
+.detail-item svg {
+  color: var(--text-muted);
+  transition: color 0.5s ease;
 }
 
 /* Estado vacío */
 .empty-state {
   text-align: center;
-  padding: 3rem 1rem;
-  color: var(--text-secondary);
+  padding: 2rem 1rem;
+  background-color: var(--card-bg);
+  border: 1px dashed var(--border-color);
+  border-radius: 0.75rem;
+  margin-top: 1.5rem;
+  transition: background-color 0.5s ease, border-color 0.5s ease;
 }
+
 .empty-state-icon {
-  color: var(--border-color);
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  transition: color 0.5s ease;
 }
+
 .empty-state-text {
-  margin: 0.5rem 0;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 1rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+  transition: color 0.5s ease;
 }
-.empty-state small {
+
+.empty-state-text-small {
   font-size: 0.875rem;
+  color: var(--text-muted);
+  transition: color 0.5s ease;
 }
 
-/* Cuadrícula de materias */
-.subjects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-.subject-card {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  background: var(--background-color);
-  border-radius: var(--radius-md);
-  padding: 1.5rem;
-  transition: var(--transition);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
-}
-.subject-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-}
-.subject-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: white;
-  font-size: 1.5rem;
-  flex-shrink: 0;
-}
-.subject-info {
-  flex-grow: 1;
-}
-.subject-info h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-.subject-info p {
-  margin: 0.4rem 0 0 0;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-.subject-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-.subject-action-btn {
-  background: none;
-  border: 1px solid var(--border-color);
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  color: var(--text-secondary);
-}
-.subject-action-btn:hover {
-  background: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-.subject-action-btn.delete-btn:hover {
-  background: var(--danger-color);
-  color: white;
-  border-color: var(--danger-color);
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
-  .subjects-main-content {
-    grid-template-columns: 1fr;
-  }
-}
-@media (max-width: 768px) {
-  .subjects-container {
-    padding: 1rem;
-  }
-  .subjects-title {
-    font-size: 2rem;
-  }
-  .subjects-subtitle {
-    font-size: 1rem;
-  }
-  .add-subject-panel,
-  .subjects-list-panel {
+@media (max-width: 600px) {
+  .content-card {
     padding: 1.5rem;
+  }
+  .main-title {
+    font-size: 1.75rem;
+  }
+  .submit-button {
+    font-size: 1rem;
+    padding: 0.6rem 1rem;
+  }
+  .subjects-list-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
   }
 }

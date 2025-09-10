@@ -19,7 +19,7 @@ import PDFSummaryTest from './components/PDFSummaryTest';
 import Sidebar from './components/Sidebar';
 import AccountSettings from './components/AccountSettings';
 import StudySchedule from './components/StudySchedule';
-import Subjects from './components/Subjects';
+import { Subjects } from './components/Subjects.tsx';
 import Documents from './components/Documents';
 import PomodoroTimer from './components/PomodoroTimer';
 import AIPlanner from './components/AIPlanner';

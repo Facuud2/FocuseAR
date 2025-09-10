@@ -1,12 +1,12 @@
 // src/components/PomodoroTimer.tsx
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import './PomodoroTimer.css';
 import { Play, Pause, RotateCcw, Coffee, Sun, Brain } from 'lucide-react';
 
-const POMODORO_TIME = 25 * 60; // 25 minutos en segundos
-const SHORT_BREAK = 5 * 60; // 5 minutos en segundos
-const LONG_BREAK = 15 * 60; // 15 minutos en segundos
+const POMODORO_TIME = 25 * 60;
+const SHORT_BREAK = 5 * 60;
+const LONG_BREAK = 15 * 60;
 
 const PomodoroTimer = () => {
   const [mode, setMode] = useState<'pomodoro' | 'short-break' | 'long-break'>(
@@ -16,9 +16,18 @@ const PomodoroTimer = () => {
   const [isActive, setIsActive] = useState(false);
   const [cycles, setCycles] = useState(0);
 
-  // Usa useCallback para que la función no cambie en cada renderizado
+  // Referencias para cada video
+  const pomodoroVideoRef = useRef<HTMLVideoElement>(null);
+  const shortBreakVideoRef = useRef<HTMLVideoElement>(null);
+  const longBreakVideoRef = useRef<HTMLVideoElement>(null);
+
   const handleModeChange = useCallback(() => {
     setIsActive(false);
+    // Pausar todos los videos al cambiar de modo
+    pomodoroVideoRef.current?.pause();
+    shortBreakVideoRef.current?.pause();
+    longBreakVideoRef.current?.pause();
+
     if (mode === 'pomodoro') {
       const newCycles = cycles + 1;
       setCycles(newCycles);
@@ -33,7 +42,7 @@ const PomodoroTimer = () => {
       setMode('pomodoro');
       setTime(POMODORO_TIME);
     }
-  }, [mode, cycles]); // Sus dependencias ahora son 'mode' y 'cycles'
+  }, [mode, cycles]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -47,9 +56,23 @@ const PomodoroTimer = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, time, handleModeChange]); // Añade 'handleModeChange' aquí
+  }, [isActive, time, handleModeChange]);
 
   const handleStartPause = () => {
+    // Lógica para reproducir el video según el modo actual
+    if (!isActive) {
+      if (mode === 'pomodoro') {
+        pomodoroVideoRef.current?.play();
+      } else if (mode === 'short-break') {
+        shortBreakVideoRef.current?.play();
+      } else if (mode === 'long-break') {
+        longBreakVideoRef.current?.play();
+      }
+    } else {
+      pomodoroVideoRef.current?.pause();
+      shortBreakVideoRef.current?.pause();
+      longBreakVideoRef.current?.pause();
+    }
     setIsActive(!isActive);
   };
 
@@ -58,6 +81,13 @@ const PomodoroTimer = () => {
     setCycles(0);
     setMode('pomodoro');
     setTime(POMODORO_TIME);
+    // Reiniciar y pausar todos los videos
+    pomodoroVideoRef.current?.pause();
+    pomodoroVideoRef.current?.load();
+    shortBreakVideoRef.current?.pause();
+    shortBreakVideoRef.current?.load();
+    longBreakVideoRef.current?.pause();
+    longBreakVideoRef.current?.load();
   };
 
   const handleManualModeChange = (
@@ -72,6 +102,13 @@ const PomodoroTimer = () => {
     } else {
       setTime(LONG_BREAK);
     }
+    // Reiniciar y pausar todos los videos al cambiar manualmente
+    pomodoroVideoRef.current?.pause();
+    pomodoroVideoRef.current?.load();
+    shortBreakVideoRef.current?.pause();
+    shortBreakVideoRef.current?.load();
+    longBreakVideoRef.current?.pause();
+    longBreakVideoRef.current?.load();
   };
 
   const formatTime = (seconds: number) => {
@@ -101,6 +138,32 @@ const PomodoroTimer = () => {
       </header>
 
       <div className="pomodoro-main-content">
+        {/* Contenedor principal para los videos */}
+        <div className={`video-container-wrapper ${isActive ? 'visible' : ''}`}>
+          {/* Videos de Pomodoro, Descanso Corto y Descanso Largo */}
+          <video
+            ref={pomodoroVideoRef}
+            src="/video.mp4"
+            autoPlay={false}
+            loop
+            className={`video-aesthetics ${mode === 'pomodoro' ? '' : 'hidden'}`}
+          />
+          <video
+            ref={shortBreakVideoRef}
+            src="/tiktok.mp4"
+            autoPlay={false}
+            loop
+            className={`video-aesthetics ${mode === 'short-break' ? '' : 'hidden'}`}
+          />
+          <video
+            ref={longBreakVideoRef}
+            src="/descanso.mp4"
+            autoPlay={false}
+            loop
+            className={`video-aesthetics ${mode === 'long-break' ? '' : 'hidden'}`}
+          />
+        </div>
+
         <div className="timer-panel">
           <div className="mode-selection">
             <button

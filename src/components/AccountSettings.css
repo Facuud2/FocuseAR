@@ -50,6 +50,7 @@ body.settings-page {
   margin: 4rem auto;
   padding: 0 2rem;
   animation: fadeInUp 0.8s ease-out;
+  margin-top: -500px;
 }
 
 /* ===== TARJETAS DE CONFIGURACIÓN ===== */
