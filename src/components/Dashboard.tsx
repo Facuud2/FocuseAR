@@ -13,7 +13,7 @@ type StudyPlanDay = {
   title?: string;
 };
 
-import React, { useState, type JSX /* useEffect */ } from 'react';
+import React, { useState, useEffect, type JSX } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from '../hooks/authContext';
@@ -34,7 +34,7 @@ interface Pdf {
 }
 
 interface Subject {
-  id: number;
+  id: string | number;
   name: string;
   examDate: string;
   color: string;
@@ -59,7 +59,16 @@ interface AnalysisState {
 
 const Dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { loading: dbLoading, error: dbError } = useDatabase();
+  const {
+    loading: dbLoading,
+    error: dbError,
+    getUserMaterials,
+    getUserStudyPlans,
+    createMaterial,
+    createStudyPlan,
+    deleteStudyPlan,
+    deleteMaterialAndPlans,
+  } = useDatabase();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   // const [events] = useState<Event[]>([]); // Eliminado: no se usa
@@ -82,36 +91,40 @@ const Dashboard: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [extractedTopics, setExtractedTopics] = useState<ExtractedTopic[]>([]);
   const [selectedStudyDays, setSelectedStudyDays] = useState<string[]>([]);
+  const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [generatingPlan, setGeneratingPlan] = useState(false);
 
   // Estados para planes de estudio guardados
   const [studyPlans, setStudyPlans] = useState<
     Array<{
-      id: number;
+      id: string | number;
       subjectName: string;
       eventName: string;
       examDate: string;
       topics: string[];
       studyDays: string[];
       content: string;
-      structuredPlan: {
-        title: string;
-        summary: string;
-        days: Array<{
-          date: string;
-          dayNumber: number;
-          topics: Array<{
-            name: string;
+      structuredPlan:
+        | {
+            title: string;
             summary: string;
-            estimatedTime: string;
-          }>;
-          totalTime: string;
-          recommendations: string;
-          completed: boolean;
-        }>;
-        finalRecommendations: string;
-      } | null;
+            days: Array<{
+              date: string;
+              dayNumber: number;
+              topics: Array<{
+                name: string;
+                summary: string;
+                estimatedTime: string;
+              }>;
+              totalTime: string;
+              recommendations: string;
+              completed: boolean;
+            }>;
+            finalRecommendations: string;
+          }
+        | null
+        | undefined;
       progress: number;
       createdAt: string;
       expanded: boolean;
@@ -132,7 +145,7 @@ const Dashboard: React.FC = () => {
   const [showDayModal, setShowDayModal] = useState(false);
   // Estado para almacenar los detalles del día seleccionado
   const [selectedDayDetails, setSelectedDayDetails] = useState<Array<{
-    planId: number;
+    planId: string | number;
     day: StudyPlanDay;
     color?: string;
   }> | null>(null);
@@ -152,6 +165,96 @@ const Dashboard: React.FC = () => {
   const updateAnalysisStatus = (status: Partial<AnalysisState>) => {
     setAnalysisStatus((prev) => ({ ...prev, ...status }));
   };
+
+  // useEffect para cargar datos del usuario al montar el componente
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) return;
+
+      try {
+        // Cargar materiales del usuario
+        const materials = await getUserMaterials();
+
+        // Convertir materiales de Firebase a formato Subject local
+        const convertedSubjects: Subject[] = materials.map(
+          (material, index) => {
+            console.log('🔍 DEBUG - Material de Firebase:', material);
+            console.log(
+              '🔍 DEBUG - material.id:',
+              material.id,
+              'tipo:',
+              typeof material.id,
+            );
+
+            // Usar el ID de Firebase directamente como string, o generar uno único
+            const subjectId = material.id || `subject-${Date.now()}-${index}`;
+            console.log('🔍 DEBUG - ID asignado:', subjectId);
+
+            return {
+              id: subjectId, // Usar string directamente, no parseInt
+              name: material.fileName.replace(/\.(pdf|docx|doc)$/i, ''), // Remover extensiones comunes
+              examDate: '', // Se puede agregar fecha de examen en el futuro
+              color: '#4285F4', // Color por defecto
+              pdfs: [
+                {
+                  id: 1,
+                  name: material.fileName,
+                  size: '0 MB', // Se puede calcular el tamaño real
+                },
+              ],
+              importantDates: [], // Se pueden agregar fechas importantes
+            };
+          },
+        );
+
+        setSubjects(convertedSubjects);
+
+        // Cargar planes de estudio del usuario
+        const studyPlans = await getUserStudyPlans();
+        console.log('Planes de estudio cargados:', studyPlans);
+
+        // Convertir planes de Firebase a formato local
+        const convertedPlans = studyPlans.map((plan, index) => {
+          console.log('🔍 DEBUG - Plan de Firebase:', plan);
+          console.log('🔍 DEBUG - plan.id:', plan.id, 'tipo:', typeof plan.id);
+
+          // Usar el ID de Firebase directamente como string, o generar uno único
+          const planId = plan.id || `plan-${Date.now()}-${index}`;
+          console.log('🔍 DEBUG - Plan ID asignado:', planId);
+
+          return {
+            id: planId, // Usar string directamente, no parseInt
+            subjectName: plan.generatedPlan.title || 'Plan de Estudio',
+            eventName: 'Examen',
+            examDate: plan.generatedPlan.examDate || '',
+            topics: plan.generatedPlan.topics || [],
+            studyDays: plan.generatedPlan.studyDates || [],
+            content: JSON.stringify(plan.generatedPlan.structuredPlan || {}),
+            structuredPlan: plan.generatedPlan.structuredPlan,
+            progress: 0,
+            createdAt:
+              plan.createdAt?.toDate?.()?.toISOString() ||
+              new Date().toISOString(),
+            expanded: false,
+          };
+        });
+
+        setStudyPlans(convertedPlans);
+
+        // Restaurar días de la semana seleccionados del último plan
+        if (
+          studyPlans.length > 0 &&
+          studyPlans[0].generatedPlan.selectedWeekDays
+        ) {
+          setSelectedWeekDays(studyPlans[0].generatedPlan.selectedWeekDays);
+        }
+      } catch (error: unknown) {
+        console.error('Error al cargar datos del usuario:', error);
+      }
+    };
+
+    loadUserData();
+  }, [user, getUserMaterials, getUserStudyPlans]);
 
   // === LOGICA DE MATERIAS ===
   const handlePlanify = async () => {
@@ -193,31 +296,47 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // Crear materia local (sin Firestore por ahora)
-    const newSubject: Subject = {
-      id: Date.now(),
-      name: subjectName,
-      examDate:
-        importantDates.length > 0
-          ? importantDates.map((d) => d.date).sort()[0]
-          : '',
-      color: selectedColor,
-      pdfs,
-      importantDates,
-    };
+    try {
+      // Crear material en Firebase primero
+      if (pdfs.length > 0) {
+        const materialId = await createMaterial({
+          fileName: pdfs[0].name,
+          storagePath: `materials/${user?.uid}/${pdfs[0].name}`,
+          fileType: 'pdf',
+        });
 
-    setSubjects([...subjects, newSubject]);
+        if (materialId) {
+          // Crear materia local con referencia a Firebase
+          const newSubject: Subject = {
+            id: Date.now(),
+            name: subjectName,
+            examDate:
+              importantDates.length > 0
+                ? importantDates.map((d) => d.date).sort()[0]
+                : '',
+            color: selectedColor,
+            pdfs,
+            importantDates,
+          };
 
-    // Limpiar el formulario
-    setSubjectName('');
-    setPdfs([]);
-    setFirstPartialDate(null);
-    setSecondPartialDate(null);
-    setTpDate(null);
-    setOtherDates([]);
-    // NO limpiar extractedTopics para mantener los temas disponibles en Planificación
+          setSubjects([...subjects, newSubject]);
 
-    alert('Materia añadida exitosamente a "Mis materias"!');
+          // Limpiar el formulario
+          setSubjectName('');
+          setPdfs([]);
+          setFirstPartialDate(null);
+          setSecondPartialDate(null);
+          setTpDate(null);
+          setOtherDates([]);
+          // NO limpiar extractedTopics para mantener los temas disponibles en Planificación
+
+          alert('Materia añadida exitosamente y guardada en Firebase!');
+        }
+      }
+    } catch (error: unknown) {
+      console.error('Error al guardar materia en Firebase:', error);
+      alert('Error al guardar la materia. Inténtalo de nuevo.');
+    }
   };
 
   // === LOGICA DE FECHAS DINÁMICAS ===
@@ -251,22 +370,29 @@ const Dashboard: React.FC = () => {
 
   // === LOGICA DE PLANIFICACIÓN ===
 
-  // Función para calcular días disponibles entre hoy y la fecha del examen
-  const calculateAvailableDays = (examDate: string) => {
+  // Nueva función para generar fechas basadas en días de la semana seleccionados
+  const generateStudyDatesFromWeekDays = (
+    examDate: string,
+    weekDays: number[],
+  ) => {
     const today = new Date();
     const exam = new Date(examDate);
-    const days: string[] = [];
+    const studyDates: string[] = [];
 
     // Empezar desde mañana
     const current = new Date(today);
     current.setDate(current.getDate() + 1);
 
     while (current <= exam) {
-      days.push(current.toISOString().split('T')[0]);
+      // Verificar si el día actual está en los días de la semana seleccionados
+      // getDay() devuelve: 0=Domingo, 1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado
+      if (weekDays.includes(current.getDay())) {
+        studyDates.push(current.toISOString().split('T')[0]);
+      }
       current.setDate(current.getDate() + 1);
     }
 
-    return days;
+    return studyDates;
   };
 
   // Función para normalizar fechas a formato YYYY-MM-DD
@@ -298,10 +424,10 @@ const Dashboard: React.FC = () => {
       !selectedSubjectForPlanning ||
       !selectedEvent ||
       topics.length === 0 ||
-      selectedStudyDays.length === 0
+      selectedWeekDays.length === 0
     ) {
       alert(
-        'Por favor completa todos los campos: materia, evento, temas y días de estudio.',
+        'Por favor completa todos los campos: materia, evento, temas y días de la semana.',
       );
       return;
     }
@@ -334,6 +460,19 @@ const Dashboard: React.FC = () => {
         examDate = segundoParcial?.date || '';
       }
 
+      // Generar fechas automáticamente basadas en los días de la semana seleccionados
+      const generatedStudyDates = generateStudyDatesFromWeekDays(
+        examDate,
+        selectedWeekDays,
+      );
+
+      if (generatedStudyDates.length === 0) {
+        alert(
+          'No hay fechas disponibles con los días de la semana seleccionados hasta la fecha del examen.',
+        );
+        return;
+      }
+
       // Crear prompt para el plan de estudio
       const prompt = `
 Eres un asistente especializado en crear planes de estudio personalizados.
@@ -342,14 +481,14 @@ DATOS DEL ESTUDIANTE:
 - Materia: ${selectedSubject.name}
 - Evento de estudio: ${selectedEvent.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
 - Fecha del examen: ${examDate ? formatDate(examDate) : 'No especificada'}
-- Días disponibles para estudiar: ${selectedStudyDays.length} días
-- Fechas de estudio: ${selectedStudyDays.map((day) => formatDate(day)).join(', ')}
+- Días disponibles para estudiar: ${generatedStudyDates.length} días
+- Fechas de estudio: ${generatedStudyDates.map((day) => formatDate(day)).join(', ')}
 
 TEMAS A ESTUDIAR:
 ${topics.map((topic, topicIndex) => `${topicIndex + 1}. ${topic.name}`).join('\n')}
 
 INSTRUCCIONES:
-1. Distribuye los ${topics.length} temas entre los ${selectedStudyDays.length} días disponibles de manera equilibrada
+1. Distribuye los ${topics.length} temas entre los ${generatedStudyDates.length} días disponibles de manera equilibrada
 2. Para cada día asignado, especifica qué temas estudiar y proporciona un resumen breve de cada tema
 3. Incluye recomendaciones de tiempo de estudio por tema
 4. Organiza el plan cronológicamente por fechas
@@ -381,7 +520,7 @@ Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:
 IMPORTANTE: 
 - Devuelve SOLO el JSON, sin texto adicional, sin markdown, sin explicaciones
 - Asegúrate de que el JSON sea válido
-- Usa las fechas exactas: ${selectedStudyDays.map((day) => formatDate(day)).join(', ')}
+- Usa las fechas exactas: ${generatedStudyDates.map((day) => formatDate(day)).join(', ')}
 - Distribuye todos los temas entre todos los días disponibles
 
 Genera el JSON del plan de estudio:`;
@@ -470,14 +609,70 @@ Genera el JSON del plan de estudio:`;
           structuredPlan = parsedPlan;
           console.log('✅ JSON parseado correctamente:', structuredPlan);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.log(
           '⚠️ No se pudo parsear como JSON, usando formato texto:',
           error,
         );
       }
 
-      // Guardar el plan en la lista de planes de estudio
+      // Guardar el plan completo en Firebase
+      try {
+        const planId = await createStudyPlan({
+          materialId: selectedSubject.id.toString(),
+          generatedPlan: {
+            title:
+              structuredPlan?.title ||
+              `Plan de Estudio - ${selectedSubject.name}`,
+            summary:
+              structuredPlan?.summary || 'Plan de estudio generado con IA',
+            durationDays: generatedStudyDates.length,
+            examDate: examDate,
+            selectedWeekDays: selectedWeekDays,
+            topics: topics.map((t) => t.name),
+            studyDates: generatedStudyDates,
+            structuredPlan: structuredPlan as
+              | {
+                  title: string;
+                  summary: string;
+                  days: Array<{
+                    date: string;
+                    dayNumber: number;
+                    topics: Array<{
+                      name: string;
+                      summary: string;
+                      estimatedTime: string;
+                    }>;
+                    totalTime: string;
+                    recommendations: string;
+                    completed: boolean;
+                  }>;
+                  finalRecommendations: string;
+                }
+              | undefined,
+            dailyTasks: structuredPlan?.days
+              ? structuredPlan.days.map((day: StudyPlanDay, index: number) => ({
+                  day: index + 1,
+                  task: `${day.topics.map((t: { name: string; summary: string; estimatedTime: string }) => t.name).join(', ')} - ${day.recommendations}`,
+                  completed: false,
+                }))
+              : generatedStudyDates.map((date, index) => ({
+                  day: index + 1,
+                  task: `Estudiar temas asignados para ${formatDate(date)}`,
+                  completed: false,
+                })),
+          },
+        });
+
+        if (planId) {
+          console.log('✅ Plan completo guardado en Firebase con ID:', planId);
+        }
+      } catch (firebaseError: unknown) {
+        console.error('❌ Error guardando plan en Firebase:', firebaseError);
+        // Continuar con el guardado local aunque falle Firebase
+      }
+
+      // Guardar el plan en la lista local de planes de estudio
       const newPlan = {
         id: nextPlanId,
         subjectName: selectedSubject.name,
@@ -486,7 +681,7 @@ Genera el JSON del plan de estudio:`;
           .replace(/\b\w/g, (l) => l.toUpperCase()),
         examDate: examDate || '',
         topics: topics.map((t) => t.name),
-        studyDays: selectedStudyDays,
+        studyDays: generatedStudyDates,
         content: studyPlan,
         structuredPlan: structuredPlan,
         progress: 0,
@@ -498,7 +693,7 @@ Genera el JSON del plan de estudio:`;
       setNextPlanId(nextPlanId + 1);
 
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ Error generando plan de estudio:', error);
       alert('Error generando el plan de estudio. Inténtalo de nuevo.');
     } finally {
@@ -507,7 +702,7 @@ Genera el JSON del plan de estudio:`;
   };
 
   // Funciones para manejar planes de estudio
-  const togglePlanExpansion = (planId: number) => {
+  const togglePlanExpansion = (planId: string | number) => {
     setStudyPlans((prevPlans) =>
       prevPlans.map((plan) =>
         plan.id === planId ? { ...plan, expanded: !plan.expanded } : plan,
@@ -515,7 +710,7 @@ Genera el JSON del plan de estudio:`;
     );
   };
 
-  const toggleDayCompletion = (planId: number, dayIndex: number) => {
+  const toggleDayCompletion = (planId: string | number, dayIndex: number) => {
     setStudyPlans((prevPlans) =>
       prevPlans.map((plan) => {
         if (plan.id === planId && plan.structuredPlan) {
@@ -545,10 +740,136 @@ Genera el JSON del plan de estudio:`;
     );
   };
 
-  const deletePlan = (planId: number) => {
-    setStudyPlans((prevPlans) =>
-      prevPlans.filter((plan) => plan.id !== planId),
-    );
+  const deletePlan = async (planId: string | number) => {
+    try {
+      console.log(
+        '🗑️ Iniciando eliminación de plan con ID:',
+        planId,
+        'tipo:',
+        typeof planId,
+      );
+
+      // Buscar el plan en Firebase ANTES de eliminar del estado local
+      const firebasePlans = await getUserStudyPlans();
+      console.log('📦 Planes de Firebase:', firebasePlans);
+
+      // Buscar por múltiples criterios para asegurar coincidencia
+      const firebasePlan = firebasePlans.find((plan) => {
+        const planIdStr = String(plan.id);
+        const localIdStr = String(planId);
+        console.log(
+          `🔍 Comparando: Firebase "${planIdStr}" vs Local "${localIdStr}"`,
+        );
+        return planIdStr === localIdStr;
+      });
+
+      console.log('🎯 Plan encontrado en Firebase:', firebasePlan);
+
+      if (firebasePlan && firebasePlan.id) {
+        // Eliminar de Firebase PRIMERO
+        console.log('🔥 Eliminando plan de Firebase con ID:', firebasePlan.id);
+        await deleteStudyPlan(firebasePlan.id);
+        console.log('✅ Plan eliminado de Firebase correctamente');
+
+        // Solo después eliminar del estado local
+        setStudyPlans((prevPlans) => {
+          const filtered = prevPlans.filter(
+            (plan) => String(plan.id) !== String(planId),
+          );
+          console.log(
+            '📋 Planes después del filtro:',
+            filtered.length,
+            'de',
+            prevPlans.length,
+          );
+          return filtered;
+        });
+
+        console.log('✅ Plan eliminado completamente');
+      } else {
+        console.warn('⚠️ Plan no encontrado en Firebase');
+        alert(
+          'El plan no se encontró en la base de datos. Puede que ya haya sido eliminado.',
+        );
+      }
+    } catch (error: unknown) {
+      console.error('❌ Error al eliminar plan:', error);
+      alert('Error al eliminar el plan. Inténtalo de nuevo.');
+    }
+  };
+
+  // Función para eliminar materia y sus planes asociados
+  const deleteSubject = async (subjectId: string | number) => {
+    try {
+      console.log('🗑️ Iniciando eliminación de materia con ID:', subjectId);
+      console.log('📋 Materias actuales:', subjects);
+
+      // Buscar el material en Firebase usando el ID local
+      const materials = await getUserMaterials();
+      console.log('📦 Materiales de Firebase:', materials);
+
+      const firebaseMaterial = materials.find((material) => {
+        console.log(
+          `🔍 Comparando: Firebase ID "${material.id}" vs Local ID "${subjectId}"`,
+        );
+        return material.id === subjectId || material.id === String(subjectId);
+      });
+
+      console.log('🎯 Material encontrado en Firebase:', firebaseMaterial);
+
+      if (firebaseMaterial && firebaseMaterial.id) {
+        // Eliminar material y planes asociados de Firebase
+        console.log('🔥 Eliminando de Firebase...');
+        await deleteMaterialAndPlans(firebaseMaterial.id);
+        console.log('✅ Eliminado de Firebase correctamente');
+      }
+
+      // Obtener el nombre de la materia antes de eliminarla
+      const subjectToDelete = subjects.find((s) => s.id === subjectId);
+      const subjectName = subjectToDelete?.name;
+      console.log('📝 Materia a eliminar:', subjectToDelete);
+
+      // Eliminar del estado local
+      console.log('🔄 Actualizando estado local de subjects...');
+      setSubjects((prevSubjects) => {
+        const newSubjects = prevSubjects.filter(
+          (subject) => subject.id !== subjectId,
+        );
+        console.log('📋 Nuevas materias después del filtro:', newSubjects);
+        return newSubjects;
+      });
+
+      // También eliminar planes de estudio asociados del estado local
+      console.log('🔄 Actualizando estado local de studyPlans...');
+      setStudyPlans((prevPlans) => {
+        console.log('📋 Planes antes del filtro:', prevPlans);
+        console.log(
+          '🔍 Buscando planes con subjectName que contenga:',
+          subjectName,
+        );
+
+        const newPlans = prevPlans.filter((plan) => {
+          console.log(
+            `🔍 Comparando plan "${plan.subjectName}" con materia "${subjectName}"`,
+          );
+          // Comparar tanto por nombre exacto como por nombre contenido
+          const matches =
+            plan.subjectName === subjectName ||
+            plan.subjectName.includes(subjectName || '') ||
+            (subjectName && subjectName.includes(plan.subjectName));
+          console.log(`🎯 ¿Coincide? ${matches}`);
+          return !matches; // Mantener los que NO coinciden
+        });
+
+        console.log('📋 Nuevos planes después del filtro:', newPlans);
+        return newPlans;
+      });
+
+      console.log('✅ Materia y planes eliminados correctamente');
+    } catch (error: unknown) {
+      console.error('❌ Error al eliminar materia:', error);
+      alert('Error al eliminar la materia. Inténtalo de nuevo.');
+    }
   };
 
   // === LOGICA DE PDFs ===
@@ -677,7 +998,7 @@ Genera el JSON del plan de estudio:`;
   // Días del plan de estudio (puede haber varios planes en el mismo día)
   const studyPlanDays: {
     [date: string]: Array<{
-      planId: number;
+      planId: string | number;
       day: StudyPlanDay;
       color?: string;
     }>;
@@ -869,9 +1190,9 @@ Genera el JSON del plan de estudio:`;
                     />
                   </div>
 
-                  {otherDates.map((otherDate) => (
+                  {otherDates.map((otherDate, index) => (
                     <div
-                      key={otherDate.id}
+                      key={`other-date-${otherDate.id || index}`}
                       className="form-group"
                       style={{
                         display: 'flex',
@@ -1119,9 +1440,9 @@ Genera el JSON del plan de estudio:`;
                         padding: '8px',
                       }}
                     >
-                      {pdfs.map((pdf) => (
+                      {pdfs.map((pdf, index) => (
                         <div
-                          key={pdf.id}
+                          key={`pdf-${pdf.id || index}`}
                           style={{
                             display: 'flex',
                             justifyContent: 'space-between',
@@ -1301,7 +1622,10 @@ Genera el JSON del plan de estudio:`;
                 }}
               >
                 {extractedTopics.map((topic, i) => (
-                  <div key={topic.id} style={{ marginBottom: '2px' }}>
+                  <div
+                    key={`extracted-topic-${topic.id || i}`}
+                    style={{ marginBottom: '2px' }}
+                  >
                     {i + 1}. {topic.name}
                   </div>
                 ))}
@@ -1322,10 +1646,13 @@ Genera el JSON del plan de estudio:`;
               </div>
             ) : (
               <div className="subjects-grid">
-                {subjects.map((subject) => {
+                {subjects.map((subject, index) => {
                   const initial = subject.name.charAt(0).toUpperCase();
                   return (
-                    <div key={subject.id} className="subject-card">
+                    <div
+                      key={`subject-${subject.id || index}`}
+                      className="subject-card"
+                    >
                       <div className="subject-header">
                         <div
                           className="subject-icon"
@@ -1337,9 +1664,11 @@ Genera el JSON del plan de estudio:`;
                           <h3 className="subject-name">{subject.name}</h3>
                           <p className="subject-date">
                             <i className="fas fa-calendar-alt"></i>
-                            {new Date(subject.examDate).toLocaleDateString(
-                              'es-ES',
-                            )}
+                            {subject.examDate && subject.examDate !== ''
+                              ? new Date(subject.examDate).toLocaleDateString(
+                                  'es-ES',
+                                )
+                              : 'Fecha no definida'}
                           </p>
                         </div>
                       </div>
@@ -1362,6 +1691,53 @@ Genera el JSON del plan de estudio:`;
                             {subject.pdfs.length}/5
                           </span>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log(
+                              '🔍 DEBUG - subject completo:',
+                              subject,
+                            );
+                            console.log(
+                              '🔍 DEBUG - subject.id:',
+                              subject.id,
+                              'tipo:',
+                              typeof subject.id,
+                            );
+                            if (
+                              confirm(
+                                `¿Estás seguro de que quieres eliminar la materia "${subject.name}" y todos sus planes de estudio asociados?`,
+                              )
+                            ) {
+                              // Usar el ID directamente (ahora puede ser string o number)
+                              deleteSubject(subject.id);
+                            }
+                          }}
+                          style={{
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 10px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            marginTop: '8px',
+                            transition: 'background-color 0.2s',
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#dc2626';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#ef4444';
+                          }}
+                        >
+                          <i className="fas fa-trash"></i>
+                          Eliminar
+                        </button>
                       </div>
                     </div>
                   );
@@ -1391,11 +1767,16 @@ Genera el JSON del plan de estudio:`;
                       setSelectedSubjectForPlanning(subjectId);
                       setSelectedEvent('');
                       setTopics([]);
+                      setSelectedWeekDays([]);
+                      setSelectedStudyDays([]);
                     }}
                   >
                     <option value="">-- Selecciona una materia --</option>
-                    {subjects.map((subject) => (
-                      <option key={subject.id} value={subject.id}>
+                    {subjects.map((subject, index) => (
+                      <option
+                        key={`option-${subject.id || index}`}
+                        value={subject.id || ''}
+                      >
                         {subject.name}
                       </option>
                     ))}
@@ -1411,6 +1792,8 @@ Genera el JSON del plan de estudio:`;
                         onChange={(e) => {
                           setSelectedEvent(e.target.value);
                           setTopics([]);
+                          setSelectedWeekDays([]);
+                          setSelectedStudyDays([]);
                         }}
                       >
                         <option value="">-- Selecciona un evento --</option>
@@ -1454,7 +1837,7 @@ Genera el JSON del plan de estudio:`;
 
                                 return (
                                   <div
-                                    key={extractedTopic.id}
+                                    key={`planning-topic-${extractedTopic.id || index}`}
                                     style={{
                                       display: 'flex',
                                       justifyContent: 'space-between',
@@ -1561,7 +1944,7 @@ Genera el JSON del plan de estudio:`;
                           </div>
                         )}
 
-                        {/* Selección de días de estudio disponibles */}
+                        {/* Selección de días de la semana */}
                         <div
                           className="form-group"
                           style={{ marginBottom: '20px' }}
@@ -1573,9 +1956,83 @@ Genera el JSON del plan de estudio:`;
                               display: 'block',
                             }}
                           >
-                            📅 Selecciona los días que tienes disponibles para
-                            estudiar
+                            📅 Selecciona los días de la semana que tienes
+                            disponibles para estudiar
                           </label>
+                          <div
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns:
+                                'repeat(auto-fit, minmax(120px, 1fr))',
+                              gap: '10px',
+                              marginBottom: '15px',
+                            }}
+                          >
+                            {[
+                              { day: 1, name: 'Lunes' },
+                              { day: 2, name: 'Martes' },
+                              { day: 3, name: 'Miércoles' },
+                              { day: 4, name: 'Jueves' },
+                              { day: 5, name: 'Viernes' },
+                              { day: 6, name: 'Sábado' },
+                              { day: 0, name: 'Domingo' },
+                            ].map(({ day, name }) => (
+                              <div
+                                key={day}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '12px',
+                                  cursor: 'pointer',
+                                  borderRadius: '8px',
+                                  backgroundColor: selectedWeekDays.includes(
+                                    day,
+                                  )
+                                    ? '#dbeafe'
+                                    : 'white',
+                                  border: selectedWeekDays.includes(day)
+                                    ? '2px solid #3b82f6'
+                                    : '1px solid #e5e7eb',
+                                  transition: 'all 0.2s ease',
+                                }}
+                                onClick={() => {
+                                  if (selectedWeekDays.includes(day)) {
+                                    setSelectedWeekDays(
+                                      selectedWeekDays.filter((d) => d !== day),
+                                    );
+                                  } else {
+                                    setSelectedWeekDays([
+                                      ...selectedWeekDays,
+                                      day,
+                                    ]);
+                                  }
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={selectedWeekDays.includes(day)}
+                                  onChange={() => {}} // Manejado por el onClick del div
+                                  style={{
+                                    marginRight: '8px',
+                                    width: '16px',
+                                    height: '16px',
+                                    cursor: 'pointer',
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    fontSize: '14px',
+                                    fontWeight: '500',
+                                    color: selectedWeekDays.includes(day)
+                                      ? '#1e40af'
+                                      : '#374151',
+                                  }}
+                                >
+                                  {name}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                           {(() => {
                             // Obtener la materia seleccionada y sus fechas
                             const selectedSubject = subjects.find(
@@ -1591,7 +2048,7 @@ Genera el JSON del plan de estudio:`;
                               );
                             }
 
-                            // Calcular días disponibles basado en la fecha del evento seleccionado
+                            // Calcular fecha del examen basado en el evento seleccionado
                             let examDate = '';
                             const importantDates =
                               selectedSubject.importantDates || [];
@@ -1616,197 +2073,128 @@ Genera el JSON del plan de estudio:`;
                               return (
                                 <p style={{ color: '#666', fontSize: '14px' }}>
                                   No se encontró la fecha del {eventName} para
-                                  esta materia. Asegúrate de haber configurado
-                                  esta fecha cuando creaste la materia.
+                                  esta materia.
                                 </p>
                               );
                             }
 
-                            const availableDays =
-                              calculateAvailableDays(examDate);
+                            // Generar fechas automáticamente basadas en los días de la semana seleccionados
+                            const generatedDates =
+                              selectedWeekDays.length > 0
+                                ? generateStudyDatesFromWeekDays(
+                                    examDate,
+                                    selectedWeekDays,
+                                  )
+                                : [];
 
-                            if (availableDays.length === 0) {
-                              return (
-                                <p
-                                  style={{ color: '#ef4444', fontSize: '14px' }}
-                                >
-                                  ⚠️ La fecha del examen ya pasó o es hoy. No
-                                  hay días disponibles para estudiar.
-                                </p>
-                              );
+                            // Actualizar selectedStudyDays cuando cambien los días de la semana
+                            if (
+                              JSON.stringify(generatedDates) !==
+                              JSON.stringify(selectedStudyDays)
+                            ) {
+                              setSelectedStudyDays(generatedDates);
                             }
 
                             return (
                               <div>
-                                <p
-                                  style={{
-                                    fontSize: '12px',
-                                    color: '#666',
-                                    marginBottom: '10px',
-                                  }}
-                                >
-                                  Tienes {availableDays.length} días disponibles
-                                  hasta el {formatDate(examDate)}
-                                </p>
-                                <div
-                                  style={{
-                                    maxHeight: '200px',
-                                    overflowY: 'auto',
-                                    border: '1px solid #e5e7eb',
-                                    borderRadius: '6px',
-                                    padding: '10px',
-                                    backgroundColor: '#f9fafb',
-                                  }}
-                                >
-                                  {availableDays.map((day) => (
-                                    <div
-                                      key={day}
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        padding: '12px',
-                                        cursor: 'pointer',
-                                        borderRadius: '6px',
-                                        marginBottom: '6px',
-                                        backgroundColor:
-                                          selectedStudyDays.includes(day)
-                                            ? '#dbeafe'
-                                            : 'white',
-                                        border: selectedStudyDays.includes(day)
-                                          ? '2px solid #3b82f6'
-                                          : '1px solid #e5e7eb',
-                                        transition: 'all 0.2s ease',
-                                      }}
-                                      onMouseEnter={(e) => {
-                                        if (!selectedStudyDays.includes(day)) {
-                                          e.currentTarget.style.backgroundColor =
-                                            '#f8fafc';
-                                          e.currentTarget.style.borderColor =
-                                            '#cbd5e1';
-                                        }
-                                      }}
-                                      onMouseLeave={(e) => {
-                                        if (!selectedStudyDays.includes(day)) {
-                                          e.currentTarget.style.backgroundColor =
-                                            'white';
-                                          e.currentTarget.style.borderColor =
-                                            '#e5e7eb';
-                                        }
-                                      }}
-                                      onClick={() => {
-                                        if (selectedStudyDays.includes(day)) {
-                                          setSelectedStudyDays(
-                                            selectedStudyDays.filter(
-                                              (d) => d !== day,
-                                            ),
-                                          );
-                                        } else {
-                                          setSelectedStudyDays([
-                                            ...selectedStudyDays,
-                                            day,
-                                          ]);
-                                        }
-                                      }}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={selectedStudyDays.includes(
-                                          day,
-                                        )}
-                                        onChange={() => {}} // Manejado por el onClick del div
-                                        style={{
-                                          marginRight: '12px',
-                                          width: '16px',
-                                          height: '16px',
-                                          cursor: 'pointer',
-                                        }}
-                                      />
-                                      <span
-                                        style={{
-                                          fontSize: '14px',
-                                          fontWeight: '500',
-                                          color: selectedStudyDays.includes(day)
-                                            ? '#1e40af'
-                                            : '#374151',
-                                          flex: 1,
-                                        }}
-                                      >
-                                        {formatDate(day)}
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-
-                                {selectedStudyDays.length > 0 && (
+                                {selectedWeekDays.length > 0 && (
                                   <div
                                     style={{
-                                      marginTop: '10px',
-                                      padding: '10px',
-                                      backgroundColor: '#ecfdf5',
-                                      border: '1px solid #bbf7d0',
-                                      borderRadius: '6px',
+                                      marginTop: '15px',
+                                      padding: '15px',
+                                      backgroundColor: '#f0f9ff',
+                                      border: '1px solid #0ea5e9',
+                                      borderRadius: '8px',
                                       fontSize: '14px',
                                     }}
                                   >
-                                    <strong>
-                                      ✅ Días seleccionados para estudiar:{' '}
-                                      {selectedStudyDays.length}
-                                    </strong>
                                     <div
                                       style={{
-                                        fontSize: '12px',
-                                        marginTop: '5px',
-                                        color: '#047857',
+                                        fontWeight: '600',
+                                        marginBottom: '8px',
                                       }}
                                     >
-                                      Esto te dará aproximadamente{' '}
-                                      {Math.floor(
-                                        selectedStudyDays.length /
-                                          (topics.length || 1),
-                                      )}{' '}
-                                      días por tema
+                                      📊 Resumen de tu planificación:
                                     </div>
+                                    <div
+                                      style={{
+                                        fontSize: '13px',
+                                        color: '#0369a1',
+                                      }}
+                                    >
+                                      • Días de la semana seleccionados:{' '}
+                                      {selectedWeekDays.length}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: '13px',
+                                        color: '#0369a1',
+                                      }}
+                                    >
+                                      • Fecha del examen: {formatDate(examDate)}
+                                    </div>
+                                    <div
+                                      style={{
+                                        fontSize: '13px',
+                                        color: '#0369a1',
+                                      }}
+                                    >
+                                      • Sesiones de estudio generadas:{' '}
+                                      {generatedDates.length}
+                                    </div>
+                                    {topics.length > 0 && (
+                                      <div
+                                        style={{
+                                          fontSize: '13px',
+                                          color: '#0369a1',
+                                        }}
+                                      >
+                                        • Aproximadamente{' '}
+                                        {Math.ceil(
+                                          generatedDates.length / topics.length,
+                                        )}{' '}
+                                        sesiones por tema
+                                      </div>
+                                    )}
                                   </div>
                                 )}
 
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    gap: '10px',
-                                    marginTop: '10px',
-                                  }}
-                                >
-                                  <button
-                                    onClick={() =>
-                                      setSelectedStudyDays(availableDays)
-                                    }
+                                {selectedWeekDays.length > 0 &&
+                                  generatedDates.length === 0 && (
+                                    <div
+                                      style={{
+                                        marginTop: '15px',
+                                        padding: '15px',
+                                        backgroundColor: '#fef3c7',
+                                        border: '1px solid #f59e0b',
+                                        borderRadius: '8px',
+                                        fontSize: '14px',
+                                        color: '#92400e',
+                                      }}
+                                    >
+                                      ⚠️ No hay fechas disponibles con los días
+                                      de la semana seleccionados hasta la fecha
+                                      del examen.
+                                    </div>
+                                  )}
+
+                                {selectedWeekDays.length === 0 && (
+                                  <div
                                     style={{
-                                      backgroundColor: '#3b82f6',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      padding: '6px 12px',
-                                      cursor: 'pointer',
-                                      fontSize: '12px',
+                                      marginTop: '15px',
+                                      padding: '15px',
+                                      backgroundColor: '#f3f4f6',
+                                      border: '1px solid #d1d5db',
+                                      borderRadius: '8px',
+                                      fontSize: '14px',
+                                      color: '#6b7280',
+                                      textAlign: 'center',
                                     }}
                                   >
-                                    Seleccionar todos
-                                  </button>
-                                  <button
-                                    onClick={() => setSelectedStudyDays([])}
-                                    style={{
-                                      backgroundColor: '#6b7280',
-                                      color: 'white',
-                                      border: 'none',
-                                      borderRadius: '4px',
-                                      padding: '6px 12px',
-                                      cursor: 'pointer',
-                                      fontSize: '12px',
-                                    }}
-                                  >
-                                    Limpiar selección
-                                  </button>
-                                </div>
+                                    👆 Selecciona los días de la semana que
+                                    tienes disponibles para estudiar
+                                  </div>
+                                )}
                               </div>
                             );
                           })()}
@@ -1830,9 +2218,9 @@ Genera el JSON del plan de estudio:`;
                             <div
                               style={{ maxHeight: '150px', overflowY: 'auto' }}
                             >
-                              {topics.map((topic) => (
+                              {topics.map((topic, index) => (
                                 <div
-                                  key={topic.id}
+                                  key={`topic-${topic.id || index}`}
                                   style={{
                                     display: 'flex',
                                     justifyContent: 'space-between',
@@ -1873,7 +2261,7 @@ Genera el JSON del plan de estudio:`;
                         )}
 
                         {/* Botón para generar plan de estudio */}
-                        {topics.length > 0 && selectedStudyDays.length > 0 && (
+                        {topics.length > 0 && selectedWeekDays.length > 0 && (
                           <div style={{ marginTop: '20px' }}>
                             <button
                               onClick={generateStudyPlan}
@@ -2040,9 +2428,9 @@ Genera el JSON del plan de estudio:`;
                   gap: '16px',
                 }}
               >
-                {studyPlans.map((plan) => (
+                {studyPlans.map((plan, index) => (
                   <div
-                    key={plan.id}
+                    key={`plan-${plan.id || index}`}
                     style={{
                       border: '1px solid #e5e7eb',
                       borderRadius: '12px',
@@ -2150,7 +2538,13 @@ Genera el JSON del plan de estudio:`;
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              deletePlan(plan.id);
+                              if (
+                                confirm(
+                                  `¿Estás seguro de que quieres eliminar el plan de estudio "${plan.subjectName}"?`,
+                                )
+                              ) {
+                                deletePlan(plan.id);
+                              }
                             }}
                             style={{
                               backgroundColor: '#ef4444',
