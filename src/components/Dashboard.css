@@ -891,3 +891,83 @@ header {
 .hidden {
   display: none;
 }
+
+/* Contenedor principal del chat */
+.chat-container { 
+  display:flex; 
+  flex-direction:column; 
+  height:340px; 
+  border-radius:10px; 
+  overflow:hidden; 
+}
+
+/* Área donde se muestran los mensajes */
+.chat-messages { 
+  flex:1; 
+  padding:12px; 
+  overflow-y:auto; /* permite hacer scroll si hay muchos mensajes */
+  display:flex; 
+  flex-direction:column; 
+  gap:8px; /* espacio entre mensajes */
+}
+
+/* Mensaje individual */
+.chat-message { display:flex; }
+
+/* Mensaje enviado por el usuario: alineado a la derecha */
+.chat-message.user { justify-content:flex-end; }
+
+/* Mensaje enviado por la IA: alineado a la izquierda */
+.chat-message.ai { justify-content:flex-start; }
+
+/* Burbuja del mensaje (el “globo” que contiene el texto) */
+.bubble { 
+  max-width:76%; 
+  padding:10px 12px; 
+  border-radius:12px; 
+  font-size:14px; 
+  line-height:1.3; 
+}
+
+/* Estilo de la burbuja del usuario (azul con texto blanco) */
+.chat-message.user .bubble { 
+  background:linear-gradient(135deg,#3b82f6,#2563eb); 
+  color:#fff; 
+  border-bottom-right-radius:4px; 
+}
+
+/* Estilo de la burbuja de la IA (gris con texto oscuro) */
+.chat-message.ai .bubble { 
+  background:#f3f4f6; 
+  color:#111827; 
+  border-bottom-left-radius:4px; 
+}
+
+/* Contenedor de los puntos que simulan "escribiendo..." */
+.typing-dots { 
+  display:inline-flex; 
+  gap:6px; 
+  align-items:center; 
+}
+
+/* Estilo de cada punto animado */
+.typing-dots span { 
+  width:6px; 
+  height:6px; 
+  background:#9CA3AF; 
+  border-radius:50%; 
+  opacity:.8; 
+  animation:blink 1s infinite; /* animación de parpadeo */
+}
+
+/* Retraso en la animación de cada punto para dar efecto de secuencia */
+.typing-dots span:nth-child(2){ animation-delay:.15s } 
+.typing-dots span:nth-child(3){ animation-delay:.3s }
+
+/* Animación que hace que los puntos parpadeen */
+@keyframes blink { 
+  0%{opacity:.2} 
+  50%{opacity:1} 
+  100%{opacity:.2} 
+}
+
