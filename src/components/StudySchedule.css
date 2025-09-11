@@ -18,6 +18,14 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+body {
+  font-family: 'Inter', sans-serif; /* Asegúrate de que Inter esté importada globalmente */
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.6;
+}
+
 .schedule-container {
   padding: 2.5rem;
   max-width: 1400px;
@@ -46,6 +54,12 @@
   gap: 2.5rem;
 }
 
+.schedule-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 /* Panel de Calendario */
 .schedule-calendar-panel {
   background: var(--surface-color);
@@ -54,6 +68,8 @@
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
   transition: var(--transition);
+  display: flex; /* Añadido para mejor control */
+  flex-direction: column; /* Añadido para mejor control */
 }
 
 .schedule-calendar-panel:hover {
@@ -104,6 +120,7 @@
   background: var(--border-color);
   border-radius: var(--radius-md);
   overflow: hidden;
+  flex-grow: 1; /* Permite que la grilla ocupe el espacio disponible */
 }
 
 .weekday-header {
@@ -115,13 +132,17 @@
   font-size: 0.9rem;
 }
 
+/* --- ESTILOS CLAVE PARA LAS CELDAS Y EVENTOS DEL CALENDARIO --- */
 .calendar-cell {
   background: var(--surface-color);
-  min-height: 100px;
+  min-height: 100px; /* Altura mínima para que no se achiquen demasiado */
   padding: 0.75rem;
   position: relative;
   transition: var(--transition);
   font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Oculta el contenido que se desborde */
 }
 
 .calendar-cell:hover {
@@ -132,7 +153,7 @@
 .calendar-cell.today {
   background: rgba(66, 133, 244, 0.1);
   border: 2px solid var(--primary-color);
-  padding: calc(0.75rem - 2px);
+  padding: calc(0.75rem - 2px); /* Ajuste por el borde */
 }
 
 .day-number {
@@ -141,33 +162,52 @@
   color: var(--text-primary);
   margin-bottom: 0.5rem;
   display: block;
+  flex-shrink: 0; /* Asegura que el número del día no se encoja */
 }
 
 .event {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem; /* Reducimos el tamaño de fuente */
+  padding: 0.2rem 0.4rem; /* Hacemos el padding más compacto */
   border-radius: 4px;
   color: white;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem; /* Espacio entre eventos */
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.2; /* Ajustamos la altura de línea */
+  max-width: 100%; /* Asegura que no se salga de la celda */
+  flex-shrink: 0; /* Evita que el evento se encoja */
 }
 
 .event-exam { background-color: var(--danger-color); }
 .event-study { background-color: var(--primary-color); }
 .event-task { background-color: var(--warning-color); color: var(--text-primary); }
 
+/* Estilo para el indicador de más eventos si es necesario */
+.more-events-indicator {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 0.2rem;
+  text-align: center;
+}
+/* --- FIN ESTILOS CLAVE --- */
+
+
 /* Paneles de Contenido Lateral */
-.add-event-panel,
-.upcoming-panel {
+.panel {
   background: var(--surface-color);
   border-radius: var(--radius-lg);
   padding: 2rem;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
+  transition: var(--transition);
   height: fit-content;
+}
+
+.panel:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
 }
 
 .panel-title {
@@ -178,6 +218,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--primary-color);
 }
 
 .panel-icon {
@@ -185,8 +227,13 @@
 }
 
 /* Formulario */
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.5rem;
 }
 .form-group label {
   display: block;
@@ -213,6 +260,26 @@
   box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
   background: var(--surface-color);
 }
+
+.full-width-input {
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: var(--background-color);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.full-width-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+  background: var(--surface-color);
+}
+
 .flex-group {
   display: flex;
   gap: 1rem;
@@ -299,6 +366,13 @@
   color: var(--text-primary);
 }
 
+.empty-state-text {
+  text-align: center;
+  color: var(--text-secondary); /* Cambiado de text-muted */
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .schedule-main-content {
@@ -320,5 +394,15 @@
   .add-event-panel,
   .upcoming-panel {
     padding: 1.5rem;
+  }
+  .calendar-cell {
+    min-height: 80px; /* Reducir altura mínima en móviles */
+  }
+  .day-number {
+    font-size: 0.8rem;
+  }
+  .event {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.3rem;
   }
 }
