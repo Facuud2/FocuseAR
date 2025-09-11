@@ -1,16 +1,3 @@
-import React, { useState, type JSX, useCallback, useContext } from 'react';
-import { useDatabase } from '../hooks/useDatabase';
-import { AuthContext } from '../hooks/authContext';
-import { PDFProcessor, type ExtractedTopic } from '../services/PDFProcessor';
-import { extractTextFromPDF } from '../services/PDFTextExtractor';
-import SelectorDeColor from './SelectorDeColor';
-import { AnalysisModal } from './AnalysisModal';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import './Dashboard.css';
-
 // Tipado explícito para los días del plan de estudio
 type StudyPlanDay = {
   date: string;
@@ -25,6 +12,20 @@ type StudyPlanDay = {
   completed: boolean;
   title?: string;
 };
+
+import React, { useState, type JSX /* useEffect */ } from 'react';
+import { useDatabase } from '../hooks/useDatabase';
+import { useContext } from 'react';
+import { AuthContext } from '../hooks/authContext';
+import { PDFProcessor, type ExtractedTopic } from '../services/PDFProcessor';
+import { extractTextFromPDF } from '../services/PDFTextExtractor';
+import SelectorDeColor from './SelectorDeColor';
+import { AnalysisModal } from './AnalysisModal';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import './Dashboard.css';
 
 interface Pdf {
   id: number;
@@ -61,9 +62,11 @@ const Dashboard: React.FC = () => {
   const { loading: dbLoading, error: dbError } = useDatabase();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  // const [events] = useState<Event[]>([]); // Eliminado: no se usa
   const [subjectName, setSubjectName] = useState('');
   const [selectedColor, setSelectedColor] = useState('#4285F4');
 
+  // Estados para el formulario de fechas
   const [firstPartialDate, setFirstPartialDate] = useState<Date | null>(null);
   const [secondPartialDate, setSecondPartialDate] = useState<Date | null>(null);
   const [tpDate, setTpDate] = useState<Date | null>(null);
@@ -71,6 +74,7 @@ const Dashboard: React.FC = () => {
     { id: number; name: string; date: Date | null }[]
   >([]);
 
+  // Estados para la planificación
   const [selectedSubjectForPlanning, setSelectedSubjectForPlanning] = useState<
     number | null
   >(null);
@@ -78,9 +82,10 @@ const Dashboard: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [extractedTopics, setExtractedTopics] = useState<ExtractedTopic[]>([]);
   const [selectedStudyDays, setSelectedStudyDays] = useState<string[]>([]);
-  const [setGeneratedStudyPlan] = useState<string>('');
+  const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [generatingPlan, setGeneratingPlan] = useState(false);
 
+  // Estados para planes de estudio guardados
   const [studyPlans, setStudyPlans] = useState<
     Array<{
       id: number;
@@ -93,7 +98,18 @@ const Dashboard: React.FC = () => {
       structuredPlan: {
         title: string;
         summary: string;
-        days: StudyPlanDay[];
+        days: Array<{
+          date: string;
+          dayNumber: number;
+          topics: Array<{
+            name: string;
+            summary: string;
+            estimatedTime: string;
+          }>;
+          totalTime: string;
+          recommendations: string;
+          completed: boolean;
+        }>;
         finalRecommendations: string;
       } | null;
       progress: number;
@@ -108,28 +124,38 @@ const Dashboard: React.FC = () => {
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  // Estado para el día seleccionado en el calendario
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<
     string | null
   >(null);
+  // Estado para mostrar el modal de detalles del día
   const [showDayModal, setShowDayModal] = useState(false);
+  // Estado para almacenar los detalles del día seleccionado
   const [selectedDayDetails, setSelectedDayDetails] = useState<Array<{
     planId: number;
     day: StudyPlanDay;
     color?: string;
   }> | null>(null);
-  const [dragActive, setDragActive] = useState(false);
+  const [dragActive, setDragActive] = React.useState(false);
+
+  // Estados para el análisis de PDF
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisState>({
     isAnalyzing: false,
     progress: 0,
     statusMessage: '',
   });
+
+  // Estados para el contador de temas
   const [topicCounter, setTopicCounter] = useState(1);
 
+  // Función para actualizar el estado del análisis
   const updateAnalysisStatus = (status: Partial<AnalysisState>) => {
     setAnalysisStatus((prev) => ({ ...prev, ...status }));
   };
 
+  // === LOGICA DE MATERIAS ===
   const handlePlanify = async () => {
+    // Recopilar todas las fechas importantes
     const importantDates: {
       name: string;
       date: string;
@@ -167,6 +193,7 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    // Crear materia local (sin Firestore por ahora)
     const newSubject: Subject = {
       id: Date.now(),
       name: subjectName,
@@ -181,16 +208,19 @@ const Dashboard: React.FC = () => {
 
     setSubjects([...subjects, newSubject]);
 
+    // Limpiar el formulario
     setSubjectName('');
     setPdfs([]);
     setFirstPartialDate(null);
     setSecondPartialDate(null);
     setTpDate(null);
     setOtherDates([]);
+    // NO limpiar extractedTopics para mantener los temas disponibles en Planificación
 
     alert('Materia añadida exitosamente a "Mis materias"!');
   };
 
+  // === LOGICA DE FECHAS DINÁMICAS ===
   const addOtherDate = () => {
     const newDate = {
       id: Date.now(),
@@ -219,11 +249,15 @@ const Dashboard: React.FC = () => {
     setOtherDates(otherDates.filter((d) => d.id !== id));
   };
 
+  // === LOGICA DE PLANIFICACIÓN ===
+
+  // Función para calcular días disponibles entre hoy y la fecha del examen
   const calculateAvailableDays = (examDate: string) => {
     const today = new Date();
     const exam = new Date(examDate);
     const days: string[] = [];
 
+    // Empezar desde mañana
     const current = new Date(today);
     current.setDate(current.getDate() + 1);
 
@@ -235,19 +269,22 @@ const Dashboard: React.FC = () => {
     return days;
   };
 
+  // Función para normalizar fechas a formato YYYY-MM-DD
   const normalizeDate = (dateString: string) => {
     const date = new Date(dateString + 'T00:00:00');
     return date.toISOString().split('T')[0];
   };
 
+  // Función para formatear fecha legible
   const formatDate = (dateString: string) => {
+    // Asegurarse de que la fecha se interprete correctamente como UTC
     const date = new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('es-ES', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-      timeZone: 'UTC',
+      timeZone: 'UTC', // Usar UTC para evitar problemas de zona horaria
     });
   };
 
@@ -255,6 +292,7 @@ const Dashboard: React.FC = () => {
     setTopics(topics.filter((t) => t.id !== id));
   };
 
+  // Función para generar plan de estudio con IA
   const generateStudyPlan = async () => {
     if (
       !selectedSubjectForPlanning ||
@@ -279,6 +317,9 @@ const Dashboard: React.FC = () => {
     setGeneratingPlan(true);
 
     try {
+      console.log('🚀 GENERANDO PLAN DE ESTUDIO CON IA');
+
+      // Obtener fecha del evento
       const importantDates = selectedSubject.importantDates || [];
       let examDate = '';
       if (selectedEvent === 'primer-parcial') {
@@ -293,6 +334,7 @@ const Dashboard: React.FC = () => {
         examDate = segundoParcial?.date || '';
       }
 
+      // Crear prompt para el plan de estudio
       const prompt = `
 Eres un asistente especializado en crear planes de estudio personalizados.
 
@@ -344,6 +386,8 @@ IMPORTANTE:
 
 Genera el JSON del plan de estudio:`;
 
+      console.log('📝 Enviando prompt a Gemini AI...');
+
       const response = await fetch(
         'https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse',
         {
@@ -362,6 +406,9 @@ Genera el JSON del plan de estudio:`;
       }
 
       const result = await response.json();
+      console.log('✅ Respuesta recibida de Gemini AI');
+
+      // Procesar respuesta
       let studyPlan = '';
       if (result.raw_response) {
         studyPlan = result.raw_response;
@@ -370,11 +417,13 @@ Genera el JSON del plan de estudio:`;
       } else if (result.response) {
         studyPlan = result.response;
       } else if (result.summary) {
+        // La respuesta viene en el campo summary
         studyPlan = result.summary;
       } else {
         studyPlan = JSON.stringify(result);
       }
 
+      // Limpiar markdown si es necesario
       studyPlan = studyPlan
         .replace(/```markdown/g, '')
         .replace(/```/g, '')
@@ -384,28 +433,42 @@ Genera el JSON del plan de estudio:`;
 
       setGeneratedStudyPlan(studyPlan);
 
+      // Intentar parsear como JSON estructurado
       let structuredPlan = null;
       try {
+        // Si la respuesta comienza con "json\n", extraer solo el JSON
         let jsonContent = studyPlan;
         if (studyPlan.startsWith('json\n')) {
           jsonContent = studyPlan.substring(5).trim();
         }
 
+        // Limpiar posibles caracteres extra antes y después del JSON
         const cleanedPlan = jsonContent
           .replace(/^[^{]*/, '')
           .replace(/[^}]*$/, '');
         const parsedPlan = JSON.parse(cleanedPlan);
 
+        // Agregar campo 'completed' a cada día si no existe
         if (parsedPlan.days && Array.isArray(parsedPlan.days)) {
-          // Aseguramos que parsedPlan.days es un array de objetos con las propiedades de StudyPlanDay
-          const days: StudyPlanDay[] = parsedPlan.days.map(
-            (day: StudyPlanDay) => ({
+          parsedPlan.days = parsedPlan.days.map(
+            (day: {
+              date: string;
+              dayNumber: number;
+              topics: Array<{
+                name: string;
+                summary: string;
+                estimatedTime: string;
+              }>;
+              totalTime: string;
+              recommendations: string;
+            }) => ({
               ...day,
-              date: normalizeDate(day.date),
+              date: normalizeDate(day.date), // Normalizar la fecha
               completed: false,
             }),
           );
-          structuredPlan = { ...parsedPlan, days };
+          structuredPlan = parsedPlan;
+          console.log('✅ JSON parseado correctamente:', structuredPlan);
         }
       } catch (error) {
         console.log(
@@ -414,6 +477,7 @@ Genera el JSON del plan de estudio:`;
         );
       }
 
+      // Guardar el plan en la lista de planes de estudio
       const newPlan = {
         id: nextPlanId,
         subjectName: selectedSubject.name,
@@ -442,6 +506,7 @@ Genera el JSON del plan de estudio:`;
     }
   };
 
+  // Funciones para manejar planes de estudio
   const togglePlanExpansion = (planId: number) => {
     setStudyPlans((prevPlans) =>
       prevPlans.map((plan) =>
@@ -458,6 +523,7 @@ Genera el JSON del plan de estudio:`;
             index === dayIndex ? { ...day, completed: !day.completed } : day,
           );
 
+          // Calcular nuevo progreso basado en días completados
           const completedDays = updatedDays.filter(
             (day) => day.completed,
           ).length;
@@ -485,29 +551,46 @@ Genera el JSON del plan de estudio:`;
     );
   };
 
-  const handlePdfUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!e.target.files) return;
-      const files = Array.from(e.target.files);
-      if (pdfs.length + files.length > 5) {
-        alert('Máximo 5 PDF');
-        return;
-      }
-      const newPdfs = files.map((file) => ({
-        id: Date.now() + Math.random(),
-        name: file.name,
-        size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-      }));
-      setPdfs([...pdfs, ...newPdfs]);
+  // === LOGICA DE PDFs ===
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📁 EVENTO DE CARGA DE PDF DETECTADO');
 
-      if (files.length > 0 && subjectName.trim()) {
-        await processPDFWithGemini(files[0]);
-      } else if (!subjectName.trim()) {
-        console.log('No se puede procesar: falta el nombre de la materia');
-      }
-    },
-    [pdfs, subjectName],
-  );
+    if (!e.target.files) {
+      console.log('❌ No se seleccionaron archivos');
+      return;
+    }
+
+    const files = Array.from(e.target.files);
+    console.log(`📄 Archivos seleccionados: ${files.length}`);
+    files.forEach((file, i) => {
+      console.log(
+        `   ${i + 1}. ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`,
+      );
+    });
+
+    if (pdfs.length + files.length > 5) {
+      console.log('⚠️ Límite de archivos excedido');
+      alert('Máximo 5 PDF');
+      return;
+    }
+
+    console.log('💾 Guardando PDFs en el estado...');
+    const newPdfs = files.map((file) => ({
+      id: Date.now() + Math.random(),
+      name: file.name,
+      size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+    }));
+    setPdfs([...pdfs, ...newPdfs]);
+    console.log('✅ PDFs guardados en el estado');
+
+    // Procesar el primer PDF con Gemini para extraer temas
+    if (files.length > 0 && subjectName.trim()) {
+      console.log('🚀 Iniciando procesamiento automático del primer PDF...');
+      await processPDFWithGemini(files[0]);
+    } else if (!subjectName.trim()) {
+      console.log('⚠️ No se puede procesar: falta el nombre de la materia');
+    }
+  };
 
   const processPDFWithGemini = async (file: File) => {
     if (!subjectName.trim()) {
@@ -520,11 +603,13 @@ Genera el JSON del plan de estudio:`;
       statusMessage: 'Extrayendo texto del PDF...',
     });
     try {
+      // 1. Extraer texto del PDF
       const text = await extractTextFromPDF(file);
       updateAnalysisStatus({
         progress: 40,
         statusMessage: 'Enviando texto a la IA...',
       });
+      // 2. Procesar texto con Gemini
       const result = await PDFProcessor.processPDFTextWithGemini(
         text,
         subjectName,
@@ -589,6 +674,7 @@ Genera el JSON del plan de estudio:`;
     setCurrentYear(y);
   };
 
+  // Días del plan de estudio (puede haber varios planes en el mismo día)
   const studyPlanDays: {
     [date: string]: Array<{
       planId: number;
@@ -600,6 +686,7 @@ Genera el JSON del plan de estudio:`;
     if (plan.structuredPlan && Array.isArray(plan.structuredPlan.days)) {
       plan.structuredPlan.days.forEach((day: StudyPlanDay) => {
         if (!studyPlanDays[day.date]) studyPlanDays[day.date] = [];
+        // Buscar color de la materia si existe
         const subject = subjects.find((s) => s.name === plan.subjectName);
         studyPlanDays[day.date].push({
           planId: plan.id,
@@ -626,6 +713,8 @@ Genera el JSON del plan de estudio:`;
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
+      // Crear la fecha local correctamente (sin desfase de zona horaria)
+      // Formato YYYY-MM-DD local
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const isToday =
         today.getDate() === d &&
@@ -649,6 +738,7 @@ Genera el JSON del plan de estudio:`;
           }}
         >
           <div className="day-number">{d}</div>
+          {/* Mostrar una bolita por cada plan en ese día */}
           {plansForDay.length > 0 && (
             <div
               style={{
@@ -690,7 +780,13 @@ Genera el JSON del plan de estudio:`;
   };
 
   return (
+    // El div raíz del Dashboard ahora toma el 100% del ancho y alto de su contenedor padre
+    // para que el layout en App.tsx lo posicione correctamente.
+    // La clase 'dormir' se mantiene si tiene estilos específicos que no entran en conflicto.
     <div className="dormir h-full w-full p-4 flex flex-col md:p-8">
+      {' '}
+      {/* Añadido padding aquí, o puedes mantenerlo en App.tsx */}
+      {/* HEADER */}
       <header>
         <div className="logo">
           <div className="logo-icon">
@@ -729,6 +825,7 @@ Genera el JSON del plan de estudio:`;
         </div>
       </header>
       <div className="content grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* PANEL IZQUIERDO */}
         <div className="left-panel">
           <div className="panel">
             <h2>
@@ -743,6 +840,7 @@ Genera el JSON del plan de estudio:`;
                 placeholder="Ej: Álgebra Lineal"
               />
 
+              {/* Fechas siempre visibles */}
               {
                 <div className="dates-section">
                   <h4
@@ -763,32 +861,6 @@ Genera el JSON del plan de estudio:`;
                       onChange={(date: Date | null) =>
                         setFirstPartialDate(date)
                       }
-                      dateFormat="P"
-                      locale={es}
-                      className="w-full p-2 border rounded"
-                      placeholderText="Selecciona una fecha"
-                      minDate={new Date()}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Fecha Segundo Parcial</label>
-                    <DatePicker
-                      selected={secondPartialDate}
-                      onChange={(date: Date | null) =>
-                        setSecondPartialDate(date)
-                      }
-                      dateFormat="P"
-                      locale={es}
-                      className="w-full p-2 border rounded"
-                      placeholderText="Selecciona una fecha"
-                      minDate={new Date()}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Fecha TP</label>
-                    <DatePicker
-                      selected={tpDate}
-                      onChange={(date: Date | null) => setTpDate(date)}
                       dateFormat="P"
                       locale={es}
                       className="w-full p-2 border rounded"
@@ -900,16 +972,36 @@ Genera el JSON del plan de estudio:`;
                     ),
                   )}
 
+                  {/* Sexto botón: selector de color */}
                   <div style={{ position: 'relative' }}>
                     <SelectorDeColor
                       color={selectedColor}
                       onChange={setSelectedColor}
                     />
+                    {/* Overlay para indicar que se puede clickear */}
+                  </div>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      pointerEvents: 'none', // para que el click llegue al SelectorDeColor
+                    }}
+                    title="Elegir color"
+                  >
+                    ...
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* PDFs */}
             <div className="pdf-section">
               <h3>
                 <i className="fas fa-file-pdf"></i> Programa de la materia (PDF)
@@ -937,6 +1029,7 @@ Genera el JSON del plan de estudio:`;
                     (f) => f.type === 'application/pdf',
                   );
                   if (pdfs.length + files.length > 5) {
+                    // Usar un modal en lugar de alert
                     console.log('Máximo 5 archivos PDF permitidos');
                     return;
                   }
@@ -948,6 +1041,7 @@ Genera el JSON del plan de estudio:`;
                   }));
                   setPdfs([...pdfs, ...newPdfs]);
 
+                  // Procesar con Gemini
                   if (files.length > 0 && subjectName.trim()) {
                     await processPDFWithGemini(files[0]);
                   }
@@ -958,6 +1052,8 @@ Genera el JSON del plan de estudio:`;
                   position: 'relative',
                 }}
               >
+                {/* Inline overlay spinner while analyzing */}
+
                 <input
                   id="pdf-upload"
                   type="file"
@@ -1001,6 +1097,8 @@ Genera el JSON del plan de estudio:`;
                       : 'Haz click o arrastra el contenido de la materia'}
                   </span>
                 </div>
+
+                {/* Lista de PDFs cargados */}
                 {pdfs.length > 0 && (
                   <div style={{ width: '100%', marginTop: '15px' }}>
                     <h4
@@ -1104,6 +1202,7 @@ Genera el JSON del plan de estudio:`;
               </div>
             </div>
 
+            {/* Botón para cargar materia */}
             <button
               className="planify-btn"
               onClick={handlePlanify}
@@ -1118,6 +1217,8 @@ Genera el JSON del plan de estudio:`;
               )}
             </button>
           </div>
+
+          {/* Mostrar errores de base de datos */}
           {analysisStatus.isAnalyzing && (
             <div
               style={{
@@ -1160,6 +1261,8 @@ Genera el JSON del plan de estudio:`;
               <strong>❌ Error en base de datos:</strong> {dbError}
             </div>
           )}
+
+          {/* Mostrar estado de conexión */}
           {user && (
             <div
               style={{
@@ -1175,6 +1278,8 @@ Genera el JSON del plan de estudio:`;
               <strong>✅ Conectado a Firestore como:</strong> {user.email}
             </div>
           )}
+
+          {/* Debug info para temas extraídos */}
           {extractedTopics.length > 0 && (
             <div
               style={{
@@ -1203,6 +1308,8 @@ Genera el JSON del plan de estudio:`;
               </div>
             </div>
           )}
+
+          {/* Lista de materias MEJORADA */}
           <div className="panel">
             <h2>
               <i className="fas fa-list"></i> Mis Materias
@@ -1262,10 +1369,13 @@ Genera el JSON del plan de estudio:`;
               </div>
             )}
           </div>
+
+          {/* Nueva sección de Planificación */}
           <div className="panel">
             <h2>
               <i className="fas fa-calendar-check"></i> Planificación
             </h2>
+
             {subjects.length === 0 ? (
               <p>Primero debes cargar una materia para poder planificar</p>
             ) : (
@@ -1291,6 +1401,7 @@ Genera el JSON del plan de estudio:`;
                     ))}
                   </select>
                 </div>
+
                 {selectedSubjectForPlanning && (
                   <div>
                     <div className="form-group">
@@ -1307,8 +1418,10 @@ Genera el JSON del plan de estudio:`;
                         <option value="final">Final</option>
                       </select>
                     </div>
+
                     {selectedEvent && (
                       <div>
+                        {/* Mostrar temas extraídos por IA */}
                         {extractedTopics.length > 0 && (
                           <div style={{ marginBottom: '20px' }}>
                             <h4
@@ -1338,6 +1451,7 @@ Genera el JSON del plan de estudio:`;
                                     t.name.toLowerCase() ===
                                     extractedTopic.name.toLowerCase(),
                                 );
+
                                 return (
                                   <div
                                     key={extractedTopic.id}
@@ -1407,6 +1521,7 @@ Genera el JSON del plan de estudio:`;
                                 );
                               })}
                             </div>
+
                             <button
                               onClick={() => {
                                 const newTopics = extractedTopics
@@ -1446,6 +1561,7 @@ Genera el JSON del plan de estudio:`;
                           </div>
                         )}
 
+                        {/* Selección de días de estudio disponibles */}
                         <div
                           className="form-group"
                           style={{ marginBottom: '20px' }}
@@ -1461,22 +1577,21 @@ Genera el JSON del plan de estudio:`;
                             estudiar
                           </label>
                           {(() => {
+                            // Obtener la materia seleccionada y sus fechas
                             const selectedSubject = subjects.find(
                               (s) => s.id === selectedSubjectForPlanning,
                             );
                             if (!selectedSubject) {
                               return (
                                 <p
-                                  style={{
-                                    color: '#ef4444',
-                                    fontSize: '14px',
-                                  }}
+                                  style={{ color: '#ef4444', fontSize: '14px' }}
                                 >
                                   ⚠️ No se encontró la materia seleccionada.
                                 </p>
                               );
                             }
 
+                            // Calcular días disponibles basado en la fecha del evento seleccionado
                             let examDate = '';
                             const importantDates =
                               selectedSubject.importantDates || [];
@@ -1513,10 +1628,7 @@ Genera el JSON del plan de estudio:`;
                             if (availableDays.length === 0) {
                               return (
                                 <p
-                                  style={{
-                                    color: '#ef4444',
-                                    fontSize: '14px',
-                                  }}
+                                  style={{ color: '#ef4444', fontSize: '14px' }}
                                 >
                                   ⚠️ La fecha del examen ya pasó o es hoy. No
                                   hay días disponibles para estudiar.
@@ -1601,7 +1713,7 @@ Genera el JSON del plan de estudio:`;
                                         checked={selectedStudyDays.includes(
                                           day,
                                         )}
-                                        onChange={() => {}}
+                                        onChange={() => {}} // Manejado por el onClick del div
                                         style={{
                                           marginRight: '12px',
                                           width: '16px',
@@ -1624,6 +1736,7 @@ Genera el JSON del plan de estudio:`;
                                     </div>
                                   ))}
                                 </div>
+
                                 {selectedStudyDays.length > 0 && (
                                   <div
                                     style={{
@@ -1655,6 +1768,7 @@ Genera el JSON del plan de estudio:`;
                                     </div>
                                   </div>
                                 )}
+
                                 <div
                                   style={{
                                     display: 'flex',
@@ -1674,7 +1788,6 @@ Genera el JSON del plan de estudio:`;
                                       padding: '6px 12px',
                                       cursor: 'pointer',
                                       fontSize: '12px',
-                                      fontWeight: '500',
                                     }}
                                   >
                                     Seleccionar todos
@@ -1689,7 +1802,6 @@ Genera el JSON del plan de estudio:`;
                                       padding: '6px 12px',
                                       cursor: 'pointer',
                                       fontSize: '12px',
-                                      fontWeight: '500',
                                     }}
                                   >
                                     Limpiar selección
@@ -1760,6 +1872,7 @@ Genera el JSON del plan de estudio:`;
                           </div>
                         )}
 
+                        {/* Botón para generar plan de estudio */}
                         {topics.length > 0 && selectedStudyDays.length > 0 && (
                           <div style={{ marginTop: '20px' }}>
                             <button
@@ -1812,6 +1925,84 @@ Genera el JSON del plan de estudio:`;
                             </button>
                           </div>
                         )}
+
+                        {/* Mostrar plan de estudio generado */}
+                        {generatedStudyPlan && (
+                          <div style={{ marginTop: '20px' }}>
+                            <h4
+                              style={{
+                                marginBottom: '15px',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                color: '#10b981',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                              }}
+                            >
+                              <span>🎯</span>
+                              Plan de Estudio Generado
+                            </h4>
+                            <div
+                              style={{
+                                backgroundColor: '#f8fafc',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '8px',
+                                padding: '20px',
+                                maxHeight: '500px',
+                                overflowY: 'auto',
+                                fontSize: '14px',
+                                lineHeight: '1.6',
+                                whiteSpace: 'pre-wrap',
+                              }}
+                            >
+                              {generatedStudyPlan}
+                            </div>
+                            <div
+                              style={{
+                                marginTop: '10px',
+                                display: 'flex',
+                                gap: '10px',
+                              }}
+                            >
+                              <button
+                                onClick={() => setGeneratedStudyPlan('')}
+                                style={{
+                                  backgroundColor: '#6b7280',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  padding: '8px 16px',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                }}
+                              >
+                                Cerrar plan
+                              </button>
+                              <button
+                                onClick={generateStudyPlan}
+                                disabled={generatingPlan}
+                                style={{
+                                  backgroundColor: generatingPlan
+                                    ? '#9ca3af'
+                                    : '#3b82f6',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  padding: '8px 16px',
+                                  cursor: generatingPlan
+                                    ? 'not-allowed'
+                                    : 'pointer',
+                                  fontSize: '14px',
+                                }}
+                              >
+                                {generatingPlan
+                                  ? 'Regenerando...'
+                                  : 'Regenerar plan'}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1820,6 +2011,7 @@ Genera el JSON del plan de estudio:`;
             )}
           </div>
 
+          {/* Sección de Planes de Estudio */}
           <div className="panel">
             <h2>
               <i className="fas fa-graduation-cap"></i> Planes de estudio
@@ -1860,6 +2052,7 @@ Genera el JSON del plan de estudio:`;
                       transition: 'all 0.2s ease',
                     }}
                   >
+                    {/* Header de la tarjeta */}
                     <div
                       style={{
                         padding: '20px',
@@ -1986,6 +2179,8 @@ Genera el JSON del plan de estudio:`;
                           </span>
                         </div>
                       </div>
+
+                      {/* Barra de progreso */}
                       <div style={{ marginBottom: '12px' }}>
                         <div
                           style={{
@@ -2014,10 +2209,7 @@ Genera el JSON del plan de estudio:`;
                             {plan.progress}%
                             {plan.structuredPlan && (
                               <span
-                                style={{
-                                  color: '#6b7280',
-                                  marginLeft: '4px',
-                                }}
+                                style={{ color: '#6b7280', marginLeft: '4px' }}
                               >
                                 (
                                 {
@@ -2061,6 +2253,8 @@ Genera el JSON del plan de estudio:`;
                         </div>
                       </div>
                     </div>
+
+                    {/* Contenido expandible - Sub-tarjetas de días */}
                     {plan.expanded && (
                       <div
                         style={{
@@ -2086,6 +2280,7 @@ Genera el JSON del plan de estudio:`;
                               Cronograma de Estudio
                             </h4>
 
+                            {/* Resumen del plan */}
                             {plan.structuredPlan.summary && (
                               <div
                                 style={{
@@ -2102,6 +2297,8 @@ Genera el JSON del plan de estudio:`;
                                 {plan.structuredPlan.summary}
                               </div>
                             )}
+
+                            {/* Sub-tarjetas de días */}
                             <div
                               style={{
                                 display: 'flex',
@@ -2123,6 +2320,7 @@ Genera el JSON del plan de estudio:`;
                                     padding: '16px',
                                   }}
                                 >
+                                  {/* Header del día */}
                                   <div
                                     style={{
                                       display: 'flex',
@@ -2202,8 +2400,18 @@ Genera el JSON del plan de estudio:`;
                                     </button>
                                   </div>
 
+                                  {/* Temas del día */}
                                   <div style={{ marginBottom: '12px' }}>
-                                    <h6>📚 Temas a estudiar:</h6>
+                                    <h6
+                                      style={{
+                                        margin: '0 0 8px 0',
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        color: '#374151',
+                                      }}
+                                    >
+                                      📚 Temas a estudiar:
+                                    </h6>
                                     <div
                                       style={{
                                         display: 'flex',
@@ -2270,6 +2478,8 @@ Genera el JSON del plan de estudio:`;
                                       ))}
                                     </div>
                                   </div>
+
+                                  {/* Recomendaciones del día */}
                                   {day.recommendations && (
                                     <div
                                       style={{
@@ -2291,6 +2501,7 @@ Genera el JSON del plan de estudio:`;
                               ))}
                             </div>
 
+                            {/* Recomendaciones finales */}
                             {plan.structuredPlan.finalRecommendations && (
                               <div
                                 style={{
@@ -2318,6 +2529,7 @@ Genera el JSON del plan de estudio:`;
                             )}
                           </div>
                         ) : (
+                          /* Fallback para planes sin estructura JSON */
                           <div>
                             <h4
                               style={{
@@ -2360,6 +2572,7 @@ Genera el JSON del plan de estudio:`;
           </div>
         </div>
 
+        {/* PANEL DERECHO */}
         <div className="right-panel">
           <div className="panel">
             <h2>
@@ -2381,11 +2594,8 @@ Genera el JSON del plan de estudio:`;
               {renderDays()}
             </div>
           </div>
-          <AnalysisModal
-            isAnalyzing={analysisStatus.isAnalyzing}
-            progress={analysisStatus.progress}
-            statusMessage={analysisStatus.statusMessage}
-          />
+
+          {/* Modal de detalles del día */}
           {showDayModal &&
             selectedDayDetails &&
             Array.isArray(selectedDayDetails) && (
@@ -2493,8 +2703,10 @@ Genera el JSON del plan de estudio:`;
                 </div>
               </div>
             )}
-          <div className="panel">
-            <h2>
+
+          {/* Asistente */}
+          <div className="panel" style={{ padding: '20px' }}>
+            <h2 style={{ marginTop: 0 }}>
               <i className="fas fa-robot"></i> Asistente IA
             </h2>
             <div className="analysis-content" style={{ marginBottom: '15px' }}>
@@ -2538,6 +2750,12 @@ Genera el JSON del plan de estudio:`;
           </div>
         </div>
       </div>
+      {/* Analysis Modal */}
+      <AnalysisModal
+        isAnalyzing={analysisStatus.isAnalyzing}
+        progress={analysisStatus.progress}
+        statusMessage={analysisStatus.statusMessage}
+      />
     </div>
   );
 };
