@@ -55,7 +55,7 @@ const corsHandler = cors({ origin: true });
 
 // Función principal con CORS habilitado para desarrollo y producción
 export const geminiResponse = onRequest(
-  { secrets: [GEMINI_API_KEY], region: 'us-central1' },
+  { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
   async (req, res) => {
     corsHandler(req, res, async () => {
       if (req.method !== 'POST') {
