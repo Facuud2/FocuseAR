@@ -1002,9 +1002,12 @@ Genera el JSON del plan de estudio:`;
   };
 
   // Función para manejar cambios en los filtros
-  const handleFilterChange = (newFilteredPlanIds: (string | number)[]) => {
-    setFilteredPlanIds(newFilteredPlanIds);
-  };
+  const handleFilterChange = React.useCallback(
+    (newFilteredPlanIds: (string | number)[]) => {
+      setFilteredPlanIds(newFilteredPlanIds);
+    },
+    [],
+  );
 
   // Obtener planes filtrados
   const getFilteredStudyPlans = () => {
