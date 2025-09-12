@@ -1,5 +1,6 @@
 import React, { useState, type JSX /* useEffect */ } from 'react';
 import DatabaseTester from './components/DatabaseTester';
+import ChatExample from './components/ChatExample';
 import { useDatabase } from './hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from './context/authContext';
@@ -541,6 +542,11 @@ const Dashboard: React.FC = () => {
             <button onClick={askAI}>
               <i className="fas fa-paper-plane"></i>
             </button>
+          </div>
+
+          {/* Ejemplo de Chat Component */}
+          <div className="panel">
+            <ChatExample />
           </div>
         </div>
       </div>
