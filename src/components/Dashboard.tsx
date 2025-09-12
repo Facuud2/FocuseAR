@@ -21,6 +21,7 @@ import { PDFProcessor, type ExtractedTopic } from '../services/PDFProcessor';
 import { extractTextFromPDF } from '../services/PDFTextExtractor';
 import SelectorDeColor from './SelectorDeColor';
 import { AnalysisModal } from './AnalysisModal';
+import StudyPlanFilter from './StudyPlanFilter';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import DatePicker from 'react-datepicker';
@@ -150,6 +151,11 @@ const Dashboard: React.FC = () => {
     color?: string;
   }> | null>(null);
   const [dragActive, setDragActive] = React.useState(false);
+
+  // Estado para filtros de planes de estudio
+  const [filteredPlanIds, setFilteredPlanIds] = useState<(string | number)[]>(
+    [],
+  );
 
   // Estados para el análisis de PDF
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisState>({
@@ -999,7 +1005,20 @@ Genera el JSON del plan de estudio:`;
     setCurrentYear(y);
   };
 
-  // Días del plan de estudio (puede haber varios planes en el mismo día)
+  // Función para manejar cambios en los filtros
+  const handleFilterChange = (newFilteredPlanIds: (string | number)[]) => {
+    setFilteredPlanIds(newFilteredPlanIds);
+  };
+
+  // Obtener planes filtrados
+  const getFilteredStudyPlans = () => {
+    if (filteredPlanIds.length === 0) {
+      return studyPlans; // Si no hay filtros, mostrar todos
+    }
+    return studyPlans.filter((plan) => filteredPlanIds.includes(plan.id));
+  };
+
+  // Días del plan de estudio (puede haber varios planes en el mismo día) - ahora filtrados
   const studyPlanDays: {
     [date: string]: Array<{
       planId: string | number;
@@ -1007,7 +1026,9 @@ Genera el JSON del plan de estudio:`;
       color?: string;
     }>;
   } = {};
-  studyPlans.forEach((plan) => {
+
+  const filteredStudyPlans = getFilteredStudyPlans();
+  filteredStudyPlans.forEach((plan) => {
     if (plan.structuredPlan && Array.isArray(plan.structuredPlan.days)) {
       plan.structuredPlan.days.forEach((day: StudyPlanDay) => {
         if (!studyPlanDays[day.date]) studyPlanDays[day.date] = [];
@@ -2991,6 +3012,13 @@ Genera el JSON del plan de estudio:`;
               ))}
               {renderDays()}
             </div>
+
+            {/* Filtros de Planes de Estudio */}
+            <StudyPlanFilter
+              studyPlans={studyPlans}
+              subjects={subjects}
+              onFilterChange={handleFilterChange}
+            />
           </div>
 
           {/* Modal de detalles del día */}
