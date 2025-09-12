@@ -1,18 +1,3 @@
-// Tipado explícito para los días del plan de estudio
-type StudyPlanDay = {
-  date: string;
-  dayNumber: number;
-  topics: {
-    name: string;
-    summary: string;
-    estimatedTime: string;
-  }[];
-  totalTime: string;
-  recommendations: string;
-  completed: boolean;
-  title?: string;
-};
-
 import React, { useState, useEffect } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { useContext } from 'react';
@@ -21,11 +6,12 @@ import { PDFProcessor, type ExtractedTopic } from '../services/PDFProcessor';
 import { extractTextFromPDF } from '../services/PDFTextExtractor';
 import SelectorDeColor from './SelectorDeColor';
 import { AnalysisModal } from './AnalysisModal';
+import 'react-datepicker/dist/react-datepicker.css';
+import './Dashboard.css';
+import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import './subjects.css'; // Nuevo archivo de estilos
+import { type StudyPlanDay } from './Dashboard';
 
 interface Pdf {
   id: number;
@@ -57,11 +43,40 @@ interface AnalysisState {
   statusMessage: string;
 }
 
-interface SubjectsProps {
-  onPlanCreated: () => void;
+interface StudyPlan {
+  id: string | number;
+  subjectName: string;
+  eventName: string;
+  examDate: string;
+  topics: string[];
+  studyDays: string[];
+  content: string;
+  structuredPlan:
+    | {
+        title: string;
+        summary: string;
+        days: Array<{
+          date: string;
+          dayNumber: number;
+          topics: Array<{
+            name: string;
+            summary: string;
+            estimatedTime: string;
+          }>;
+          totalTime: string;
+          recommendations: string;
+          completed: boolean;
+        }>;
+        finalRecommendations: string;
+      }
+    | null
+    | undefined;
+  progress: number;
+  createdAt: string;
+  expanded: boolean;
 }
 
-const Subjects: React.FC<SubjectsProps> = ({ onPlanCreated }) => {
+const Subjects: React.FC = () => {
   const { user } = useContext(AuthContext);
   const {
     loading: dbLoading,
@@ -90,45 +105,11 @@ const Subjects: React.FC<SubjectsProps> = ({ onPlanCreated }) => {
   const [selectedEvent, setSelectedEvent] = useState('');
   const [topics, setTopics] = useState<Topic[]>([]);
   const [extractedTopics, setExtractedTopics] = useState<ExtractedTopic[]>([]);
-  const [selectedStudyDays, setSelectedStudyDays] = useState<string[]>([]);
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [generatingPlan, setGeneratingPlan] = useState(false);
 
-  const [studyPlans, setStudyPlans] = useState<
-    Array<{
-      id: string | number;
-      subjectName: string;
-      eventName: string;
-      examDate: string;
-      topics: string[];
-      studyDays: string[];
-      content: string;
-      structuredPlan:
-        | {
-            title: string;
-            summary: string;
-            days: Array<{
-              date: string;
-              dayNumber: number;
-              topics: Array<{
-                name: string;
-                summary: string;
-                estimatedTime: string;
-              }>;
-              totalTime: string;
-              recommendations: string;
-              completed: boolean;
-            }>;
-            finalRecommendations: string;
-          }
-        | null
-        | undefined;
-      progress: number;
-      createdAt: string;
-      expanded: boolean;
-    }>
-  >([]);
+  const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
   const [nextPlanId, setNextPlanId] = useState(1);
 
   const [pdfs, setPdfs] = useState<Pdf[]>([]);
@@ -149,7 +130,6 @@ const Subjects: React.FC<SubjectsProps> = ({ onPlanCreated }) => {
   useEffect(() => {
     const loadUserData = async () => {
       if (!user) return;
-
       try {
         const materials = await getUserMaterials();
         const convertedSubjects: Subject[] = materials.map(
@@ -193,7 +173,6 @@ const Subjects: React.FC<SubjectsProps> = ({ onPlanCreated }) => {
           };
         });
         setStudyPlans(convertedPlans);
-
         if (
           studyPlans.length > 0 &&
           studyPlans[0].generatedPlan.selectedWeekDays
@@ -360,6 +339,7 @@ const Subjects: React.FC<SubjectsProps> = ({ onPlanCreated }) => {
       );
       return;
     }
+
     const selectedSubject = subjects.find(
       (s) => s.id === selectedSubjectForPlanning,
     );
@@ -367,9 +347,10 @@ const Subjects: React.FC<SubjectsProps> = ({ onPlanCreated }) => {
       alert('No se encontró la materia seleccionada.');
       return;
     }
+
     setGeneratingPlan(true);
+
     try {
-      console.log('🚀 GENERANDO PLAN DE ESTUDIO CON IA');
       let examDate = '';
       const importantDates = selectedSubject.importantDates || [];
       if (selectedEvent === 'primer-parcial') {
@@ -383,32 +364,51 @@ const Subjects: React.FC<SubjectsProps> = ({ onPlanCreated }) => {
         );
         examDate = segundoParcial?.date || '';
       }
+
       const generatedStudyDates = generateStudyDatesFromWeekDays(
         examDate,
         selectedWeekDays,
       );
+
       if (generatedStudyDates.length === 0) {
         alert(
           'No hay fechas disponibles con los días de la semana seleccionados hasta la fecha del examen.',
         );
         return;
       }
-      const prompt = `Eres un asistente especializado en crear planes de estudio personalizados.
+
+      const weekDayNames = [
+        'domingo',
+        'lunes',
+        'martes',
+        'miércoles',
+        'jueves',
+        'viernes',
+        'sábado',
+      ];
+      const prompt = `
+Eres un asistente especializado en crear planes de estudio personalizados.
+
 DATOS DEL ESTUDIANTE:
 - Materia: ${selectedSubject.name}
 - Evento de estudio: ${selectedEvent.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
 - Fecha del examen: ${examDate ? formatDate(examDate) : 'No especificada'}
 - Días disponibles para estudiar: ${generatedStudyDates.length} días
-- Fechas de estudio: ${generatedStudyDates.map((day) => formatDate(day)).join(', ')}
+- Días disponibles: ${generatedStudyDates.length} (${selectedWeekDays.map((d) => weekDayNames[d]).join(', ')})
+
 TEMAS A ESTUDIAR:
 ${topics.map((topic, topicIndex) => `${topicIndex + 1}. ${topic.name}`).join('\n')}
+
 INSTRUCCIONES:
 1. Distribuye los ${topics.length} temas entre los ${generatedStudyDates.length} días disponibles de manera equilibrada
 2. Para cada día asignado, especifica qué temas estudiar y proporciona un resumen breve de cada tema
 3. Incluye recomendaciones de tiempo de estudio por tema
-4. Organiza el plan cronológicamente por fechas
+4. Organiza el plan cronológicamente por fechas y distribuye todos los temas entre todos los días disponibles
+5. Solo devolvé el JSON
+
 FORMATO DE RESPUESTA REQUERIDO:
 Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:
+
 {
   "title": "Plan de Estudio - [Materia] - [Evento]",
   "summary": "Resumen general del plan de estudio",
@@ -418,24 +418,20 @@ Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:
       "dayNumber": 1,
       "topics": [
         {
-          "name": "Nombre del tema",
-          "summary": "Resumen breve de qué estudiar en este tema",
+          "name": "Tema",
+          "summary": "Resumen breve",
           "estimatedTime": "X horas"
         }
       ],
       "totalTime": "X horas",
-      "recommendations": "Recomendaciones específicas para este día"
+      "recommendations": "Breve Recomendación"
     }
   ],
   "finalRecommendations": "Consejos finales para el examen"
 }
-IMPORTANTE: 
-- Devuelve SOLO el JSON, sin texto adicional, sin markdown, sin explicaciones
-- Asegúrate de que el JSON sea válido
-- Usa las fechas exactas: ${generatedStudyDates.map((day) => formatDate(day)).join(', ')}
-- Distribuye todos los temas entre todos los días disponibles
+
 Genera el JSON del plan de estudio:`;
-      console.log('📝 Enviando prompt a Gemini AI...');
+
       const response = await fetch(
         'https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse',
         {
@@ -448,11 +444,12 @@ Genera el JSON del plan de estudio:`;
           }),
         },
       );
+
       if (!response.ok) {
         throw new Error(`Error en la función Gemini: ${response.status}`);
       }
+
       const result = await response.json();
-      console.log('✅ Respuesta recibida de Gemini AI');
       let studyPlan = '';
       if (result.raw_response) {
         studyPlan = result.raw_response;
@@ -465,13 +462,16 @@ Genera el JSON del plan de estudio:`;
       } else {
         studyPlan = JSON.stringify(result);
       }
+
       studyPlan = studyPlan
         .replace(/```markdown/g, '')
         .replace(/```/g, '')
         .replace(/```json/g, '')
         .replace(/```/g, '')
         .trim();
+
       setGeneratedStudyPlan(studyPlan);
+
       let structuredPlan = null;
       try {
         let jsonContent = studyPlan;
@@ -482,6 +482,7 @@ Genera el JSON del plan de estudio:`;
           .replace(/^[^{]*/, '')
           .replace(/[^}]*$/, '');
         const parsedPlan = JSON.parse(cleanedPlan);
+
         if (parsedPlan.days && Array.isArray(parsedPlan.days)) {
           parsedPlan.days = parsedPlan.days.map((day: StudyPlanDay) => ({
             ...day,
@@ -489,7 +490,6 @@ Genera el JSON del plan de estudio:`;
             completed: false,
           }));
           structuredPlan = parsedPlan;
-          console.log('✅ JSON parseado correctamente:', structuredPlan);
         }
       } catch (error: unknown) {
         console.log(
@@ -497,6 +497,7 @@ Genera el JSON del plan de estudio:`;
           error,
         );
       }
+
       try {
         const planId = await createStudyPlan({
           materialId: selectedSubject.id.toString(),
@@ -533,7 +534,7 @@ Genera el JSON del plan de estudio:`;
             dailyTasks: structuredPlan?.days
               ? structuredPlan.days.map((day: StudyPlanDay, index: number) => ({
                   day: index + 1,
-                  task: `${day.topics.map((t: { name: string; summary: string; estimatedTime: string }) => t.name).join(', ')} - ${day.recommendations}`,
+                  task: `${day.topics.map((t) => t.name).join(', ')} - ${day.recommendations}`,
                   completed: false,
                 }))
               : generatedStudyDates.map((date, index) => ({
@@ -543,13 +544,15 @@ Genera el JSON del plan de estudio:`;
                 })),
           },
         });
+
         if (planId) {
           console.log('✅ Plan completo guardado en Firebase con ID:', planId);
         }
       } catch (firebaseError: unknown) {
         console.error('❌ Error guardando plan en Firebase:', firebaseError);
       }
-      const newPlan = {
+
+      const newPlan: StudyPlan = {
         id: nextPlanId,
         subjectName: selectedSubject.name,
         eventName: selectedEvent
@@ -564,9 +567,10 @@ Genera el JSON del plan de estudio:`;
         createdAt: new Date().toISOString(),
         expanded: false,
       };
+
       setStudyPlans((prevPlans) => [...prevPlans, newPlan]);
       setNextPlanId(nextPlanId + 1);
-      onPlanCreated();
+
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
     } catch (error: unknown) {
       console.error('❌ Error generando plan de estudio:', error);
@@ -613,12 +617,6 @@ Genera el JSON del plan de estudio:`;
 
   const deletePlan = async (planId: string | number) => {
     try {
-      console.log(
-        '🗑️ Iniciando eliminación de plan con ID:',
-        planId,
-        'tipo:',
-        typeof planId,
-      );
       const firebasePlans = await getUserStudyPlans();
       const firebasePlan = firebasePlans.find((plan) => {
         const planIdStr = String(plan.id);
@@ -626,19 +624,14 @@ Genera el JSON del plan de estudio:`;
         return planIdStr === localIdStr;
       });
       if (firebasePlan && firebasePlan.id) {
-        console.log('🔥 Eliminando plan de Firebase con ID:', firebasePlan.id);
         await deleteStudyPlan(firebasePlan.id);
-        console.log('✅ Plan eliminado de Firebase correctamente');
         setStudyPlans((prevPlans) => {
           const filtered = prevPlans.filter(
             (plan) => String(plan.id) !== String(planId),
           );
           return filtered;
         });
-        onPlanCreated();
-        console.log('✅ Plan eliminado completamente');
       } else {
-        console.warn('⚠️ Plan no encontrado en Firebase');
         alert(
           'El plan no se encontró en la base de datos. Puede que ya haya sido eliminado.',
         );
@@ -651,15 +644,12 @@ Genera el JSON del plan de estudio:`;
 
   const deleteSubject = async (subjectId: string | number) => {
     try {
-      console.log('🗑️ Iniciando eliminación de materia con ID:', subjectId);
       const materials = await getUserMaterials();
       const firebaseMaterial = materials.find((material) => {
         return material.id === subjectId || material.id === String(subjectId);
       });
       if (firebaseMaterial && firebaseMaterial.id) {
-        console.log('🔥 Eliminando de Firebase...');
         await deleteMaterialAndPlans(firebaseMaterial.id);
-        console.log('✅ Eliminado de Firebase correctamente');
       }
       const subjectToDelete = subjects.find((s) => s.id === subjectId);
       const subjectName = subjectToDelete?.name;
@@ -679,7 +669,6 @@ Genera el JSON del plan de estudio:`;
         });
         return newPlans;
       });
-      console.log('✅ Materia y planes eliminados correctamente');
     } catch (error: unknown) {
       console.error('❌ Error al eliminar materia:', error);
       alert('Error al eliminar la materia. Inténtalo de nuevo.');
@@ -733,7 +722,7 @@ Genera el JSON del plan de estudio:`;
           progress: 100,
           statusMessage: '¡Análisis completado!',
         });
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 0));
         setExtractedTopics(result.topics);
         alert(
           `¡Éxito! Se extrajeron ${result.topics.length} temas del PDF. Puedes verlos en la sección de Planificación.`,
@@ -760,7 +749,6 @@ Genera el JSON del plan de estudio:`;
 
   return (
     <div className="left-panel">
-      {/* Nueva Materia Panel */}
       <div className="panel">
         <h2>
           <i className="fas fa-book"></i> Nueva Materia
@@ -773,99 +761,101 @@ Genera el JSON del plan de estudio:`;
             onChange={(e) => setSubjectName(e.target.value)}
             placeholder="Ej: Álgebra Lineal"
           />
-          <div className="dates-section">
-            <h4
-              style={{
-                marginBottom: '15px',
-                color: '#333',
-                fontSize: '16px',
-                fontWeight: '600',
-              }}
-            >
-              Fechas Importantes
-            </h4>
-            <div className="form-group">
-              <label>Fecha Primer Parcial</label>
-              <DatePicker
-                selected={firstPartialDate}
-                onChange={(date: Date | null) => setFirstPartialDate(date)}
-                dateFormat="P"
-                locale={es}
-                className="w-full p-2 border rounded"
-                placeholderText="Selecciona una fecha"
-                minDate={new Date()}
-              />
-            </div>
-            {otherDates.map((otherDate, index) => (
-              <div
-                key={`other-date-${otherDate.id || index}`}
-                className="form-group"
+          {
+            <div className="dates-section">
+              <h4
                 style={{
-                  display: 'flex',
-                  gap: '10px',
-                  alignItems: 'end',
+                  marginBottom: '15px',
+                  color: '#333',
+                  fontSize: '16px',
+                  fontWeight: '600',
                 }}
               >
-                <div style={{ flex: 1 }}>
-                  <label>Nombre del Evento</label>
-                  <input
-                    type="text"
-                    placeholder="ej: Entrega Proyecto Final"
-                    value={otherDate.name}
-                    onChange={(e) =>
-                      updateOtherDate(otherDate.id, 'name', e.target.value)
-                    }
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label>Fecha</label>
-                  <DatePicker
-                    selected={otherDate.date}
-                    onChange={(date: Date | null) =>
-                      updateOtherDate(otherDate.id, 'date', date)
-                    }
-                    dateFormat="P"
-                    locale={es}
-                    className="w-full p-2 border rounded"
-                    placeholderText="Selecciona una fecha"
-                    minDate={new Date()}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeOtherDate(otherDate.id)}
+                Fechas Importantes
+              </h4>
+              <div className="form-group">
+                <label>Fecha Primer Parcial</label>
+                <DatePicker
+                  selected={firstPartialDate}
+                  onChange={(date: Date | null) => setFirstPartialDate(date)}
+                  dateFormat="P"
+                  locale={es}
+                  className="w-full p-2 border rounded"
+                  placeholderText="Selecciona una fecha"
+                  minDate={new Date()}
+                />
+              </div>
+              {otherDates.map((otherDate, index) => (
+                <div
+                  key={`other-date-${otherDate.id || index}`}
+                  className="form-group"
                   style={{
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '8px 12px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
+                    display: 'flex',
+                    gap: '10px',
+                    alignItems: 'end',
                   }}
                 >
-                  Eliminar
-                </button>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={addOtherDate}
-              style={{
-                backgroundColor: '#10b981',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '10px 15px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                marginTop: '10px',
-              }}
-            >
-              + Agregar OTROS
-            </button>
-          </div>
+                  <div style={{ flex: 1 }}>
+                    <label>Nombre del Evento</label>
+                    <input
+                      type="text"
+                      placeholder="ej: Entrega Proyecto Final"
+                      value={otherDate.name}
+                      onChange={(e) =>
+                        updateOtherDate(otherDate.id, 'name', e.target.value)
+                      }
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label>Fecha</label>
+                    <DatePicker
+                      selected={otherDate.date}
+                      onChange={(date: Date | null) =>
+                        updateOtherDate(otherDate.id, 'date', date)
+                      }
+                      dateFormat="P"
+                      locale={es}
+                      className="w-full p-2 border rounded"
+                      placeholderText="Selecciona una fecha"
+                      minDate={new Date()}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeOtherDate(otherDate.id)}
+                    style={{
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '8px 12px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addOtherDate}
+                style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '10px 15px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  marginTop: '10px',
+                }}
+              >
+                + Agregar OTROS
+              </button>
+            </div>
+          }
           <div className="form-group">
             <label>Color</label>
             <div
@@ -1117,7 +1107,6 @@ Genera el JSON del plan de estudio:`;
           )}
         </button>
       </div>
-
       {analysisStatus.isAnalyzing && (
         <div
           style={{
@@ -1205,8 +1194,6 @@ Genera el JSON del plan de estudio:`;
           </div>
         </div>
       )}
-
-      {/* Mis Materias Panel */}
       <div className="panel">
         <h2>
           <i className="fas fa-list"></i> Mis Materias
@@ -1307,8 +1294,6 @@ Genera el JSON del plan de estudio:`;
           </div>
         )}
       </div>
-
-      {/* Planificación Panel */}
       <div className="panel">
         <h2>
           <i className="fas fa-calendar-check"></i> Planificación
@@ -1329,7 +1314,6 @@ Genera el JSON del plan de estudio:`;
                   setSelectedEvent('');
                   setTopics([]);
                   setSelectedWeekDays([]);
-                  setSelectedStudyDays([]);
                 }}
               >
                 <option value="">-- Selecciona una materia --</option>
@@ -1353,7 +1337,6 @@ Genera el JSON del plan de estudio:`;
                       setSelectedEvent(e.target.value);
                       setTopics([]);
                       setSelectedWeekDays([]);
-                      setSelectedStudyDays([]);
                     }}
                   >
                     <option value="">-- Selecciona un evento --</option>
@@ -1621,12 +1604,6 @@ Genera el JSON del plan de estudio:`;
                                 selectedWeekDays,
                               )
                             : [];
-                        if (
-                          JSON.stringify(generatedDates) !==
-                          JSON.stringify(selectedStudyDays)
-                        ) {
-                          setSelectedStudyDays(generatedDates);
-                        }
                         return (
                           <div>
                             {selectedWeekDays.length > 0 && (
@@ -1751,13 +1728,7 @@ Genera el JSON del plan de estudio:`;
                             >
                               <span>{topic.name}</span>
                               <button
-                                onClick={() => {
-                                  console.log(
-                                    `🗑️ ELIMINANDO tema: "${topic.name}"`,
-                                  );
-                                  removeTopic(topic.id);
-                                  console.log('✅ Tema eliminado de la lista');
-                                }}
+                                onClick={() => removeTopic(topic.id)}
                                 style={{
                                   backgroundColor: '#ef4444',
                                   color: 'white',
@@ -1906,8 +1877,6 @@ Genera el JSON del plan de estudio:`;
           </div>
         )}
       </div>
-
-      {/* Planes de estudio Panel */}
       <div className="panel">
         <h2>
           <i className="fas fa-graduation-cap"></i> Planes de estudio
