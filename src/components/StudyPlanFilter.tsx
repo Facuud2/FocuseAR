@@ -75,7 +75,7 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
   );
 
   // Función para obtener el próximo examen
-  const getNextExamPlan = (): StudyPlan | null => {
+  const getNextExamPlan = React.useCallback((): StudyPlan | null => {
     const today = new Date();
     const upcomingPlans = studyPlans
       .filter((plan) => {
@@ -90,12 +90,12 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
       });
 
     return upcomingPlans.length > 0 ? upcomingPlans[0] : null;
-  };
+  }, [studyPlans]);
 
   // Función para obtener materias pendientes (progreso 0)
-  const getPendingPlans = (): StudyPlan[] => {
+  const getPendingPlans = React.useCallback((): StudyPlan[] => {
     return studyPlans.filter((plan) => plan.progress === 0);
-  };
+  }, [studyPlans]);
 
   // Función para aplicar filtros
   const applyFilter = React.useCallback(

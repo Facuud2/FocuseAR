@@ -480,6 +480,15 @@ const Dashboard: React.FC = () => {
       }
 
       // Crear prompt para el plan de estudio
+      const weekDayNames = [
+        'domingo',
+        'lunes',
+        'martes',
+        'miércoles',
+        'jueves',
+        'viernes',
+        'sábado',
+      ];
       const prompt = `
 Eres un asistente especializado en crear planes de estudio personalizados.
 
@@ -488,7 +497,7 @@ DATOS DEL ESTUDIANTE:
 - Evento de estudio: ${selectedEvent.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
 - Fecha del examen: ${examDate ? formatDate(examDate) : 'No especificada'}
 - Días disponibles para estudiar: ${generatedStudyDates.length} días
-- Fechas de estudio: ${generatedStudyDates.map((day) => formatDate(day)).join(', ')}
+- Días disponibles: ${generatedStudyDates.length} (${selectedWeekDays.map((d) => weekDayNames[d]).join(', ')})
 
 TEMAS A ESTUDIAR:
 ${topics.map((topic, topicIndex) => `${topicIndex + 1}. ${topic.name}`).join('\n')}
@@ -497,7 +506,8 @@ INSTRUCCIONES:
 1. Distribuye los ${topics.length} temas entre los ${generatedStudyDates.length} días disponibles de manera equilibrada
 2. Para cada día asignado, especifica qué temas estudiar y proporciona un resumen breve de cada tema
 3. Incluye recomendaciones de tiempo de estudio por tema
-4. Organiza el plan cronológicamente por fechas
+4. Organiza el plan cronológicamente por fechas y distribuye todos los temas entre todos los días disponibles
+5. Solo devolvé el JSON
 
 FORMATO DE RESPUESTA REQUERIDO:
 Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:
@@ -511,23 +521,17 @@ Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:
       "dayNumber": 1,
       "topics": [
         {
-          "name": "Nombre del tema",
-          "summary": "Resumen breve de qué estudiar en este tema",
+          "name": "Tema",
+          "summary": "Resumen breve",
           "estimatedTime": "X horas"
         }
       ],
       "totalTime": "X horas",
-      "recommendations": "Recomendaciones específicas para este día"
+      "recommendations": "Breve Recomendación"
     }
   ],
   "finalRecommendations": "Consejos finales para el examen"
 }
-
-IMPORTANTE: 
-- Devuelve SOLO el JSON, sin texto adicional, sin markdown, sin explicaciones
-- Asegúrate de que el JSON sea válido
-- Usa las fechas exactas: ${generatedStudyDates.map((day) => formatDate(day)).join(', ')}
-- Distribuye todos los temas entre todos los días disponibles
 
 Genera el JSON del plan de estudio:`;
 
