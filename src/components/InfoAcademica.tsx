@@ -1,7 +1,7 @@
-import SubjectForm from './components/SubjectForm';
+import SubjectForm from './SubjectForm';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import type { SubjectData } from './types/subject';
+import type { SubjectData } from '../types/subject';
 
 const InfoAcademica = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,14 +29,12 @@ const InfoAcademica = () => {
             Crear Nueva Asignatura
           </h2>
           <p className="text-blue-600">
-            Complete el formulario para agregar una nueva asignatura a su perfil académico.
+            Complete el formulario para agregar una nueva asignatura a su perfil
+            académico.
           </p>
         </div>
-        
-        <SubjectForm 
-          onSubmit={handleSubmit}
-          disabled={isLoading}
-        />
+
+        <SubjectForm onSubmit={handleSubmit} disabled={isLoading} />
       </div>
     </div>
   );

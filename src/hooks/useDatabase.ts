@@ -1,7 +1,7 @@
 import { useState, useCallback, useContext } from 'react';
 import { DatabaseService } from '../services/DatabaseService';
 import type { Material, StudyPlan } from '../services/DatabaseService';
-import { AuthContext } from '../context/authContext';
+import { AuthContext } from './authContext';
 
 export const useDatabase = () => {
   const { user } = useContext(AuthContext);
@@ -48,9 +48,33 @@ export const useDatabase = () => {
   const createStudyPlan = useCallback(
     async (planData: {
       materialId: string;
-      title: string;
-      durationDays: number;
-      dailyTasks: Array<{ day: number; task: string }>;
+      generatedPlan: {
+        title: string;
+        summary?: string;
+        durationDays: number;
+        examDate?: string;
+        selectedWeekDays?: number[];
+        topics?: string[];
+        studyDates?: string[];
+        structuredPlan?: {
+          title: string;
+          summary: string;
+          days: Array<{
+            date: string;
+            dayNumber: number;
+            topics: Array<{
+              name: string;
+              summary: string;
+              estimatedTime: string;
+            }>;
+            totalTime: string;
+            recommendations: string;
+            completed: boolean;
+          }>;
+          finalRecommendations: string;
+        };
+        dailyTasks: Array<{ day: number; task: string; completed?: boolean }>;
+      };
     }) => {
       if (!user) {
         setError('Usuario no autenticado');
@@ -64,11 +88,7 @@ export const useDatabase = () => {
         const planId = await DatabaseService.createStudyPlan({
           userId: user.uid,
           materialId: planData.materialId,
-          generatedPlan: {
-            title: planData.title,
-            durationDays: planData.durationDays,
-            dailyTasks: planData.dailyTasks,
-          },
+          generatedPlan: planData.generatedPlan,
         });
 
         console.log('✅ Plan de estudio creado:', planId);
@@ -175,6 +195,24 @@ export const useDatabase = () => {
     }
   }, []);
 
+  // Eliminar plan de estudio específico
+  const deleteStudyPlan = useCallback(async (planId: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await DatabaseService.deleteStudyPlan(planId);
+      console.log('✅ Plan de estudio eliminado');
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al eliminar plan:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Limpiar error
   const clearError = useCallback(() => {
     setError(null);
@@ -190,5 +228,6 @@ export const useDatabase = () => {
     getUserStudyPlans,
     updateTaskCompletion,
     deleteMaterialAndPlans,
+    deleteStudyPlan,
   };
 };

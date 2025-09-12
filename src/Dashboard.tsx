@@ -6,8 +6,7 @@ import CompleteChat from './components/CompleteChat';
 import TypingIndicatorExample from './components/TypingIndicatorExample';
 import { useDatabase } from './hooks/useDatabase';
 import { useContext } from 'react';
-import { AuthContext } from './context/authContext';
-
+import { AuthContext } from './hooks/authContext';
 interface Pdf {
   id: number;
   name: string;
@@ -186,9 +185,11 @@ La IA analizará este contenido para generar un plan de estudio personalizado.`)
 
         await createStudyPlan({
           materialId: materialIds[0], // Usar el primer material
-          title: `Plan de estudio: ${subjectName}`,
-          durationDays: Math.min(daysUntilExam, 10),
-          dailyTasks,
+          generatedPlan: {
+            title: `Plan de estudio: ${subjectName}`,
+            durationDays: Math.min(daysUntilExam, 10),
+            dailyTasks,
+          },
         });
       }
 

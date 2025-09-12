@@ -1,20 +1,21 @@
-import React, { type ReactNode } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "./hooks/useAuth";
-const ProtectedRoute: React.FC<{ children: ReactNode }> = ({ children }) => {
+// src/ProtectedRoute.tsx
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth';
+
+const ProtectedRoute = () => {
   const { user, loading } = useAuth();
-  const location = useLocation();
 
   if (loading) {
-    return <div>Cargando sesión...</div>; // Aquí puedes poner un spinner
+    return <div>Cargando sesión...</div>; // Puedes usar un spinner
   }
 
+  // Si no hay usuario, redirige al login
   if (!user) {
-    return <Navigate to="/" replace state={{ from: location }} />;
+    return <Navigate to="/" replace />;
   }
 
-  return children;
+  // Si el usuario está autenticado, renderiza la ruta anidada
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
-
