@@ -20,20 +20,13 @@ const ChatExample: React.FC = () => {
     },
     {
       id: 3,
-      message: "Usuario se unió al chat",
-      isUser: false,
-      timestamp: new Date(Date.now() - 180000), // 3 minutos atrás
-      messageType: 'system' as const
-    },
-    {
-      id: 4,
       message: "Perfecto, puedo ayudarte con matemáticas. ¿Qué tema específico te interesa?",
       isUser: false,
       timestamp: new Date(Date.now() - 120000), // 2 minutos atrás
       userName: "Asistente",
     },
     {
-      id: 5,
+      id: 4,
       message: "Estoy teniendo problemas con las ecuaciones cuadráticas",
       isUser: true,
       timestamp: new Date(Date.now() - 60000), // 1 minuto atrás
@@ -41,12 +34,32 @@ const ChatExample: React.FC = () => {
   ]);
 
   return (
-    <div className="max-w-2xl mx-auto p-4 bg-white rounded-lg shadow-lg">
-      <h2 className="text-xl font-bold mb-4 text-center text-gray-800">
-        Ejemplo de Chat
+    <div style={{ 
+      maxWidth: '500px', 
+      margin: '0 auto', 
+      padding: '20px', 
+      backgroundColor: 'white', 
+      borderRadius: '8px', 
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)' 
+    }}>
+      <h2 style={{ 
+        fontSize: '18px', 
+        fontWeight: 'bold', 
+        marginBottom: '20px', 
+        textAlign: 'center', 
+        color: '#374151' 
+      }}>
+        💬 Ejemplo de Chat
       </h2>
       
-      <div className="h-96 overflow-y-auto p-4 bg-gray-50 rounded-lg">
+      <div style={{ 
+        height: '300px', 
+        overflowY: 'auto', 
+        padding: '15px', 
+        backgroundColor: '#F9FAFB', 
+        borderRadius: '8px',
+        border: '1px solid #E5E7EB'
+      }}>
         {messages.map((msg) => (
           <ChatMessage
             key={msg.id}
@@ -55,10 +68,6 @@ const ChatExample: React.FC = () => {
             timestamp={msg.timestamp}
             userName={msg.userName}
             messageType={msg.messageType}
-            avatar={msg.isUser ? 
-              "https://via.placeholder.com/32/3B82F6/FFFFFF?text=U" : 
-              "https://via.placeholder.com/32/10B981/FFFFFF?text=A"
-            }
           />
         ))}
         
@@ -68,20 +77,21 @@ const ChatExample: React.FC = () => {
           isUser={false}
           userName="Asistente"
           isLoading={true}
-          avatar="https://via.placeholder.com/32/10B981/FFFFFF?text=A"
         />
       </div>
       
-      <div className="mt-4 p-3 bg-gray-100 rounded-lg">
-        <h3 className="font-semibold text-sm text-gray-700 mb-2">Características del componente:</h3>
-        <ul className="text-xs text-gray-600 space-y-1">
-          <li>• Burbujas de chat diferenciadas por usuario</li>
-          <li>• Timestamps formateados</li>
-          <li>• Avatares opcionales</li>
-          <li>• Mensajes del sistema</li>
-          <li>• Indicador de carga</li>
-          <li>• Responsive y accesible</li>
-        </ul>
+      <div style={{ 
+        marginTop: '15px', 
+        padding: '10px', 
+        backgroundColor: '#F3F4F6', 
+        borderRadius: '6px',
+        fontSize: '12px',
+        color: '#6B7280'
+      }}>
+        <strong>✨ Características del componente:</strong>
+        <br />• Burbujas diferenciadas por usuario
+        <br />• Timestamps y estados de carga
+        <br />• Diseño responsive y moderno
       </div>
     </div>
   );

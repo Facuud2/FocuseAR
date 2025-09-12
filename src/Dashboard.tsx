@@ -1,6 +1,9 @@
 import React, { useState, type JSX /* useEffect */ } from 'react';
 import DatabaseTester from './components/DatabaseTester';
 import ChatExample from './components/ChatExample';
+import ChatHistoryExample from './components/ChatHistoryExample';
+import CompleteChat from './components/CompleteChat';
+import TypingIndicatorExample from './components/TypingIndicatorExample';
 import { useDatabase } from './hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from './context/authContext';
@@ -49,6 +52,95 @@ const Dashboard: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [dragActive, setDragActive] = React.useState(false);
+  
+  // Estados para análisis de IA
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [extractedTopics, setExtractedTopics] = useState<any[]>([]);
+
+  // === FUNCIONES DE PROCESAMIENTO DE PDF ===
+  
+  // Simula la extracción de texto de un PDF
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(`Contenido simulado del PDF "${file.name}":
+        
+Tema 1: Introducción a la materia
+Tema 2: Conceptos fundamentales  
+Tema 3: Aplicaciones prácticas
+Tema 4: Ejercicios y problemas
+Tema 5: Evaluación final
+
+Este es un texto de prueba que simula el contenido extraído de un PDF.
+La IA analizará este contenido para generar un plan de estudio personalizado.`);
+      }, 1000);
+    });
+  };
+
+  // Simula el procesamiento con IA
+  const processPDFTextWithAI = async (text: string, subjectName: string) => {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    console.log(`Procesando ${text.length} caracteres para ${subjectName}`);
+    
+    return {
+      topics: [
+        { id: 'tema_1', name: 'Introducción a la materia', description: 'Conceptos básicos', order: 1 },
+        { id: 'tema_2', name: 'Conceptos fundamentales', description: 'Principios teóricos', order: 2 },
+        { id: 'tema_3', name: 'Aplicaciones prácticas', description: 'Casos de uso reales', order: 3 },
+        { id: 'tema_4', name: 'Ejercicios y problemas', description: 'Práctica', order: 4 },
+        { id: 'tema_5', name: 'Evaluación final', description: 'Preparación exámenes', order: 5 }
+      ],
+      summary: `Se han identificado 5 temas principales en el material de ${subjectName}.`,
+      success: true
+    };
+  };
+
+  // === FUNCIÓN DE ANÁLISIS DE IA ===
+  const analyzePDFWithAI = async (file: File) => {
+    if (!subjectName.trim()) {
+      setAnalysisError('Por favor, ingresa el nombre de la materia antes de analizar el PDF');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+    setAnalysisComplete(false);
+
+    try {
+      console.log('📄 Iniciando análisis de PDF:', file.name);
+      
+      // 1. Extraer texto del PDF
+      const text = await extractTextFromPDF(file);
+      console.log('✅ Texto extraído del PDF');
+      
+      // 2. Procesar texto con IA
+      const result = await processPDFTextWithAI(text, subjectName);
+      
+      if (result.success) {
+        setExtractedTopics(result.topics);
+        setAnalysisComplete(true);
+        console.log('🎉 Análisis completado:', result.topics.length, 'temas encontrados');
+      } else {
+        setAnalysisError('Error procesando el PDF');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error en análisis:', error);
+      setAnalysisError('Error analizando el PDF. Inténtalo de nuevo.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Función para resetear el análisis cuando se cambian los PDFs
+  const resetAnalysis = () => {
+    setAnalysisComplete(false);
+    setAnalysisError(null);
+    setExtractedTopics([]);
+  };
 
   // === LOGICA DE MATERIAS Y PLANIFICACIÓN ===
   const handlePlanify = async () => {
@@ -180,23 +272,34 @@ const Dashboard: React.FC = () => {
   };
 
   // === LOGICA DE PDFs ===
-  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const files = Array.from(e.target.files);
     if (pdfs.length + files.length > 5) {
       alert('Máximo 5 PDF');
       return;
     }
+
+    // Resetear estado de análisis anterior
+    resetAnalysis();
+
     const newPdfs = files.map((file) => ({
       id: Date.now() + Math.random(),
       name: file.name,
       size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
     }));
     setPdfs([...pdfs, ...newPdfs]);
+
+    // Analizar automáticamente el primer PDF subido con IA
+    if (files.length > 0) {
+      await analyzePDFWithAI(files[0]);
+    }
   };
 
   const removePdf = (id: number) => {
     setPdfs(pdfs.filter((p) => p.id !== id));
+    // Si se elimina un PDF, resetear el análisis
+    resetAnalysis();
   };
 
   // === LOGICA DEL CALENDARIO ===
@@ -431,13 +534,76 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
+            {/* === SECCIÓN DE ANÁLISIS DE IA === */}
+            {pdfs.length > 0 && (
+              <div style={{
+                padding: '16px',
+                borderRadius: '8px',
+                marginBottom: '16px',
+                border: '2px solid',
+                borderColor: isAnalyzing ? '#F59E0B' : analysisComplete ? '#10B981' : analysisError ? '#EF4444' : '#E5E7EB',
+                backgroundColor: isAnalyzing ? '#FEF3C7' : analysisComplete ? '#D1FAE5' : analysisError ? '#FEE2E2' : '#F9FAFB'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '18px', marginRight: '8px' }}>
+                    {isAnalyzing ? '🤖' : analysisComplete ? '✅' : analysisError ? '❌' : '⏳'}
+                  </span>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                    Análisis de IA
+                  </h3>
+                </div>
+                
+                {isAnalyzing && (
+                  <p style={{ margin: 0, color: '#92400E' }}>
+                    Analizando el contenido del PDF con inteligencia artificial...
+                  </p>
+                )}
+                
+                {analysisComplete && (
+                  <div>
+                    <p style={{ margin: '0 0 8px 0', color: '#065F46' }}>
+                      ¡Análisis completado! Se identificaron {extractedTopics.length} temas.
+                    </p>
+                    <details style={{ color: '#065F46' }}>
+                      <summary style={{ cursor: 'pointer', fontWeight: '500' }}>
+                        Ver temas encontrados
+                      </summary>
+                      <ul style={{ margin: '8px 0 0 16px' }}>
+                        {extractedTopics.map((topic, index) => (
+                          <li key={topic.id || index} style={{ marginBottom: '4px' }}>
+                            {topic.name}
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  </div>
+                )}
+                
+                {analysisError && (
+                  <p style={{ margin: 0, color: '#991B1B' }}>
+                    Error: {analysisError}
+                  </p>
+                )}
+                
+                {!isAnalyzing && !analysisComplete && !analysisError && (
+                  <p style={{ margin: 0, color: '#6B7280' }}>
+                    El PDF será analizado automáticamente cuando subas el archivo.
+                  </p>
+                )}
+              </div>
+            )}
+
             <button
               className="planify-btn"
               onClick={handlePlanify}
-              disabled={dbLoading}
+              disabled={dbLoading || isAnalyzing || (pdfs.length > 0 && !analysisComplete)}
             >
               {dbLoading ? (
                 <span>⏳ Guardando en Firestore...</span>
+              ) : isAnalyzing ? (
+                <span>🤖 Analizando PDF con IA...</span>
+              ) : pdfs.length > 0 && !analysisComplete ? (
+                <span>⚠️ Esperando análisis de IA</span>
               ) : (
                 <span>
                   <i className="fas fa-robot"></i> Planificar
@@ -547,6 +713,21 @@ const Dashboard: React.FC = () => {
           {/* Ejemplo de Chat Component */}
           <div className="panel">
             <ChatExample />
+          </div>
+
+          {/* Ejemplo de Chat History */}
+          <div className="panel">
+            <ChatHistoryExample />
+          </div>
+
+          {/* Chat Completo con Formulario de Envío */}
+          <div className="panel">
+            <CompleteChat />
+          </div>
+
+          {/* Ejemplo de Indicadores de Escritura */}
+          <div className="panel">
+            <TypingIndicatorExample />
           </div>
         </div>
       </div>
