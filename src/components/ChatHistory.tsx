@@ -28,7 +28,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   height = '400px',
   autoScroll = true,
   showTypingIndicator = false,
-  emptyStateMessage = 'No hay mensajes aún. ¡Inicia la conversación!'
+  emptyStateMessage = 'No hay mensajes aún. ¡Inicia la conversación!',
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -67,7 +67,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     if (containerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
       const isAtBottom = scrollHeight - scrollTop <= clientHeight + 10; // 10px de tolerancia
-      
+
       if (isAtBottom) {
         setIsUserScrolledUp(false);
         setHasNewMessages(false);
@@ -110,85 +110,102 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: height,
-      border: '1px solid #E5E7EB',
-      borderRadius: '12px',
-      backgroundColor: '#FFFFFF',
-      overflow: 'hidden',
-      position: 'relative'
-    }}>
-      
-      {/* Header del chat */}
-      <div style={{
-        padding: '12px 16px',
-        borderBottom: '1px solid #E5E7EB',
-        backgroundColor: '#F9FAFB',
+    <div
+      style={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-      }}>
-        <div style={{
+        flexDirection: 'column',
+        height: height,
+        border: '1px solid #E5E7EB',
+        borderRadius: '12px',
+        backgroundColor: '#FFFFFF',
+        overflow: 'hidden',
+        position: 'relative',
+      }}
+    >
+      {/* Header del chat */}
+      <div
+        style={{
+          padding: '12px 16px',
+          borderBottom: '1px solid #E5E7EB',
+          backgroundColor: '#F9FAFB',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px'
-        }}>
-          <div style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: isLoading ? '#F59E0B' : '#10B981'
-          }} />
-          <span style={{
-            fontSize: '14px',
-            fontWeight: '500',
-            color: '#374151'
-          }}>
+          justifyContent: 'space-between',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <div
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: isLoading ? '#F59E0B' : '#10B981',
+            }}
+          />
+          <span
+            style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151',
+            }}
+          >
             {isLoading ? 'Conectando...' : 'Chat Activo'}
           </span>
         </div>
-        
-        <span style={{
-          fontSize: '12px',
-          color: '#6B7280'
-        }}>
+
+        <span
+          style={{
+            fontSize: '12px',
+            color: '#6B7280',
+          }}
+        >
           {messages.length} mensaje{messages.length !== 1 ? 's' : ''}
         </span>
       </div>
 
       {/* Contenedor de mensajes */}
-      <div 
+      <div
         ref={containerRef}
         style={{
           flex: 1,
           overflowY: 'auto',
           padding: '16px',
-          backgroundColor: '#F9FAFB'
+          backgroundColor: '#F9FAFB',
         }}
       >
         {/* Estado vacío */}
         {messages.length === 0 && !isLoading && (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            textAlign: 'center',
-            color: '#6B7280'
-          }}>
-            <div style={{
-              fontSize: '48px',
-              marginBottom: '16px'
-            }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              textAlign: 'center',
+              color: '#6B7280',
+            }}
+          >
+            <div
+              style={{
+                fontSize: '48px',
+                marginBottom: '16px',
+              }}
+            >
               💬
             </div>
-            <p style={{
-              fontSize: '14px',
-              margin: 0
-            }}>
+            <p
+              style={{
+                fontSize: '14px',
+                margin: 0,
+              }}
+            >
               {emptyStateMessage}
             </p>
           </div>
@@ -213,7 +230,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
             userName="Asistente IA"
             size="medium"
             style="dots"
-            message="está escribiendo..."
+            message="Asistente IA está escribiendo..."
             showAvatar={true}
           />
         )}
@@ -224,12 +241,14 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
 
       {/* Botón flotante para nuevos mensajes */}
       {hasNewMessages && isUserScrolledUp && (
-        <div style={{
-          position: 'absolute',
-          bottom: '60px',
-          right: '16px',
-          zIndex: 10
-        }}>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '60px',
+            right: '16px',
+            zIndex: 10,
+          }}
+        >
           <button
             onClick={forceScrollToBottom}
             style={{
@@ -245,7 +264,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              animation: 'bounce 2s infinite'
+              animation: 'bounce 2s infinite',
             }}
           >
             <span>📩</span>
@@ -255,14 +274,16 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
       )}
 
       {/* Footer con información */}
-      <div style={{
-        padding: '8px 16px',
-        borderTop: '1px solid #E5E7EB',
-        backgroundColor: '#F9FAFB',
-        fontSize: '11px',
-        color: '#9CA3AF',
-        textAlign: 'center'
-      }}>
+      <div
+        style={{
+          padding: '8px 16px',
+          borderTop: '1px solid #E5E7EB',
+          backgroundColor: '#F9FAFB',
+          fontSize: '11px',
+          color: '#9CA3AF',
+          textAlign: 'center',
+        }}
+      >
         {autoScroll ? '📍 Auto-scroll activado' : '⏸️ Auto-scroll pausado'}
       </div>
     </div>
