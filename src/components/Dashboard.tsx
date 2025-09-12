@@ -61,8 +61,8 @@ const Dashboard: React.FC = () => {
       expanded: boolean;
     }>
   >([]);
-  const [question, setQuestion] = useState('');
-  const [answers, setAnswers] = useState<string[]>([]);
+  // const [question, setQuestion] = useState('');
+  // const [answers, setAnswers] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<
@@ -269,15 +269,15 @@ const Dashboard: React.FC = () => {
     return days;
   };
 
-  const askAI = () => {
-    if (!question) return;
-    setAnswers([
-      ...answers,
-      `Pregunta: ${question}`,
-      'Respuesta IA: repasa cada 3 días 🚀',
-    ]);
-    setQuestion('');
-  };
+  // const askAI = () => {
+  //   if (!question) return;
+  //   setAnswers([
+  //     ...answers,
+  //     `Pregunta: ${question}`,
+  //     'Respuesta IA: repasa cada 3 días ',
+  //   ]);
+  //   setQuestion('');
+  // };
 
   // Notes/Checklist functions
   const handleAddChecklistItem = () => {
@@ -347,8 +347,43 @@ const Dashboard: React.FC = () => {
 
       {/* Main content with a two-column grid */}
       <div className="main-content-layout">
-        {/* Left panel is now for notes and checklist */}
+        {/* Left panel is now for calendar */}
         <div className="left-panel">
+          <div className="panel calendar-filter-panel">
+            <StudyPlanFilter
+              studyPlans={studyPlans}
+              subjects={subjects}
+              onFilterChange={handleFilterChange}
+            />
+          </div>
+          <div className="panel calendar-panel">
+            <h2 className="panel-title">
+              <i className="fas fa-calendar-alt"></i> Calendario
+            </h2>
+            <div className="calendar-header">
+              <button className="nav-button" onClick={() => changeMonth(-1)}>
+                {'<'}
+              </button>
+              <h3 className="calendar-title">
+                {monthNames[currentMonth]} {currentYear}
+              </h3>
+              <button className="nav-button" onClick={() => changeMonth(1)}>
+                {'>'}
+              </button>
+            </div>
+            <div className="calendar-grid">
+              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
+                <div key={d} className="weekday-header">
+                  {d}
+                </div>
+              ))}
+              {renderDays()}
+            </div>
+          </div>
+        </div>
+
+        {/* Right panel for tasks and notes */}
+        <div className="right-panel">
           <div className="panel notes-panel">
             <h2 className="panel-title">
               <i className="fas fa-sticky-note"></i> Notas y Tareas
@@ -406,130 +441,69 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Right panel for the calendar and AI assistant */}
-        <div className="right-panel">
-          <div className="panel calendar-panel">
-            <h2 className="panel-title">
-              <i className="fas fa-calendar-alt"></i> Calendario
-            </h2>
-            <div className="calendar-header">
-              <button className="nav-button" onClick={() => changeMonth(-1)}>
-                {'<'}
-              </button>
-              <h3 className="calendar-title">
-                {monthNames[currentMonth]} {currentYear}
-              </h3>
-              <button className="nav-button" onClick={() => changeMonth(1)}>
-                {'>'}
-              </button>
-            </div>
-            <div className="calendar-grid">
-              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
-                <div key={d} className="weekday-header">
-                  {d}
-                </div>
-              ))}
-              {renderDays()}
-            </div>
-            <StudyPlanFilter
-              studyPlans={studyPlans}
-              subjects={subjects}
-              onFilterChange={handleFilterChange}
-            />
-          </div>
-          {showDayModal &&
-            selectedDayDetails &&
-            Array.isArray(selectedDayDetails) && (
-              <div
-                className="modal-overlay"
+      {/* Day Details Modal */}
+      {showDayModal &&
+        selectedDayDetails &&
+        Array.isArray(selectedDayDetails) && (
+          <div className="modal-overlay" onClick={() => setShowDayModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="modal-close-btn"
                 onClick={() => setShowDayModal(false)}
               >
+                ×
+              </button>
+              <h3 className="modal-title">
+                {formatDate(selectedCalendarDate || '')}
+              </h3>
+              {selectedDayDetails.map((planDetail, idx: number) => (
                 <div
-                  className="modal-content"
-                  onClick={(e) => e.stopPropagation()}
+                  key={idx}
+                  className="day-detail-card"
+                  style={{
+                    borderLeftColor: planDetail.color || '#10b981',
+                  }}
                 >
-                  <button
-                    className="modal-close-btn"
-                    onClick={() => setShowDayModal(false)}
+                  <div
+                    className="day-detail-header"
+                    style={{
+                      color: planDetail.color || '#10b981',
+                    }}
                   >
-                    ×
-                  </button>
-                  <h3 className="modal-title">
-                    {formatDate(selectedCalendarDate || '')}
-                  </h3>
-                  {selectedDayDetails.map((planDetail, idx: number) => (
-                    <div
-                      key={idx}
-                      className="day-detail-card"
-                      style={{
-                        borderLeftColor: planDetail.color || '#10b981',
-                      }}
-                    >
-                      <div
-                        className="day-detail-header"
-                        style={{
-                          color: planDetail.color || '#10b981',
-                        }}
-                      >
-                        {planDetail.day.title || `Plan #${planDetail.planId}`}
-                      </div>
-                      <div className="day-detail-meta">
-                        <strong>Día {planDetail.day.dayNumber}</strong>
-                      </div>
-                      <div className="day-detail-topics">
-                        <strong>Temas:</strong>
-                        <ul>
-                          {planDetail.day.topics.map((topic, idx2: number) => (
-                            <li key={idx2}>
-                              <span className="topic-name">{topic.name}</span>
-                              {topic.estimatedTime && (
-                                <span className="topic-time">
-                                  ({topic.estimatedTime})
-                                </span>
-                              )}
-                              <p className="topic-summary">{topic.summary}</p>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      {planDetail.day.recommendations && (
-                        <div className="day-detail-recommendations">
-                          <strong>💡 Recomendaciones:</strong>{' '}
-                          {planDetail.day.recommendations}
-                        </div>
-                      )}
+                    {planDetail.day.title || `Plan #${planDetail.planId}`}
+                  </div>
+                  <div className="day-detail-meta">
+                    <strong>Día {planDetail.day.dayNumber}</strong>
+                  </div>
+                  <div className="day-detail-topics">
+                    <strong>Temas:</strong>
+                    <ul>
+                      {planDetail.day.topics.map((topic, idx2: number) => (
+                        <li key={idx2}>
+                          <span className="topic-name">{topic.name}</span>
+                          {topic.estimatedTime && (
+                            <span className="topic-time">
+                              ({topic.estimatedTime})
+                            </span>
+                          )}
+                          <p className="topic-summary">{topic.summary}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  {planDetail.day.recommendations && (
+                    <div className="day-detail-recommendations">
+                      <strong> Recomendaciones:</strong>{' '}
+                      {planDetail.day.recommendations}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-            )}
-          <div className="panel assistant-panel">
-            <h2 className="panel-title">
-              <i className="fas fa-robot"></i> Asistente IA
-            </h2>
-            <div className="assistant-answers">
-              {answers.map((a, i) => (
-                <p key={i} className="assistant-answer">
-                  {a}
-                </p>
               ))}
             </div>
-            <div className="assistant-input-group">
-              <input
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Pregunta algo..."
-                className="assistant-input"
-                onKeyPress={(e) => e.key === 'Enter' && askAI()}
-              />
-              <button onClick={askAI} className="assistant-send-btn">
-                <i className="fas fa-paper-plane"></i>
-              </button>
-            </div>
           </div>
-        </div>
-      </div>
+        )}
     </div>
   );
 };

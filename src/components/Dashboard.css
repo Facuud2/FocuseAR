@@ -57,7 +57,6 @@ body {
   flex-flow: row wrap;
 }
 
-
 /* ===== KEYFRAMES FOR ANIMATIONS ===== */
 @keyframes neon-pulse {
   0%, 100% {
@@ -104,14 +103,13 @@ body {
   }
 }
 
-
 /* ===== LAYOUT PRINCIPAL ===== */
 .dashboard-container {
   width: 100%;
-  padding: 2rem 3rem;
+  padding: 1rem 3rem;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 1.5rem;
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -121,40 +119,270 @@ body {
 /* Main content with a two-column grid */
 .main-content-layout {
   display: grid;
-  grid-template-columns: 1.2fr 1fr; /* Notes panel is slightly larger */
+  grid-template-columns: 1fr 1fr; /* Equal width for both panels */
   gap: 2rem;
   width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .left-panel {
-  grid-column: span 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0rem;
 }
 
 .right-panel {
-  grid-column: span 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
 }
 
-/* RGB NEON BACKGROUND EFFECT */
-.panel::before {
-  content: '';
-  position: absolute;
-  top: -20px;
-  left: -20px;
-  right: -20px;
-  bottom: -20px;
-  background: conic-gradient(
-    from 0deg,
-    #ff00ff, #00bfff, #00ff7f, #ffff00, #ff00ff
-  );
-  filter: blur(15px);
-  animation: rotate-rgb 10s linear infinite;
-  opacity: 0.2;
-  z-index: -1;
+/* Panel styling */
+.panel {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.panel:hover::before {
-  opacity: 0.4;
-  animation-play-state: paused; /* Pause rotation on hover */
+.panel:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.panel-title {
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Calendar specific styles */
+.calendar-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 600px;
+  margin-top: 0.75rem;
+}
+
+.calendar-filter-panel {
+  margin-bottom: 0.75rem;
+  padding: 1rem;
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.nav-button {
+  background: var(--background-color);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.nav-button:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+.weekday-header {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 0.5rem 0;
+}
+
+/* Tasks and Notes styling */
+.tasks-container,
+.notes-container {
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  height: 100%;
+}
+
+.tasks-container h3,
+.notes-container h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1.25rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-task {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.add-task input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--background-color);
+  color: var(--text-primary);
+  transition: var(--transition);
+}
+
+.add-task input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+}
+
+.add-task button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.add-task button:hover {
+  background: #3367d6;
+  transform: translateY(-1px);
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--background-color);
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.checklist-item:hover {
+  transform: translateX(2px);
+}
+
+.checklist-item input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checklist-item .completed {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.delete-task {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--danger-color);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: var(--transition);
+}
+
+.delete-task:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--background-color);
+  color: var(--text-primary);
+  resize: vertical;
+  transition: var(--transition);
+  line-height: 1.5;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .main-content-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .left-panel,
+  .right-panel {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 1.5rem 1rem;
+    margin-left: 0;
+  }
+  
+  .panel {
+    padding: 1.25rem;
+  }
+  
+  .calendar-grid {
+    gap: 4px;
+  }
 }
 
 /* ===== HEADER ===== */
@@ -274,7 +502,6 @@ header {
   line-height: 1.2;
   color: var(--text-secondary);
 }
-
 
 /* ===== GENERAL PANEL STYLES ===== */
 .panel {
@@ -612,7 +839,6 @@ header {
   box-shadow: var(--neon-glow-primary);
 }
 
-
 /* ===== MODAL STYLES ===== */
 .modal-overlay {
   position: fixed;
@@ -716,7 +942,6 @@ header {
   font-size: 0.9rem;
   border: 1px solid var(--border-color);
 }
-
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {
