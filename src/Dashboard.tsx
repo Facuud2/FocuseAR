@@ -31,6 +31,13 @@ interface Event {
   color: string;
 }
 
+interface ExtractedTopic {
+  id: string;
+  name: string;
+  description?: string;
+  order: number;
+}
+
 const Dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
   const {
@@ -56,7 +63,7 @@ const Dashboard: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [extractedTopics, setExtractedTopics] = useState<any[]>([]);
+  const [extractedTopics, setExtractedTopics] = useState<ExtractedTopic[]>([]);
 
   // === FUNCIONES DE PROCESAMIENTO DE PDF ===
   

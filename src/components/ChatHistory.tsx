@@ -91,7 +91,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     if (messages.length > 0) {
       setTimeout(() => scrollToBottom('auto'), 100);
     }
-  }, []);
+  }, [messages.length]);
 
   // Agregar listener de scroll
   useEffect(() => {
