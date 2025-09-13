@@ -3,6 +3,7 @@ import { useDatabase } from '../hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from '../hooks/authContext';
 import StudyPlanFilter from './StudyPlanFilter';
+import NotesAndChecklist from './NotesAndChecklist'; // <-- Importación agregada
 import './Dashboard.css';
 
 // Interface and types for data remain the same
@@ -79,11 +80,12 @@ const Dashboard: React.FC = () => {
   );
 
   // New state for the notes/checklist
-  const [notes, setNotes] = useState<string>('Escribe tus notas aquí...');
-  const [checklist, setChecklist] = useState<
-    { id: number; text: string; completed: boolean }[]
-  >([]);
-  const [newChecklistItem, setNewChecklistItem] = useState('');
+  // Ya no es necesario manejar estos estados aquí, se mudaron a NotesAndChecklist.tsx
+  // const [notes, setNotes] = useState<string>('Escribe tus notas aquí...');
+  // const [checklist, setChecklist] = useState<
+  //   { id: number; text: string; completed: boolean }[]
+  // >([]);
+  // const [newChecklistItem, setNewChecklistItem] = useState('');
 
   // Function to load data from the database
   useEffect(() => {
@@ -269,39 +271,6 @@ const Dashboard: React.FC = () => {
     return days;
   };
 
-  // const askAI = () => {
-  //   if (!question) return;
-  //   setAnswers([
-  //     ...answers,
-  //     `Pregunta: ${question}`,
-  //     'Respuesta IA: repasa cada 3 días ',
-  //   ]);
-  //   setQuestion('');
-  // };
-
-  // Notes/Checklist functions
-  const handleAddChecklistItem = () => {
-    if (newChecklistItem.trim() !== '') {
-      setChecklist([
-        ...checklist,
-        { id: Date.now(), text: newChecklistItem, completed: false },
-      ]);
-      setNewChecklistItem('');
-    }
-  };
-
-  const handleToggleChecklistItem = (id: number) => {
-    setChecklist(
-      checklist.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item,
-      ),
-    );
-  };
-
-  const handleRemoveChecklistItem = (id: number) => {
-    setChecklist(checklist.filter((item) => item.id !== id));
-  };
-
   return (
     <div className="dashboard-container">
       {/* HEADER */}
@@ -384,62 +353,8 @@ const Dashboard: React.FC = () => {
 
         {/* Right panel for tasks and notes */}
         <div className="right-panel">
-          <div className="panel notes-panel">
-            <h2 className="panel-title">
-              <i className="fas fa-sticky-note"></i> Notas y Tareas
-            </h2>
-            <div className="note-section">
-              <h3 className="section-title">Notas</h3>
-              <textarea
-                className="notes-textarea"
-                placeholder="Escribe tus notas aquí..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              ></textarea>
-            </div>
-            <div className="checklist-section">
-              <h3 className="section-title">Lista de Tareas</h3>
-              <div className="checklist-input-group">
-                <input
-                  type="text"
-                  className="checklist-input"
-                  placeholder="Añadir una nueva tarea..."
-                  value={newChecklistItem}
-                  onChange={(e) => setNewChecklistItem(e.target.value)}
-                  onKeyPress={(e) =>
-                    e.key === 'Enter' && handleAddChecklistItem()
-                  }
-                />
-                <button
-                  className="add-task-btn"
-                  onClick={handleAddChecklistItem}
-                >
-                  <i className="fas fa-plus"></i>
-                </button>
-              </div>
-              <ul className="checklist-list">
-                {checklist.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`checklist-item ${item.completed ? 'completed' : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={item.completed}
-                      onChange={() => handleToggleChecklistItem(item.id)}
-                    />
-                    <span className="checklist-text">{item.text}</span>
-                    <button
-                      onClick={() => handleRemoveChecklistItem(item.id)}
-                      className="remove-task-btn"
-                    >
-                      <i className="fas fa-trash-alt"></i>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          {/* Componente NotesAndChecklist ya renderizado */}
+          <NotesAndChecklist />
         </div>
       </div>
 
