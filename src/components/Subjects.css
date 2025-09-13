@@ -1,323 +1,175 @@
 /*
   ==========================================
   ESTILOS ESPECÍFICOS PARA EL COMPONENTE SUBJECTS
-  Estos estilos fueron movidos desde Dashboard.css
   ==========================================
 */
 
-/* ===== PANELES ===== */
-.left-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+/* ===== LAYOUT PRINCIPAL DE DOS COLUMNAS ===== */
+.subjects-container {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr; /* Columna izquierda más pequeña, derecha más grande */
+  gap: 1.5rem;
+  align-items: stretch; /* HACE QUE AMBAS COLUMNAS TENGAN LA MISMA ALTURA */
+  width: 100%;
+  box-sizing: border-box;
 }
 
+.subjects-left-column,
+.subjects-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Espacio entre paneles en la misma columna */
+}
+
+/* ===== PANELES (COMPACTADOS) ===== */
 .panel {
   background: var(--surface-color);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   transition: var(--transition);
+  margin-bottom: 0;
+  /* AÑADIDO: Convierte el panel en un contenedor flex para controlar su contenido */
+  display: flex;
+  flex-direction: column;
 }
 
 .panel:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .panel h2 {
-  margin: 0 0 1.5rem 0;
-  color: var(--text-primary);
-  font-size: 1.35rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--primary-color);
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  padding-bottom: 0.6rem;
+  flex-shrink: 0; /* Evita que el título se encoja si el contenido crece */
 }
 
 .panel h2 i {
-  color: var(--primary-color);
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
-/* ===== FORMULARIOS ===== */
+/* CLASE CLAVE: HACE QUE EL PANEL DE "MIS MATERIAS" CREZCA */
+.subjects-list-panel {
+  flex-grow: 1; /* Esta es la regla principal que hace que el panel se estire */
+}
+
+/* ===== FORMULARIOS (COMPACTADOS) ===== */
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .form-group label {
-  display: block;
-  margin-bottom: 0.6rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
 }
 
 .form-group input,
-.date-picker-input {
-  width: 100%;
-  padding: 0.9rem 1.2rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  transition: var(--transition);
-  background: var(--background-color);
-  color: var(--text-primary);
+.date-picker-input,
+select {
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
 }
 
-.form-group input:focus,
-.date-picker-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
-  background: var(--surface-color);
-}
-
-/* ===== SELECTOR DE COLOR ===== */
+/* ===== SELECTOR DE COLOR (COMPACTADO) ===== */
 .color-options {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .color-option {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: var(--transition);
-  position: relative;
-  border: 2px solid transparent;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
 }
 
-.color-option:hover {
-  transform: scale(1.1);
-  box-shadow: var(--shadow-sm);
-}
-
-.color-option.selected {
-  transform: scale(1.1);
-  border-color: var(--text-primary);
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
-}
-
-.color-option-picker {
-  position: relative;
-}
-
-/* ===== SECCIÓN PDF ===== */
+/* ===== SECCIÓN PDF (COMPACTADA) ===== */
 .pdf-section {
-  padding-top: 1.5rem;
-  margin-top: 1.5rem;
+  padding-top: 1rem;
+  margin-top: 1rem;
 }
 
 .pdf-section .pdf-title {
-  margin: 0 0 1rem 0;
-  color: var(--text-primary);
-  font-size: 1.1rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  font-size: 1rem;
 }
 
 .drag-drop-area {
-  border: 2px dashed var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.drag-drop-area:hover,
-.drag-drop-area.drag-active {
-  border-color: var(--primary-color);
-  background: rgba(66, 133, 244, 0.05);
+  padding: 1.5rem;
 }
 
 .drag-drop-area i {
-  font-size: 3rem;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
 }
 
 .drag-drop-area p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .drag-drop-area small {
-  display: block;
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  font-size: 0.7rem;
 }
 
 .pdf-list {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-
-.pdf-list p {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 0.75rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
 }
 
 .pdf-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--background-color);
-  border-radius: var(--radius-sm);
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid var(--border-color);
-}
-
-.pdf-info {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.pdf-info i {
-  color: var(--danger-color);
+  padding: 0.6rem;
 }
 
 .pdf-name {
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.85rem;
 }
 
 .pdf-size {
-  font-size: 0.8rem;
-  color: var(--text-muted);
+  font-size: 0.75rem;
 }
 
-.remove-pdf-btn {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.remove-pdf-btn:hover {
-  color: var(--danger-color);
-  transform: scale(1.1);
-}
-
-/* ===== BOTONES ===== */
+/* ===== BOTONES (COMPACTADOS) ===== */
 .planify-btn {
-  width: 100%;
-  padding: 1.1rem 1.5rem;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #1a73e8 100%);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-top: 2rem;
-  box-shadow: var(--shadow-sm);
-}
-
-.planify-btn:hover {
-  background: linear-gradient(135deg, #1a73e8 0%, var(--primary-color) 100%);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.planify-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.alert-error {
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: var(--radius-md);
-  padding: 1rem;
+  padding: 0.9rem 1.2rem;
+  font-size: 1rem;
   margin-top: 1.5rem;
-  color: #dc2626;
-  font-size: 0.9rem;
 }
 
-.alert-success {
-  background-color: #ecfdf5;
-  border: 1px solid #bbf7d0;
-  border-radius: var(--radius-md);
-  padding: 1rem;
-  margin-top: 1rem;
-  color: #047857;
-  font-size: 0.9rem;
-}
-
-/* ===== LISTA DE MATERIAS ===== */
+/* ===== LISTA DE MATERIAS (ROBUSTA Y ORDENADA) ===== */
 .empty-state {
+  padding: 2rem 1rem;
   text-align: center;
-  padding: 3rem 1rem;
+  flex-grow: 1; /* Hace que el mensaje ocupe todo el espacio vertical */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centra el contenido */
+  align-items: center;
   color: var(--text-muted);
 }
 
 .empty-state i {
-  font-size: 3.5rem;
-  margin-bottom: 1rem;
+  font-size: 3rem;
   color: var(--border-color);
-}
-
-.empty-state p {
-  margin: 0.5rem 0;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.empty-state small {
-  font-size: 0.875rem;
+  margin-bottom: 1rem;
 }
 
 .subjects-grid {
   display: grid;
-  gap: 1.5rem;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  flex-grow: 1; /* Permite que la cuadrícula crezca dentro del panel */
 }
 
 .subject-card {
   background: var(--surface-color);
   border-radius: var(--radius-md);
-  padding: 1.5rem;
+  padding: 1.25rem;
   transition: var(--transition);
-  position: relative;
-  overflow: hidden;
   box-shadow: var(--shadow-sm);
-}
-
-.subject-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .subject-card:hover {
@@ -328,32 +180,34 @@
 .subject-header {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  margin-bottom: 1.25rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .subject-icon {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
+  flex-shrink: 0;
 }
 
 .subject-info h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-primary);
+  word-break: break-word;
 }
 
 .subject-info p {
-  margin: 0.4rem 0 0 0;
-  font-size: 0.9rem;
+  margin: 0.3rem 0 0 0;
+  font-size: 0.85rem;
   color: var(--text-secondary);
 }
 
@@ -361,13 +215,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--border-color);
-  margin-top: 1rem;
+  margin-top: auto; /* Mantiene el footer alineado en la parte inferior */
 }
 
 .pdf-count {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
   display: flex;
   align-items: center;
@@ -387,20 +241,20 @@
 
 .progress-bar {
   width: 80px;
-  height: 8px;
+  height: 6px;
   background: var(--border-color);
-  border-radius: 4px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 3px;
   transition: var(--transition);
 }
 
 .progress-text {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   font-weight: 600;
 }
