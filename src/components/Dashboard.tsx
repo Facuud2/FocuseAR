@@ -198,7 +198,9 @@ const Dashboard: React.FC = () => {
 
             return {
               id: subjectId, // Usar string directamente, no parseInt
-              name: material.fileName.replace(/\.(pdf|docx|doc)$/i, ''), // Remover extensiones comunes
+              name:
+                material.subjectName ||
+                material.fileName.replace(/\.(pdf|docx|doc)$/i, ''), // CORREGIDO: Usar subjectName primero, con fallback a fileName para compatibilidad
               examDate: '', // Se puede agregar fecha de examen en el futuro
               color: '#4285F4', // Color por defecto
               pdfs: [
@@ -307,6 +309,7 @@ const Dashboard: React.FC = () => {
       if (pdfs.length > 0) {
         const materialId = await createMaterial({
           fileName: pdfs[0].name,
+          subjectName: subjectName, // CORREGIDO: Pasar el nombre de materia ingresado por el usuario para preservarlo
           storagePath: `materials/${user?.uid}/${pdfs[0].name}`,
           fileType: 'pdf',
         });

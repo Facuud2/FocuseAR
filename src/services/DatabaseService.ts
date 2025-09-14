@@ -28,6 +28,7 @@ export interface Material {
   id?: string;
   userId: string;
   fileName: string;
+  subjectName: string; // CORREGIDO: Campo agregado para preservar el nombre de materia ingresado por el usuario
   storagePath: string;
   fileType: string;
   createdAt: Timestamp;

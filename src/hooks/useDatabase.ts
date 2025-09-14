@@ -12,6 +12,7 @@ export const useDatabase = () => {
   const createMaterial = useCallback(
     async (materialData: {
       fileName: string;
+      subjectName: string; // CORREGIDO: Parámetro agregado para el nombre de la materia
       storagePath: string;
       fileType: string;
     }) => {
