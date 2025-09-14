@@ -201,8 +201,8 @@ const Dashboard: React.FC = () => {
               name:
                 material.subjectName ||
                 material.fileName.replace(/\.(pdf|docx|doc)$/i, ''), // CORREGIDO: Usar subjectName primero, con fallback a fileName para compatibilidad
-              examDate: '', // Se puede agregar fecha de examen en el futuro
-              color: '#4285F4', // Color por defecto
+              examDate: material.examDate || '', // CORREGIDO: Usar la fecha del examen guardada en Firebase
+              color: material.color || '#4285F4', // CORREGIDO: Usar el color guardado en Firebase
               pdfs: [
                 {
                   id: 1,
@@ -210,7 +210,7 @@ const Dashboard: React.FC = () => {
                   size: '0 MB', // Se puede calcular el tamaño real
                 },
               ],
-              importantDates: [], // Se pueden agregar fechas importantes
+              importantDates: material.importantDates || [], // CORREGIDO: Usar las fechas importantes guardadas en Firebase
             };
           },
         );
@@ -310,6 +310,12 @@ const Dashboard: React.FC = () => {
         const materialId = await createMaterial({
           fileName: pdfs[0].name,
           subjectName: subjectName, // CORREGIDO: Pasar el nombre de materia ingresado por el usuario para preservarlo
+          examDate:
+            importantDates.length > 0
+              ? importantDates.map((d) => d.date).sort()[0]
+              : undefined, // CORREGIDO: Guardar la fecha del examen
+          color: selectedColor, // CORREGIDO: Guardar el color seleccionado
+          importantDates: importantDates, // CORREGIDO: Guardar todas las fechas importantes
           storagePath: `materials/${user?.uid}/${pdfs[0].name}`,
           fileType: 'pdf',
         });

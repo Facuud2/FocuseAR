@@ -13,6 +13,13 @@ export const useDatabase = () => {
     async (materialData: {
       fileName: string;
       subjectName: string; // CORREGIDO: Parámetro agregado para el nombre de la materia
+      examDate?: string; // CORREGIDO: Parámetro para la fecha del examen
+      color?: string; // CORREGIDO: Parámetro para el color de la materia
+      importantDates?: Array<{
+        name: string;
+        date: string;
+        type: 'exam' | 'tp' | 'other';
+      }>; // CORREGIDO: Parámetro para las fechas importantes
       storagePath: string;
       fileType: string;
     }) => {
