@@ -64,6 +64,7 @@ export const useDatabase = () => {
         selectedWeekDays?: number[];
         topics?: string[];
         studyDates?: string[];
+        subjectColor?: string; // CORREGIDO: Campo para el color de la materia
         structuredPlan?: {
           title: string;
           summary: string;

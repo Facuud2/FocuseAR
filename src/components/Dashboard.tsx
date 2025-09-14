@@ -233,6 +233,7 @@ const Dashboard: React.FC = () => {
           return {
             id: planId, // Usar string directamente, no parseInt
             subjectName: plan.generatedPlan.title || 'Plan de Estudio',
+            subjectColor: plan.generatedPlan.subjectColor || '#4285F4', // CORREGIDO: Cargar el color guardado en Firebase
             eventName: 'Examen',
             examDate: plan.generatedPlan.examDate || '',
             topics: plan.generatedPlan.topics || [],
@@ -651,6 +652,7 @@ Genera el JSON del plan de estudio:`;
             selectedWeekDays: selectedWeekDays,
             topics: topics.map((t) => t.name),
             studyDates: generatedStudyDates,
+            subjectColor: selectedSubject.color, // CORREGIDO: Guardar el color de la materia en el plan
             structuredPlan: structuredPlan as
               | {
                   title: string;
@@ -696,6 +698,7 @@ Genera el JSON del plan de estudio:`;
       const newPlan = {
         id: nextPlanId,
         subjectName: selectedSubject.name,
+        subjectColor: selectedSubject.color, // CORREGIDO: Agregar color de la materia al plan local
         eventName: selectedEvent
           .replace(/-/g, ' ')
           .replace(/\b\w/g, (l) => l.toUpperCase()),
@@ -1045,12 +1048,13 @@ Genera el JSON del plan de estudio:`;
     if (plan.structuredPlan && Array.isArray(plan.structuredPlan.days)) {
       plan.structuredPlan.days.forEach((day: StudyPlanDay) => {
         if (!studyPlanDays[day.date]) studyPlanDays[day.date] = [];
-        // Buscar color de la materia si existe
-        const subject = subjects.find((s) => s.name === plan.subjectName);
+        // CORREGIDO: Usar el color guardado directamente en el plan
         studyPlanDays[day.date].push({
           planId: plan.id,
           day,
-          color: subject?.color,
+          color:
+            (plan as typeof plan & { subjectColor?: string }).subjectColor ||
+            '#10b981', // Usar color del plan o verde por defecto
         });
       });
     }
