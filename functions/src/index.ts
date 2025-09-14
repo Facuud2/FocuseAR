@@ -49,6 +49,8 @@ import cors from 'cors';
 import { onRequest } from 'firebase-functions/https';
 import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenAI } from '@google/genai';
+import { db } from './firebaseAdmin';
+import crypto from 'crypto';
 
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 const corsHandler = cors({ origin: true });
@@ -165,6 +167,118 @@ export const geminiResponseTest = functions.https.onRequest(
         const message =
           error instanceof Error ? error.message : 'Error interno';
         console.error('Error en geminiResponseTest:', error);
+        res.status(500).json({ error: message });
+      }
+    });
+  },
+);
+
+// Nueva función: Consulta a Gemini sobre una materia y tema específico
+export const askGeminiBot = onRequest(
+  { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
+  async (req, res) => {
+    corsHandler(req, res, async () => {
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+        return;
+      }
+      const { userId, material, topic, question } = req.body;
+      // Función auxiliar para reintentos
+      async function callGeminiWithRetry(
+        prompt: string,
+        maxRetries = 3,
+        delayMs = 1000,
+      ) {
+        let lastError;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            const ai = new GoogleGenAI({});
+            const response = await ai.models.generateContent({
+              model: 'gemini-2.5-flash',
+              contents: [
+                {
+                  role: 'user',
+                  parts: [{ text: prompt }],
+                },
+              ],
+            });
+            return response;
+          } catch (error: unknown) {
+            lastError = error;
+            const status =
+              typeof error === 'object' && error !== null && 'status' in error
+                ? (error as { status?: number }).status
+                : undefined;
+            if (status !== 503 || attempt === maxRetries) {
+              throw error;
+            }
+            // Esperar antes de reintentar
+            await new Promise((res) => setTimeout(res, delayMs));
+          }
+        }
+        throw lastError;
+      }
+      if (!userId || !material || !topic || !question) {
+        res
+          .status(400)
+          .json({
+            error:
+              'Faltan campos requeridos: userId, material, topic, question.',
+          });
+        return;
+      }
+      try {
+        // Normalización básica de la pregunta
+        function normalize(str: string): string {
+          return str
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // quitar tildes
+            .replace(/[^a-z0-9áéíóúüñ\s]/gi, '') // quitar signos
+            .replace(/\s+/g, ' ') // espacios múltiples a uno
+            .trim();
+        }
+        const normalizedQuestion = normalize(question);
+        // Crear un hash único para la combinación de pregunta normalizada
+        const cacheKey = crypto
+          .createHash('sha256')
+          .update(`${userId}|${material}|${topic}|${normalizedQuestion}`)
+          .digest('hex');
+        const cacheRef = db.collection('ai_cache').doc(cacheKey);
+        // Buscar en caché
+        const cacheSnap = await cacheRef.get();
+        if (cacheSnap.exists) {
+          const cached = cacheSnap.data();
+          if (cached) {
+            res.json({
+              answer: cached.answer,
+              source: 'cache',
+              cachedAt: cached.cachedAt,
+            });
+            return;
+          }
+        }
+        // Si no hay caché, llamar a Gemini
+        const prompt = `Responde de forma breve, clara y sencilla, como si explicaras a un estudiante universitario. No uses formato Markdown, títulos, ni listas largas. Limítate a 3-4 frases simples. Si no sabes la respuesta, dilo de forma amable.
+        Materia: ${material}
+        Tema: ${topic}
+        Pregunta: ${question}`;
+        const response = await callGeminiWithRetry(prompt, 3, 1000);
+        // Guardar en caché
+        await cacheRef.set({
+          userId,
+          material,
+          topic,
+          question,
+          normalizedQuestion,
+          answer: response.text,
+          cachedAt: new Date().toISOString(),
+        });
+        res.json({ answer: response.text, source: 'gemini' });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Error interno';
+        console.error('Error en askGemini:', error);
         res.status(500).json({ error: message });
       }
     });

@@ -508,6 +508,7 @@ INSTRUCCIONES:
 3. Incluye recomendaciones de tiempo de estudio por tema
 4. Organiza el plan cronológicamente por fechas y distribuye todos los temas entre todos los días disponibles
 5. Solo devolvé el JSON
+6. Deberá empezar el plan desde el día posible más cercano (mañana en adelante)
 
 FORMATO DE RESPUESTA REQUERIDO:
 Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:

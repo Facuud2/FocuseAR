@@ -1,3 +1,4 @@
+import { askGeminiBot } from '../services/aiChatService';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { getUserMaterialsAndTopics } from '../services/chatbotService';
@@ -84,7 +85,7 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
 
   // Manejar envío de mensaje
   const handleSendMessage = useCallback(
-    (messageText: string) => {
+    async (messageText: string) => {
       setIsLoading(true);
       const userMessage: ChatMessage = {
         id: `user-${Date.now()}`,
@@ -96,31 +97,28 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
       addMessage(userMessage);
 
       setIsTyping(true);
-      setTimeout(() => {
-        setIsTyping(false);
-        setIsLoading(false);
-        // Conversación tipo menú
-        if (step === 'materia') {
-          // Buscar si el usuario eligió una materia por número
-          const idx = parseInt(messageText.trim(), 10) - 1;
-          if (!isNaN(idx) && materials[idx]) {
-            setSelectedMaterialIdx(idx);
-            setStep('topic');
-            // Mostrar menú de topics
-            const mat = materials[idx];
-            let nombre =
-              mat.materialName && mat.materialName.trim() !== ''
-                ? mat.materialName
-                : `Materia ${idx + 1}`;
-            nombre = nombre
-              .replace(/^Plan de Estudio\s*-\s*/i, '')
-              .replace(/\s*-\s*Primer Parcial$/i, '')
-              .trim();
-            const topics = mat.topics;
-            let menu = `Has seleccionado: ${nombre}\nEstos son los temas disponibles:\n`;
-            topics.forEach((topic, i) => {
-              menu += `${i + 1}. ${topic}\n`;
-            });
+      if (step === 'materia') {
+        // Buscar si el usuario eligió una materia por número
+        const idx = parseInt(messageText.trim(), 10) - 1;
+        if (!isNaN(idx) && materials[idx]) {
+          setSelectedMaterialIdx(idx);
+          setStep('topic');
+          // Mostrar menú de topics con retardo
+          const mat = materials[idx];
+          let nombre =
+            mat.materialName && mat.materialName.trim() !== ''
+              ? mat.materialName
+              : `Materia ${idx + 1}`;
+          nombre = nombre
+            .replace(/^Plan de Estudio\s*-\s*/i, '')
+            .replace(/\s*-\s*Primer Parcial$/i, '')
+            .trim();
+          const topics = mat.topics;
+          let menu = `Has seleccionado: ${nombre}\nEstos son los temas disponibles:\n`;
+          topics.forEach((topic, i) => {
+            menu += `${i + 1}. ${topic}\n`;
+          });
+          setTimeout(() => {
             addMessage({
               id: `topics-menu-${Date.now()}`,
               message: menu,
@@ -129,21 +127,25 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
               userName: assistantName,
               messageType: 'text',
             });
-          } else {
-            // Reconstruir menú de materias
-            const menu = materials
-              .map((mat, idx) => {
-                let nombre =
-                  mat.materialName && mat.materialName.trim() !== ''
-                    ? mat.materialName
-                    : `Materia ${idx + 1}`;
-                nombre = nombre
-                  .replace(/^Plan de Estudio\s*-\s*/i, '')
-                  .replace(/\s*-\s*Primer Parcial$/i, '')
-                  .trim();
-                return `${idx + 1}. ${nombre}\n`;
-              })
-              .join('');
+            setIsTyping(false);
+            setIsLoading(false);
+          }, 1500);
+        } else {
+          // Reconstruir menú de materias
+          const menu = materials
+            .map((mat, idx) => {
+              let nombre =
+                mat.materialName && mat.materialName.trim() !== ''
+                  ? mat.materialName
+                  : `Materia ${idx + 1}`;
+              nombre = nombre
+                .replace(/^Plan de Estudio\s*-\s*/i, '')
+                .replace(/\s*-\s*Primer Parcial$/i, '')
+                .trim();
+              return `${idx + 1}. ${nombre}\n`;
+            })
+            .join('');
+          setTimeout(() => {
             addMessage({
               id: `materia-error-${Date.now()}`,
               message: `Por favor, elige una materia válida usando el número correspondiente.\n\n${menu}`,
@@ -152,27 +154,35 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
               userName: assistantName,
               messageType: 'text',
             });
-          }
-        } else if (step === 'topic' && selectedMaterialIdx !== null) {
-          // Buscar si el usuario eligió un topic por número
-          const topics = materials[selectedMaterialIdx].topics;
-          const idx = parseInt(messageText.trim(), 10) - 1;
-          if (!isNaN(idx) && topics[idx]) {
-            setStep('done');
-            // Mostrar respuesta simple (puedes personalizar esto)
+            setIsTyping(false);
+            setIsLoading(false);
+          }, 1500);
+        }
+        return;
+      } else if (step === 'topic' && selectedMaterialIdx !== null) {
+        // Buscar si el usuario eligió un topic por número
+        const topics = materials[selectedMaterialIdx].topics;
+        const idx = parseInt(messageText.trim(), 10) - 1;
+        if (!isNaN(idx) && topics[idx]) {
+          setStep('done');
+          setTimeout(() => {
             addMessage({
               id: `topic-selected-${Date.now()}`,
-              message: `Has seleccionado el tema: ${topics[idx]}\n¿Sobre qué aspecto de este tema quieres consultar? (Esta parte puede ser personalizada para lógica futura)`,
+              message: `Has seleccionado el tema: ${topics[idx]}\nAhora puedes escribir tu pregunta sobre este tema.`,
               isUser: false,
               timestamp: new Date(),
               userName: assistantName,
               messageType: 'text',
             });
-          } else {
-            // Reconstruir menú de topics
-            const topicsMenu = materials[selectedMaterialIdx].topics
-              .map((topic, i) => `${i + 1}. ${topic}\n`)
-              .join('');
+            setIsTyping(false);
+            setIsLoading(false);
+          }, 1500);
+        } else {
+          // Reconstruir menú de topics
+          const topicsMenu = materials[selectedMaterialIdx].topics
+            .map((topic, i) => `${i + 1}. ${topic}\n`)
+            .join('');
+          setTimeout(() => {
             addMessage({
               id: `topic-error-${Date.now()}`,
               message: `Por favor, elige un tema válido usando el número correspondiente.\n\nTemas disponibles:\n${topicsMenu}`,
@@ -181,12 +191,75 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
               userName: assistantName,
               messageType: 'text',
             });
-          }
-        } else {
-          // Lógica final o fallback
-          simulateAssistantResponse();
+            setIsTyping(false);
+            setIsLoading(false);
+          }, 1500);
         }
-      }, 1500);
+        return;
+      } else if (step === 'done' && selectedMaterialIdx !== null && user) {
+        // Enviar pregunta a la IA
+        const mat = materials[selectedMaterialIdx];
+        const selectedTopicIdx = messages
+          .slice()
+          .reverse()
+          .find((msg) => msg.id.startsWith('topic-selected-'))
+          ?.message.match(/tema: (.+)\n/);
+        let topicName = '';
+        if (selectedTopicIdx && selectedTopicIdx[1]) {
+          topicName = selectedTopicIdx[1];
+        } else {
+          // fallback: primer topic
+          topicName = mat.topics[0] || '';
+        }
+        try {
+          const aiResponse = await askGeminiBot({
+            userId: user.uid,
+            material: mat.materialName,
+            topic: topicName,
+            question: messageText,
+          });
+          // Log para saber si vino de cache o IA
+          console.log('[CompleteChat] Respuesta IA/caché:', aiResponse);
+          // Simular "pensando" (delay artificial)
+          setTimeout(() => {
+            addMessage({
+              id: `ai-response-${Date.now()}`,
+              message:
+                aiResponse.answer +
+                (aiResponse.source ? `\n\n[Fuente: ${aiResponse.source}]` : ''),
+              isUser: false,
+              timestamp: new Date(),
+              userName: assistantName,
+              messageType: 'text',
+            });
+            setIsTyping(false);
+            setIsLoading(false);
+          }, 1500);
+          return;
+        } catch (error) {
+          let errorMsg = 'Ocurrió un error al consultar la IA: ';
+          if (error && typeof error === 'object' && 'message' in error) {
+            errorMsg +=
+              (error as { message?: string }).message ?? 'Error desconocido';
+          } else {
+            errorMsg += 'Error desconocido';
+          }
+          addMessage({
+            id: `ai-error-${Date.now()}`,
+            message: errorMsg,
+            isUser: false,
+            timestamp: new Date(),
+            userName: assistantName,
+            messageType: 'error',
+          });
+        }
+        setIsTyping(false);
+        setIsLoading(false);
+      } else {
+        setIsTyping(false);
+        setIsLoading(false);
+        simulateAssistantResponse();
+      }
     },
     [
       addMessage,
@@ -195,6 +268,8 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
       materials,
       assistantName,
       selectedMaterialIdx,
+      user,
+      messages,
     ],
   );
 
