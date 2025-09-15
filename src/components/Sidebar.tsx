@@ -1,5 +1,8 @@
 // src/components/Sidebar.tsx
+
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import CompleteChat from './CompleteChat';
 
 import './Sidebar.css';
 import {
@@ -34,6 +37,8 @@ export default function Sidebar({
   isDarkMode,
   onToggleDarkMode,
 }: SidebarProps) {
+  // Estado para mostrar el chat flotante
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const menuSections = [
     {
       title: 'Dashboard',
@@ -175,7 +180,10 @@ export default function Sidebar({
               <p className="sidebar-help-text">Chat with our AI assistant</p>
             )}
             {isSidebarOpen && (
-              <button className="sidebar-chat-button">
+              <button
+                className="sidebar-chat-button"
+                onClick={() => setIsChatOpen(true)}
+              >
                 <MessageCircle size={16} />
                 Open Chat
               </button>
@@ -183,6 +191,29 @@ export default function Sidebar({
           </div>
         </div>
       </aside>
+
+      {/* Chat flotante */}
+      {isChatOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 32,
+            right: 32,
+            zIndex: 1000,
+            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+            borderRadius: 16,
+            background: 'white',
+            maxWidth: 400,
+            width: '90vw',
+            minHeight: 400,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <CompleteChat height="400px" onClose={() => setIsChatOpen(false)} />
+        </div>
+      )}
+
       <Outlet />
     </>
   );
