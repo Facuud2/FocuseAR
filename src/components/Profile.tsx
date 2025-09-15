@@ -1,87 +1,194 @@
+// src/components/Profile.tsx
+import { useContext } from 'react';
+import { AuthContext } from '../hooks/authContext';
+// Importamos iconos adicionales para un look más futurista
+import {
+  User,
+  Award,
+  Clock,
+  BookOpen,
+  Settings,
+  ArrowRight,
+  TrendingUp,
+  Zap,
+  Atom,
+  Globe,
+} from 'lucide-react';
 import './Profile.css';
-import { User, TrendingUp, BookOpen, Clock, Settings } from 'lucide-react';
 
 const Profile = () => {
+  const { user } = useContext(AuthContext);
+
+  // Datos de ejemplo para el rediseño
+  const studyStats = {
+    streakDays: 7,
+    totalHoursThisMonth: 45,
+    activeSubjects: 5,
+    mostStudiedSubject: 'Matemáticas Avanzadas',
+    // ¡NUEVO! Datos para el gráfico holográfico
+    weeklyProgress: [0.2, 0.5, 0.7, 0.8, 0.6, 0.9, 0.75], // Progreso ficticio
+  };
+
+  const aiInsight = {
+    title: 'Análisis Predictivo de Rendimiento',
+    message:
+      'Basado en tu ritmo actual, el modelo de IA predice que alcanzarás el 90% de dominio en Álgebra Lineal en los próximos 18 días. ¡Mantén el enfoque!',
+    recommendation:
+      'Considera una sesión de repaso profundo este jueves a las 19:00.',
+  };
+
   return (
     <div className="profile-container">
       <header className="profile-header">
-        <h1 className="profile-title">Mi Perfil</h1>
+        <h1 className="profile-title">
+          <span className="gradient-text">Mi</span>
+          <span className="gradient-text-alt"> Perfil</span>
+        </h1>
         <p className="profile-subtitle">
-          Revisa y gestiona la información de tu cuenta y tu progreso.
+          Explora tu universo de estudio. Impulsado por IA.
         </p>
       </header>
 
       <div className="profile-main-content">
-        {/* Panel de Información Personal */}
-        <div className="info-panel">
-          <h2 className="panel-title">
-            <User className="panel-icon" />
-            Información Personal
-          </h2>
-          <div className="info-grid">
-            <div className="info-item">
-              <span className="info-label">Nombre completo</span>
-              <span className="info-value">Juan Pérez</span>
+        {/* Panel Principal: Información de Usuario y Progreso Holográfico */}
+        <div className="profile-hero-panel">
+          <div className="hero-background-effect"></div>{' '}
+          {/* ¡NUEVO! Para efectos de partículas/glitch */}
+          <div className="hero-content">
+            {/* ¡MÁS SPICY! Avatar con marco futurista */}
+            <div className="user-avatar-frame">
+              {user?.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt="Avatar"
+                  className="user-avatar-lg"
+                />
+              ) : (
+                <div className="user-avatar-placeholder-lg">
+                  <User size={64} />
+                </div>
+              )}
             </div>
-            <div className="info-item">
-              <span className="info-label">Correo electrónico</span>
-              <span className="info-value">juan.perez@ejemplo.com</span>
-            </div>
-            <div className="info-item">
-              <span className="info-label">Miembro desde</span>
-              <span className="info-value">9 de septiembre, 2025</span>
+            <div className="user-details-lg">
+              <h3 className="user-name-lg">
+                {user?.displayName || 'Explorador'}
+              </h3>
+              <p className="user-status-tag">Conectado al Hivemind</p>{' '}
+              {/* ¡NUEVO! Estado cool */}
+              <div className="study-streak glow-effect">
+                {' '}
+                {/* ¡MÁS SPICY! Efecto glow */}
+                <Award size={24} className="streak-icon" />
+                <span className="streak-text">
+                  Racha: **{studyStats.streakDays} días**
+                </span>
+              </div>
             </div>
           </div>
-          <p className="info-note">
-            Para editar esta información, ve a **Configuración de la Cuenta**.
-          </p>
+          {/* ¡NUEVO! Gráfico holográfico de progreso (visual placeholder) */}
+          <div className="holographic-progress">
+            <h4>
+              Dominio Semanal <Zap size={16} />
+            </h4>
+            <div className="progress-graph">
+              {studyStats.weeklyProgress.map((value, index) => (
+                <div
+                  key={index}
+                  className="progress-bar"
+                  style={{ height: `${value * 100}%` }}
+                  title={`Día ${index + 1}: ${Math.round(value * 100)}%`}
+                ></div>
+              ))}
+            </div>
+            <p className="graph-label">Actividad en los últimos 7 días</p>
+          </div>
         </div>
 
-        {/* Panel de Estadísticas Rápidas */}
+        {/* Panel de Estadísticas con diseño neuromórfico/flotante */}
         <div className="stats-panel">
           <h2 className="panel-title">
             <TrendingUp className="panel-icon" />
-            Estadísticas Rápidas
+            Métricas del Viaje
           </h2>
           <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper">
-                <BookOpen size={32} />
-              </div>
-              <div className="stat-info">
-                <span className="stat-value">5</span>
-                <span className="stat-label">Materias activas</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon-wrapper">
+            {/* ¡MÁS SPICY! Stat Card con efecto hover */}
+            <div className="stat-card stat-card-neumorphic">
+              <div className="stat-icon-wrapper pulse-effect">
                 <Clock size={32} />
               </div>
               <div className="stat-info">
-                <span className="stat-value">45h</span>
-                <span className="stat-label">Estudiadas este mes</span>
+                <span className="stat-value">
+                  {studyStats.totalHoursThisMonth}
+                  <small>h</small>
+                </span>
+                <span className="stat-label">En órbita este mes</span>
               </div>
             </div>
+            <div className="stat-card stat-card-neumorphic">
+              <div className="stat-icon-wrapper pulse-effect">
+                <Globe size={32} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">{studyStats.activeSubjects}</span>
+                <span className="stat-label">Materias en curso</span>
+              </div>
+            </div>
+            <div className="stat-card stat-card-neumorphic stat-card-full">
+              <div className="stat-icon-wrapper pulse-effect">
+                <BookOpen size={32} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">
+                  {studyStats.mostStudiedSubject}
+                </span>
+                <span className="stat-label">Estrella principal</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Panel de Insights de la IA con interfaz de comando futurista */}
+        <div className="ai-insights-panel glow-border">
+          {' '}
+          {/* ¡MÁS SPICY! Borde que brilla */}
+          <div className="ai-console-header">
+            <Atom size={20} className="ai-icon-brain" />
+            <span className="ai-console-title">_AI_ASSISTANT: &gt;</span>
+          </div>
+          <div className="ai-insights-content">
+            <p className="ai-insights-message type-effect">
+              {aiInsight.message}
+            </p>{' '}
+            {/* ¡NUEVO! Efecto de escritura */}
+            <p className="ai-recommendation">
+              <Zap size={16} className="ai-rec-icon" />
+              Recomendación: _{aiInsight.recommendation}_
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Panel de Acceso a Configuración */}
-      <div className="settings-access-panel">
-        <div className="settings-content">
-          <div className="settings-icon">
-            <Settings size={48} />
+      {/* Panel de Acceso a Configuración, con diseño más agresivo */}
+      <a href="/settings" className="settings-access-link interactive-btn">
+        {' '}
+        {/* ¡MÁS SPICY! Botón interactivo */}
+        <div className="settings-access-panel">
+          <div className="settings-content">
+            <div className="settings-icon-wrapper">
+              <Settings size={36} />
+            </div>
+            <div className="settings-text">
+              <h3>Configuración del Núcleo</h3>
+              <p>Calibra tu experiencia, ajusta parámetros del sistema.</p>
+            </div>
+            <div className="settings-action-arrow">
+              <ArrowRight size={28} />
+            </div>
           </div>
-          <div className="settings-text">
-            <h3>Configuración de la Cuenta</h3>
-            <p>
-              Actualiza tus preferencias, cambia tu contraseña y gestiona tu
-              cuenta.
-            </p>
-          </div>
-          <button className="settings-btn">Ir a Configuración</button>
+          <div className="button-glare-effect"></div>{' '}
+          {/* ¡NUEVO! Efecto de luz */}
         </div>
-      </div>
+      </a>
     </div>
   );
 };

@@ -12,20 +12,20 @@ interface TypingIndicatorProps {
 }
 
 const TypingIndicator: React.FC<TypingIndicatorProps> = ({
-  userName = "IA",
+  userName = 'IA',
   avatar,
   showAvatar = true,
   dotColor = '#9CA3AF',
   backgroundColor = '#F3F4F6',
   size = 'medium',
   style = 'dots',
-  message = "está escribiendo..."
+  message = 'está escribiendo...',
 }) => {
   // Configuraciones según el tamaño
   const sizeConfig = {
     small: { dotSize: '6px', padding: '8px 12px', fontSize: '12px' },
     medium: { dotSize: '8px', padding: '12px 16px', fontSize: '14px' },
-    large: { dotSize: '10px', padding: '16px 20px', fontSize: '16px' }
+    large: { dotSize: '10px', padding: '16px 20px', fontSize: '16px' },
   };
 
   const config = sizeConfig[size];
@@ -34,46 +34,56 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({
   const AnimatedDots = () => {
     if (style === 'dots') {
       return (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px'
-        }}>
-          <div style={{
-            width: config.dotSize,
-            height: config.dotSize,
-            backgroundColor: dotColor,
-            borderRadius: '50%',
-            animation: 'typingBounce 1.4s infinite ease-in-out',
-            animationDelay: '0ms'
-          }} />
-          <div style={{
-            width: config.dotSize,
-            height: config.dotSize,
-            backgroundColor: dotColor,
-            borderRadius: '50%',
-            animation: 'typingBounce 1.4s infinite ease-in-out',
-            animationDelay: '200ms'
-          }} />
-          <div style={{
-            width: config.dotSize,
-            height: config.dotSize,
-            backgroundColor: dotColor,
-            borderRadius: '50%',
-            animation: 'typingBounce 1.4s infinite ease-in-out',
-            animationDelay: '400ms'
-          }} />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
+          <div
+            style={{
+              width: config.dotSize,
+              height: config.dotSize,
+              backgroundColor: dotColor,
+              borderRadius: '50%',
+              animation: 'typingBounce 1.4s infinite ease-in-out',
+              animationDelay: '0ms',
+            }}
+          />
+          <div
+            style={{
+              width: config.dotSize,
+              height: config.dotSize,
+              backgroundColor: dotColor,
+              borderRadius: '50%',
+              animation: 'typingBounce 1.4s infinite ease-in-out',
+              animationDelay: '200ms',
+            }}
+          />
+          <div
+            style={{
+              width: config.dotSize,
+              height: config.dotSize,
+              backgroundColor: dotColor,
+              borderRadius: '50%',
+              animation: 'typingBounce 1.4s infinite ease-in-out',
+              animationDelay: '400ms',
+            }}
+          />
         </div>
       );
     }
-    
+
     if (style === 'wave') {
       return (
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '2px'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '2px',
+          }}
+        >
           {[0, 1, 2, 3, 4].map((i) => (
             <div
               key={i}
@@ -83,7 +93,7 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({
                 backgroundColor: dotColor,
                 borderRadius: '2px',
                 animation: 'typingWave 1.2s infinite ease-in-out',
-                animationDelay: `${i * 100}ms`
+                animationDelay: `${i * 100}ms`,
               }}
             />
           ))}
@@ -93,13 +103,15 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({
 
     // style === 'pulse'
     return (
-      <div style={{
-        width: config.dotSize,
-        height: config.dotSize,
-        backgroundColor: dotColor,
-        borderRadius: '50%',
-        animation: 'typingPulse 1.5s infinite ease-in-out'
-      }} />
+      <div
+        style={{
+          width: config.dotSize,
+          height: config.dotSize,
+          backgroundColor: dotColor,
+          borderRadius: '50%',
+          animation: 'typingPulse 1.5s infinite ease-in-out',
+        }}
+      />
     );
   };
 
@@ -150,24 +162,29 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({
         }
       `}</style>
 
-      <div style={{
-        display: 'flex',
-        marginBottom: '16px',
-        justifyContent: 'flex-start'
-      }}>
-        <div style={{
+      <div
+        style={{
           display: 'flex',
-          flexDirection: 'row',
-          maxWidth: '70%',
-          alignItems: 'flex-end'
-        }}>
-          
+          marginBottom: '16px',
+          justifyContent: 'flex-start',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            maxWidth: '70%',
+            alignItems: 'flex-end',
+          }}
+        >
           {/* Avatar (opcional) */}
           {showAvatar && (
-            <div style={{
-              marginRight: '8px',
-              flexShrink: 0
-            }}>
+            <div
+              style={{
+                marginRight: '8px',
+                flexShrink: 0,
+              }}
+            >
               {avatar ? (
                 <img
                   src={avatar}
@@ -176,22 +193,24 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    objectFit: 'cover'
+                    objectFit: 'cover',
                   }}
                 />
               ) : (
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
-                  backgroundColor: '#3B82F6',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '14px',
-                  fontWeight: '600'
-                }}>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#3B82F6',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                  }}
+                >
                   🤖
                 </div>
               )}
@@ -200,42 +219,48 @@ const TypingIndicator: React.FC<TypingIndicatorProps> = ({
 
           {/* Contenedor del indicador */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            
             {/* Nombre del usuario */}
             {userName && (
-              <span style={{
-                fontSize: '12px',
-                color: '#6B7280',
-                marginBottom: '4px',
-                paddingLeft: '12px'
-              }}>
+              <span
+                style={{
+                  fontSize: '12px',
+                  color: '#6B7280',
+                  marginBottom: '4px',
+                  paddingLeft: '12px',
+                }}
+              >
                 {userName}
               </span>
             )}
 
             {/* Burbuja con indicador */}
-            <div style={{
-              padding: config.padding,
-              borderRadius: '18px',
-              backgroundColor: backgroundColor,
-              border: '1px solid #E5E7EB',
-              borderBottomLeftRadius: '4px',
-              minWidth: '80px',
-              animation: 'typingGlow 2s infinite ease-in-out'
-            }}>
-              
+            <div
+              style={{
+                padding: config.padding,
+                borderRadius: '18px',
+                backgroundColor: backgroundColor,
+                border: '1px solid #E5E7EB',
+                borderBottomLeftRadius: '4px',
+                minWidth: '80px',
+                animation: 'typingGlow 2s infinite ease-in-out',
+              }}
+            >
               {/* Contenido principal */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
                 <AnimatedDots />
-                <span style={{
-                  fontSize: config.fontSize,
-                  color: '#6B7280',
-                  fontStyle: 'italic'
-                }}>
+                <span
+                  style={{
+                    fontSize: config.fontSize,
+                    color: '#6B7280',
+                    fontStyle: 'italic',
+                  }}
+                >
                   {message}
                 </span>
               </div>

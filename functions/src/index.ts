@@ -219,12 +219,9 @@ export const askGeminiBot = onRequest(
         throw lastError;
       }
       if (!userId || !material || !topic || !question) {
-        res
-          .status(400)
-          .json({
-            error:
-              'Faltan campos requeridos: userId, material, topic, question.',
-          });
+        res.status(400).json({
+          error: 'Faltan campos requeridos: userId, material, topic, question.',
+        });
         return;
       }
       try {
