@@ -3,10 +3,10 @@ import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { useNavigate } from 'react-router-dom';
 import NotesAndChecklist from './NotesAndChecklist';
+import AssistantIA from './AssistantIA';
 import './Dashboard.css';
-import { Settings } from 'lucide-react'; // Importa el componente de ícono de Lucide React
+import { Settings } from 'lucide-react';
 
-// Interface and types for data remain the same
 export type StudyPlanDay = {
   date: string;
   dayNumber: number;
@@ -76,10 +76,8 @@ const Dashboard: React.FC = () => {
   }> | null>(null);
   const [filteredPlanIds] = useState<(string | number)[]>([]);
 
-  // --- Dummy Data for New Panels ---
   const weeklyBarData = [45, 60, 55, 75, 80, 50, 30];
 
-  // Function to load data from the database
   useEffect(() => {
     const loadUserData = async () => {
       if (!user) return;
@@ -133,7 +131,6 @@ const Dashboard: React.FC = () => {
     loadUserData();
   }, [user, getUserMaterials, getUserStudyPlans]);
 
-  // Utility function to format dates
   const formatDate = (dateString: string) => {
     const date = new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('es-ES', {
@@ -257,7 +254,6 @@ const Dashboard: React.FC = () => {
   };
 
   const handleSettingsClick = () => {
-    // Redirigir a la página de configuración
     navigate('/settings');
   };
 
@@ -282,7 +278,6 @@ const Dashboard: React.FC = () => {
           <span className="user-name">
             {user?.displayName || user?.email || 'Usuario'}
           </span>
-          {/* Aquí el botón con el ícono de Lucide React */}
           <button className="settings-btn" onClick={handleSettingsClick}>
             <Settings size={24} />
           </button>
@@ -375,6 +370,14 @@ const Dashboard: React.FC = () => {
             <div className="event-type exam">Examen</div>
           </div>
         </div>
+      </div>
+
+      {/* AI ASSISTANT PANEL - Reposicionado */}
+      <div className="panel assistant-panel grid-span-12">
+        <div className="panel-title-container">
+          <h3 className="panel-title">Asistente de IA</h3>
+        </div>
+        <AssistantIA />
       </div>
 
       {/* NOTES PANEL */}

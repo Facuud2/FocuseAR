@@ -70,6 +70,15 @@
   }
 }
 
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
 /* =========================================================================
  * 3.0 - BASE & UTILITIES
  * ========================================================================= */
@@ -88,7 +97,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background-color);
   color: var(--text-primary);
-  /* Se eliminan las propiedades de layout directas del body */
   overflow-x: hidden;
   transition: background-color 0.5s ease-in-out;
   background-image: radial-gradient(white, rgba(255, 255, 255, 0.2) 2px, transparent 40px),
@@ -692,7 +700,7 @@ header {
   height: 100%;
   display: flex;
   flex-direction: column;
-  width: 100%; /* Corregido */
+  width: 100%;
 }
 .notes-panel:hover {
   box-shadow: var(--shadow-md);
@@ -970,7 +978,7 @@ header {
 .events-panel {
   display: flex;
   flex-direction: column;
-  width: 100%; /* Corregido */
+  width: 100%;
   width: 420px;
 }
 
@@ -1058,6 +1066,158 @@ header {
 }
 
 /* =========================================================================
+ * 6.0 - ASSISTANT CHAT STYLING
+ * ========================================================================= */
+
+.assistant-panel {
+  grid-column: span 12;
+  display: flex;
+  flex-direction: column;
+  height: 450px; /* Altura ajustada para que no se vea tan alto */
+}
+
+.assistant-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 1rem;
+  margin-top: 100px;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto; /* El scroll funciona correctamente ahora */
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid var(--divider-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+.empty-chat-state {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message-bubble {
+  max-width: 80%;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  position: relative;
+  word-wrap: break-word;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.message-bubble.user {
+  align-self: flex-end;
+  background: var(--primary-neon-color);
+  color: var(--text-inverted);
+  border-bottom-right-radius: 0;
+}
+
+.message-bubble.assistant {
+  align-self: flex-start;
+  background: var(--surface-alt-color);
+  color: var(--text-primary);
+  border-bottom-left-radius: 0;
+  border: 1px solid var(--border-color);
+}
+
+.timestamp {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  opacity: 0.8;
+}
+.message-bubble.user .timestamp {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.loading-indicator {
+  display: flex;
+  gap: 5px;
+  align-self: flex-start;
+  padding: 0.75rem 1rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--primary-neon-color);
+  border-radius: 50%;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: -0.16s;
+}
+
+
+.chat-input-form {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 150px;
+}
+
+.chat-input-form input {
+  flex-grow: 1;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  background: var(--surface-alt-color);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  transition: var(--transition-ease);
+}
+
+.chat-input-form input:focus {
+  outline: none;
+  border-color: var(--secondary-neon-color);
+  box-shadow: 0 0 10px rgba(0, 250, 154, 0.4);
+}
+
+.chat-input-form button {
+  padding: 1rem 2rem;
+  background: var(--primary-neon-color);
+  color: var(--text-inverted);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-ease);
+}
+
+.chat-input-form button:hover {
+  background: var(--secondary-neon-color);
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(0, 250, 154, 0.6);
+}
+
+.chat-input-form button:disabled {
+  background: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================================================================
  * 7.0 - RESPONSIVE DESIGN
  * ========================================================================= */
 
@@ -1083,7 +1243,7 @@ header {
     .dashboard-container {
         grid-template-columns: repeat(4, 1fr);
         padding: 1rem;
-        margin: 0 auto; /* Centrado */
+        margin: 0 auto;
     }
     .grid-span-2 { grid-column: span 2; }
     .grid-span-3 { grid-column: span 4; }
@@ -1097,7 +1257,6 @@ header {
     .grid-span-11 { grid-column: span 4; }
     .grid-span-12 { grid-column: span 4; }
 
-    /* Estilos del sidebar y layout principal para móvil */
     .app-layout {
       flex-direction: column;
     }
@@ -1165,7 +1324,7 @@ header {
 /* Ajustes para monitores grandes */
 @media (min-width: 1920px) {
   :root {
-    font-size: 18px; /* Aumentar tamaño base de fuente */
+    font-size: 18px;
     --radius-sm: 10px;
     --radius-md: 20px;
     --radius-lg: 30px;
