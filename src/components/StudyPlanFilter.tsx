@@ -1,5 +1,5 @@
-import React from 'react';
-import './StudyPlanFilter.css';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import './StudyPlanFilter.css'; // Asegúrate de tener este archivo CSS
 
 interface StudyPlanDay {
   date: string;
@@ -69,13 +69,13 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
   subjects,
   onFilterChange,
 }) => {
-  const [activeFilter, setActiveFilter] = React.useState<FilterType>('all');
-  const [selectedSubjects, setSelectedSubjects] = React.useState<Set<string>>(
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [selectedSubjects, setSelectedSubjects] = useState<Set<string>>(
     new Set(),
   );
 
-  // Función para obtener el próximo examen
-  const getNextExamPlan = React.useCallback((): StudyPlan | null => {
+  // Función para obtener el próximo examen, memoizada
+  const getNextExamPlan = useMemo((): StudyPlan | null => {
     const today = new Date();
     const upcomingPlans = studyPlans
       .filter((plan) => {
@@ -92,13 +92,35 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
     return upcomingPlans.length > 0 ? upcomingPlans[0] : null;
   }, [studyPlans]);
 
-  // Función para obtener materias pendientes (progreso 0)
-  const getPendingPlans = React.useCallback((): StudyPlan[] => {
+  // Función para obtener materias pendientes (progreso 0), memoizada
+  const getPendingPlans = useMemo((): StudyPlan[] => {
     return studyPlans.filter((plan) => plan.progress === 0);
   }, [studyPlans]);
 
-  // Función para aplicar filtros
-  const applyFilter = React.useCallback(
+  // Función para obtener materias únicas, memoizada
+  const uniqueSubjects = useMemo(() => {
+    const subjectNames = new Set(studyPlans.map((plan) => plan.subjectName));
+    return Array.from(subjectNames).map((name) => {
+      const subject = subjects.find((s) => s.name === name);
+      const plansForSubject = studyPlans.filter((p) => p.subjectName === name);
+      const totalProgress = plansForSubject.reduce(
+        (sum, plan) => sum + plan.progress,
+        0,
+      );
+      const avgProgress =
+        plansForSubject.length > 0 ? totalProgress / plansForSubject.length : 0;
+
+      return {
+        name,
+        color: subject?.color || '#4A90E2', // Fallback color for dark theme
+        planCount: plansForSubject.length,
+        avgProgress: Math.round(avgProgress),
+      };
+    });
+  }, [studyPlans, subjects]);
+
+  // Función para aplicar filtros, memoizada
+  const applyFilter = useCallback(
     (filterType: FilterType, selectedSubjectsSet?: Set<string>) => {
       let filteredPlanIds: (string | number)[] = [];
 
@@ -108,14 +130,14 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
           break;
         }
         case 'next-exam': {
-          const nextExamPlan = getNextExamPlan();
+          const nextExamPlan = getNextExamPlan;
           if (nextExamPlan) {
             filteredPlanIds = [nextExamPlan.id];
           }
           break;
         }
         case 'pending': {
-          const pendingPlans = getPendingPlans();
+          const pendingPlans = getPendingPlans;
           filteredPlanIds = pendingPlans.map((plan) => plan.id);
           break;
         }
@@ -130,7 +152,13 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
 
       onFilterChange(filteredPlanIds);
     },
-    [studyPlans, selectedSubjects],
+    [
+      studyPlans,
+      selectedSubjects,
+      getNextExamPlan,
+      getPendingPlans,
+      onFilterChange,
+    ],
   );
 
   // Manejar cambio de filtro principal
@@ -157,84 +185,53 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
     }
   };
 
-  // Obtener todas las materias únicas de los planes de estudio
-  const getUniqueSubjects = () => {
-    const subjectNames = new Set(studyPlans.map((plan) => plan.subjectName));
-    return Array.from(subjectNames).map((name) => {
-      const subject = subjects.find((s) => s.name === name);
-      const plansForSubject = studyPlans.filter((p) => p.subjectName === name);
-      const totalProgress = plansForSubject.reduce(
-        (sum, plan) => sum + plan.progress,
-        0,
-      );
-      const avgProgress =
-        plansForSubject.length > 0 ? totalProgress / plansForSubject.length : 0;
-
-      return {
-        name,
-        color: subject?.color || '#4285F4',
-        planCount: plansForSubject.length,
-        avgProgress: Math.round(avgProgress),
-      };
-    });
-  };
-
-  const uniqueSubjects = getUniqueSubjects();
-  const nextExamPlan = getNextExamPlan();
-  const pendingPlans = getPendingPlans();
-
   // Aplicar filtro inicial
-  React.useEffect(() => {
+  useEffect(() => {
     applyFilter(activeFilter);
-  }, [activeFilter, studyPlans.length]); // Re-aplicar cuando cambien los planes o el filtro activo
+  }, [activeFilter, studyPlans.length, applyFilter]); // Re-aplicar cuando cambien los planes o el filtro activo
 
   return (
     <div className="study-plan-filter">
       <div className="filter-header">
-        <h3>
+        <h3 className="panel-title">
           <i className="fas fa-filter"></i>
-          Filtros de Planes de Estudio
+          Filtros
         </h3>
         <span className="filter-count">
-          {studyPlans.length} plan{studyPlans.length !== 1 ? 'es' : ''} total
-          {studyPlans.length !== 1 ? 'es' : ''}
+          {studyPlans.length} plan{studyPlans.length !== 1 ? 'es' : ''}
         </span>
       </div>
 
-      {/* Filtros predefinidos */}
       <div className="predefined-filters">
         <button
           className={`filter-btn ${activeFilter === 'all' ? 'active' : ''}`}
           onClick={() => handleFilterChange('all')}
         >
           <i className="fas fa-list"></i>
-          Todos los planes
+          Todos
           <span className="count">{studyPlans.length}</span>
         </button>
 
         <button
           className={`filter-btn ${activeFilter === 'next-exam' ? 'active' : ''}`}
           onClick={() => handleFilterChange('next-exam')}
-          disabled={!nextExamPlan}
+          disabled={!getNextExamPlan}
         >
           <i className="fas fa-clock"></i>
-          Próximo examen
-          {nextExamPlan && (
-            <span className="exam-info">
-              {nextExamPlan.subjectName} -{' '}
-              {new Date(nextExamPlan.examDate).toLocaleDateString('es-ES')}
-            </span>
+          Próximo Examen
+          {getNextExamPlan && (
+            <span className="exam-info">{getNextExamPlan.subjectName}</span>
           )}
         </button>
 
         <button
           className={`filter-btn ${activeFilter === 'pending' ? 'active' : ''}`}
           onClick={() => handleFilterChange('pending')}
-          disabled={pendingPlans.length === 0}
+          disabled={getPendingPlans.length === 0}
         >
           <i className="fas fa-exclamation-triangle"></i>
-          Materias pendientes
-          <span className="count">{pendingPlans.length}</span>
+          Pendientes
+          <span className="count">{getPendingPlans.length}</span>
         </button>
 
         <button
@@ -242,12 +239,11 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
           onClick={() => handleFilterChange('selected')}
         >
           <i className="fas fa-check-square"></i>
-          Materias seleccionadas
+          Seleccionados
           <span className="count">{selectedSubjects.size}</span>
         </button>
       </div>
 
-      {/* Lista de materias con checkboxes */}
       {activeFilter === 'selected' && (
         <div className="subjects-list">
           <h4>Seleccionar materias:</h4>
@@ -285,38 +281,6 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
           </div>
         </div>
       )}
-
-      {/* Información adicional */}
-      <div className="filter-info">
-        {activeFilter === 'next-exam' && nextExamPlan && (
-          <div className="info-card next-exam">
-            <i className="fas fa-calendar-check"></i>
-            <div>
-              <strong>Próximo examen:</strong> {nextExamPlan.subjectName}
-              <br />
-              <span className="exam-date">
-                {new Date(nextExamPlan.examDate).toLocaleDateString('es-ES', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {activeFilter === 'pending' && pendingPlans.length > 0 && (
-          <div className="info-card pending">
-            <i className="fas fa-hourglass-start"></i>
-            <div>
-              <strong>Materias sin progreso:</strong>
-              <br />
-              {pendingPlans.map((plan) => plan.subjectName).join(', ')}
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };

@@ -1,194 +1,422 @@
 // src/components/StudySchedule.tsx
-
-import { useState } from 'react';
-import './StudySchedule.css';
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  type JSX,
+} from 'react';
+import { useDatabase } from '../hooks/useDatabase';
+import { AuthContext } from '../hooks/authContext';
 import { Plus, BookOpen, Clock, AlertCircle } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import './StudySchedule.css';
 
-// Define el tipo para un evento
-interface Event {
+// Tipado para los eventos del calendario
+interface CalendarEvent {
   type: 'study' | 'exam' | 'task';
   title: string;
   time: string;
+  date: string;
+  color?: string;
 }
 
-// Define el tipo para el objeto de eventos, permitiendo cualquier clave de string
-interface Events {
-  [key: string]: Event[];
-}
-
-// Datos de ejemplo para el calendario
-const initialEvents: Events = {
-  '2025-09-09': [
-    { type: 'study', title: 'Matemáticas Avanzadas', time: '10:00 - 12:00' },
-    { type: 'exam', title: 'Examen de Física', time: '14:00' },
-  ],
-  '2025-09-12': [
-    { type: 'study', title: 'Historia de España', time: '09:00 - 10:30' },
-  ],
-  '2025-09-15': [
-    { type: 'task', title: 'Entregar ensayo de Química', time: '18:00' },
-  ],
+// Tipado para los datos de la base de datos
+type StudyPlanDay = {
+  date: string;
+  dayNumber: number;
+  topics: {
+    name: string;
+    summary: string;
+    estimatedTime: string;
+  }[];
+  totalTime: string;
+  recommendations: string;
+  completed: boolean;
+  title?: string;
 };
 
-const StudySchedule = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [events] = useState(initialEvents);
+// CORRECCIÓN: Nuevo tipo para Pdf
+interface Pdf {
+  id: number;
+  name: string;
+  size: string;
+}
 
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startDay = firstDay.getDay(); // 0 = Sunday, 1 = Monday...
-    const days = [];
+interface Subject {
+  id: string | number;
+  name: string;
+  examDate: string;
+  color: string;
+  pdfs: Pdf[]; // CORRECCIÓN: Tipo ahora es Pdf[]
+  importantDates: {
+    name: string;
+    date: string;
+    type: 'exam' | 'tp' | 'other';
+  }[];
+}
 
-    // Fill with empty days from the previous month
-    for (let i = 0; i < startDay; i++) {
-      days.push(null);
+interface StudyPlan {
+  id?: string;
+  subjectName: string;
+  eventName: string;
+  examDate: string;
+  topics: string[];
+  studyDays: string[];
+  structuredPlan?: {
+    title: string;
+    summary: string;
+    days: StudyPlanDay[];
+    finalRecommendations: string;
+  };
+}
+
+const StudySchedule: React.FC = () => {
+  const { user } = useContext(AuthContext);
+  const { getUserMaterials, getUserStudyPlans } = useDatabase();
+
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
+  const [localEvents, setLocalEvents] = useState<CalendarEvent[]>([]);
+
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  const [newEvent, setNewEvent] = useState<{
+    title: string;
+    type: 'study' | 'exam' | 'task';
+    date: Date | null;
+    time: string;
+  }>({
+    title: '',
+    type: 'study',
+    date: null,
+    time: '',
+  });
+
+  // CORRECCIÓN: Envolvemos loadUserData en useCallback para evitar el warning
+  const loadUserData = useCallback(async () => {
+    if (!user) return;
+    try {
+      const materials = await getUserMaterials();
+      const convertedSubjects: Subject[] = materials.map((material, index) => ({
+        id: material.id || `subject-${Date.now()}-${index}`,
+        name: material.fileName.replace(/\.(pdf|docx|doc)$/i, ''),
+        examDate: '',
+        color: '#4285F4',
+        pdfs: [],
+        importantDates: [],
+      }));
+      setSubjects(convertedSubjects);
+
+      const plans = await getUserStudyPlans();
+      const convertedPlans: StudyPlan[] = plans.map((plan) => ({
+        id: plan.id,
+        subjectName: plan.generatedPlan.title || 'Plan de Estudio',
+        eventName: 'Examen',
+        examDate: plan.generatedPlan.examDate || '',
+        topics: plan.generatedPlan.topics || [],
+        studyDays: plan.generatedPlan.studyDates || [],
+        structuredPlan: plan.generatedPlan.structuredPlan || undefined,
+      }));
+      setStudyPlans(convertedPlans);
+    } catch (error) {
+      console.error('Error al cargar datos del usuario:', error);
     }
-    // Fill with days of the current month
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(new Date(year, month, i));
+  }, [user, getUserMaterials, getUserStudyPlans]);
+
+  // CORRECCIÓN: El array de dependencias ahora solo incluye loadUserData
+  useEffect(() => {
+    loadUserData();
+  }, [loadUserData]);
+
+  const changeMonth = (dir: number) => {
+    let m = currentMonth + dir,
+      y = currentYear;
+    if (m < 0) {
+      m = 11;
+      y--;
+    }
+    if (m > 11) {
+      m = 0;
+      y++;
+    }
+    setCurrentMonth(m);
+    setCurrentYear(y);
+  };
+
+  const getCombinedEvents = () => {
+    const combinedEvents: { [date: string]: CalendarEvent[] } = {};
+
+    studyPlans.forEach((plan) => {
+      if (plan.structuredPlan?.days) {
+        plan.structuredPlan.days.forEach((day) => {
+          const dateStr = day.date;
+          if (!combinedEvents[dateStr]) combinedEvents[dateStr] = [];
+
+          const subject = subjects.find((s) => s.name === plan.subjectName);
+          combinedEvents[dateStr].push({
+            type: 'study',
+            title: day.title || plan.subjectName,
+            time: day.totalTime || '',
+            date: dateStr,
+            color: subject?.color || '#1a73e8',
+          });
+        });
+      }
+    });
+
+    localEvents.forEach((event) => {
+      const dateStr = event.date;
+      if (!combinedEvents[dateStr]) combinedEvents[dateStr] = [];
+      combinedEvents[dateStr].push(event);
+    });
+
+    return combinedEvents;
+  };
+
+  const combinedEvents = getCombinedEvents();
+
+  const renderDays = () => {
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    let startDay = firstDay.getDay();
+    if (startDay === 0) startDay = 6;
+    else startDay--;
+
+    const today = new Date();
+    const days: JSX.Element[] = [];
+
+    for (let i = 0; i < startDay; i++) {
+      days.push(
+        <div key={'empty-' + i} className="calendar-cell empty-cell"></div>,
+      );
+    }
+
+    const MAX_EVENTS_PER_CELL = 2;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(currentYear, currentMonth, d);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const isToday =
+        today.getDate() === d &&
+        today.getMonth() === currentMonth &&
+        today.getFullYear() === currentYear;
+      const eventsForDay = combinedEvents[dateStr] || [];
+
+      const displayedEvents = eventsForDay.slice(0, MAX_EVENTS_PER_CELL);
+      const remainingEventsCount = eventsForDay.length - displayedEvents.length;
+
+      days.push(
+        <div key={d} className={`calendar-cell ${isToday ? 'today' : ''}`}>
+          <div className="day-number">{d}</div>
+          {displayedEvents.map((event, idx) => (
+            <div
+              key={idx}
+              className={`event event-${event.type}`}
+              style={{ backgroundColor: event.color }}
+              title={event.title + (event.time ? ` (${event.time}h)` : '')}
+            >
+              <span className="event-title">{event.title}</span>
+            </div>
+          ))}
+          {remainingEventsCount > 0 && (
+            <div className="more-events-indicator">
+              +{remainingEventsCount} más
+            </div>
+          )}
+        </div>,
+      );
     }
     return days;
   };
 
-  const daysInMonth = getDaysInMonth(currentDate);
-
-  const handleNextMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
-    );
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    if (name === 'type' && ['study', 'exam', 'task'].includes(value)) {
+      setNewEvent({ ...newEvent, [name]: value as 'study' | 'exam' | 'task' });
+    } else {
+      setNewEvent({ ...newEvent, [name]: value as string | null });
+    }
   };
 
-  const handlePrevMonth = () => {
-    setCurrentDate(
-      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1),
-    );
+  const handleAddEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newEvent.title && newEvent.date) {
+      const dateStr = format(newEvent.date, 'yyyy-MM-dd');
+      const newLocalEvent: CalendarEvent = {
+        title: newEvent.title,
+        type: newEvent.type,
+        date: dateStr,
+        time: newEvent.time,
+        color:
+          newEvent.type === 'study'
+            ? '#4285F4'
+            : newEvent.type === 'exam'
+              ? '#EA4335'
+              : '#FBBC05',
+      };
+      setLocalEvents([...localEvents, newLocalEvent]);
+      setNewEvent({ title: '', type: 'study', date: null, time: '' });
+    }
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const upcomingEvents = localEvents
+    .filter((event) => {
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      return eventDate >= todayDate;
+    })
+    .sort((a, b) => {
+      const dateComparison =
+        new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (dateComparison !== 0) return dateComparison;
+      if (a.time && b.time) {
+        const [hA, mA] = a.time.split(':').map(Number);
+        const [hB, mB] = b.time.split(':').map(Number);
+        return hA * 60 + mA - (hB * 60 + mB);
+      }
+      return 0;
+    });
 
   return (
     <div className="schedule-container">
       <header className="schedule-header">
         <h1 className="schedule-title">Mi Horario de Estudio</h1>
         <p className="schedule-subtitle">
-          Organiza tus sesiones, tareas y exámenes para un mes productivo.
+          Organiza tus sesiones, tareas y exámenes en un solo lugar.
         </p>
       </header>
 
       <div className="schedule-main-content">
-        {/* Calendar Section */}
         <div className="schedule-calendar-panel">
           <div className="calendar-header">
-            <button className="calendar-nav-btn" onClick={handlePrevMonth}>
+            <button
+              className="calendar-nav-btn"
+              onClick={() => changeMonth(-1)}
+            >
               &lt;
             </button>
             <h3 className="calendar-month-year">
-              {currentDate.toLocaleString('es-ES', {
-                month: 'long',
-                year: 'numeric',
+              {format(new Date(currentYear, currentMonth), 'MMMM yyyy', {
+                locale: es,
               })}
             </h3>
-            <button className="calendar-nav-btn" onClick={handleNextMonth}>
+            <button className="calendar-nav-btn" onClick={() => changeMonth(1)}>
               &gt;
             </button>
           </div>
           <div className="calendar-grid">
-            {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day) => (
+            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
               <div key={day} className="weekday-header">
                 {day}
               </div>
             ))}
-            {daysInMonth.map((day, index) => (
-              <div
-                key={index}
-                className={`calendar-cell ${day && day.toISOString().split('T')[0] === today ? 'today' : ''}`}
-              >
-                {day && (
-                  <>
-                    <span className="day-number">{day.getDate()}</span>
-                    {(events[day.toISOString().split('T')[0]] || []).map(
-                      (event, eventIndex) => (
-                        <div
-                          key={eventIndex}
-                          className={`event event-${event.type}`}
-                        >
-                          {event.title}
-                        </div>
-                      ),
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
+            {renderDays()}
           </div>
         </div>
 
-        {/* Form to add events */}
-        <div className="add-event-panel">
-          <h2 className="panel-title">
-            <Plus className="panel-icon" /> Añadir Nuevo Evento
-          </h2>
-          <form className="event-form">
-            <div className="form-group">
-              <label htmlFor="event-title">Título del Evento</label>
-              <input type="text" id="event-title" name="title" required />
-            </div>
-            <div className="form-group">
-              <label htmlFor="event-type">Tipo de Evento</label>
-              <select id="event-type" name="type">
-                <option value="study">Sesión de Estudio</option>
-                <option value="exam">Examen</option>
-                <option value="task">Tarea/Entrega</option>
-              </select>
-            </div>
-            <div className="flex-group">
+        <div className="schedule-sidebar">
+          <div className="add-event-panel panel">
+            <h2 className="panel-title">
+              <Plus className="panel-icon" /> Añadir Nuevo Evento
+            </h2>
+            <form className="event-form" onSubmit={handleAddEvent}>
               <div className="form-group">
-                <label htmlFor="event-date">Fecha</label>
-                <input type="date" id="event-date" name="date" required />
+                <label htmlFor="event-title">Título del Evento</label>
+                <input
+                  type="text"
+                  id="event-title"
+                  name="title"
+                  value={newEvent.title}
+                  onChange={handleInputChange}
+                  required
+                />
               </div>
               <div className="form-group">
-                <label htmlFor="event-time">Hora</label>
-                <input type="time" id="event-time" name="time" />
+                <label htmlFor="event-type">Tipo de Evento</label>
+                <select
+                  id="event-type"
+                  name="type"
+                  value={newEvent.type}
+                  onChange={handleInputChange}
+                >
+                  <option value="study">Sesión de Estudio</option>
+                  <option value="exam">Examen</option>
+                  <option value="task">Tarea/Entrega</option>
+                </select>
               </div>
-            </div>
-            <button type="submit" className="add-event-btn">
-              <Plus size={18} />
-              Programar Evento
-            </button>
-          </form>
-        </div>
+              <div className="flex-group">
+                <div className="form-group">
+                  <label>Fecha</label>
+                  <DatePicker
+                    selected={newEvent.date}
+                    onChange={(date) => setNewEvent({ ...newEvent, date })}
+                    dateFormat="dd/MM/yyyy"
+                    locale={es}
+                    className="full-width-input"
+                    placeholderText="Selecciona una fecha"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="event-time">Hora</label>
+                  <input
+                    type="time"
+                    id="event-time"
+                    name="time"
+                    value={newEvent.time}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              </div>
+              <button type="submit" className="add-event-btn">
+                <Plus size={18} /> Programar Evento
+              </button>
+            </form>
+          </div>
 
-        {/* Upcoming Tasks List */}
-        <div className="upcoming-panel">
-          <h2 className="panel-title">
-            <Clock className="panel-icon" /> Próximas Tareas
-          </h2>
-          <ul className="upcoming-list">
-            <li className="upcoming-item">
-              <div className="item-icon task">
-                <AlertCircle size={20} />
-              </div>
-              <div className="item-details">
-                <span className="item-title">Entregar ensayo de Química</span>
-                <span className="item-date">lunes, 15 de septiembre</span>
-              </div>
-              <span className="item-time">18:00h</span>
-            </li>
-            <li className="upcoming-item">
-              <div className="item-icon study">
-                <BookOpen size={20} />
-              </div>
-              <div className="item-details">
-                <span className="item-title">Estudiar Historia de España</span>
-                <span className="item-date">jueves, 12 de septiembre</span>
-              </div>
-              <span className="item-time">09:00h</span>
-            </li>
-          </ul>
+          <div className="upcoming-panel panel">
+            <h2 className="panel-title">
+              <Clock className="panel-icon" /> Próximas Tareas
+            </h2>
+            <ul className="upcoming-list">
+              {upcomingEvents.length === 0 ? (
+                <p className="empty-state-text">No hay eventos próximos.</p>
+              ) : (
+                upcomingEvents.map((event, index) => (
+                  <li key={index} className="upcoming-item">
+                    <div className={`item-icon ${event.type}`}>
+                      {event.type === 'study' && <BookOpen size={20} />}
+                      {event.type === 'exam' && <AlertCircle size={20} />}
+                      {event.type === 'task' && <Clock size={20} />}
+                    </div>
+                    <div className="item-details">
+                      <span className="item-title">{event.title}</span>
+                      <span className="item-date">
+                        {event.date
+                          ? format(
+                              new Date(event.date + 'T' + event.time),
+                              'EEEE, dd MMMM',
+                              { locale: es },
+                            )
+                          : ''}
+                      </span>
+                    </div>
+                    <span className="item-time">{event.time}h</span>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
         </div>
       </div>
     </div>
