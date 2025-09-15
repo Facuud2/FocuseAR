@@ -138,10 +138,12 @@ const Subjects: React.FC = () => {
           (material, index) => {
             const subjectId = material.id || `subject-${Date.now()}-${index}`;
             return {
-              id: subjectId,
-              name: material.fileName.replace(/\.(pdf|docx|doc)$/i, ''),
-              examDate: '',
-              color: '#4285F4',
+              id: subjectId, // Usar string directamente, no parseInt
+              name:
+                material.subjectName ||
+                material.fileName.replace(/\.(pdf|docx|doc)$/i, ''), // CORREGIDO: Usar subjectName primero, con fallback a fileName para compatibilidad
+              examDate: material.examDate || '', // CORREGIDO: Usar la fecha del examen guardada en Firebase
+              color: material.color || '#4285F4', // CORREGIDO: Usar el color guardado en Firebase
               pdfs: [
                 {
                   id: 1,
@@ -149,7 +151,7 @@ const Subjects: React.FC = () => {
                   size: '0 MB',
                 },
               ],
-              importantDates: [],
+              importantDates: material.importantDates || [], // CORREGIDO: Usar las fechas importantes guardadas en Firebase
             };
           },
         );
@@ -161,6 +163,7 @@ const Subjects: React.FC = () => {
           return {
             id: planId,
             subjectName: plan.generatedPlan.title || 'Plan de Estudio',
+            subjectColor: plan.generatedPlan.subjectColor || '#4285F4', // CORREGIDO: Cargar el color guardado en Firebase
             eventName: 'Examen',
             examDate: plan.generatedPlan.examDate || '',
             topics: plan.generatedPlan.topics || [],
@@ -175,12 +178,6 @@ const Subjects: React.FC = () => {
           };
         });
         setStudyPlans(convertedPlans);
-        if (
-          studyPlans.length > 0 &&
-          studyPlans[0].generatedPlan.selectedWeekDays
-        ) {
-          setSelectedWeekDays(studyPlans[0].generatedPlan.selectedWeekDays);
-        }
       } catch (error: unknown) {
         console.error('Error al cargar datos del usuario:', error);
       }
@@ -243,8 +240,10 @@ const Subjects: React.FC = () => {
       if (pdfs.length > 0) {
         const materialId = await createMaterial({
           fileName: pdfs[0].name,
+          subjectName: subjectName,
           storagePath: `materials/${user?.uid}/${pdfs[0].name}`,
           fileType: 'pdf',
+          color: selectedColor,
         });
 
         if (materialId) {
