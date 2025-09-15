@@ -132,8 +132,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  position: relative;
-  margin-left: 10vh;}
+  position: relative;}
 
 .main-content-grid {
   display: grid;
