@@ -7,7 +7,7 @@ import { extractTextFromPDF } from '../services/PDFTextExtractor';
 import SelectorDeColor from './SelectorDeColor';
 import { AnalysisModal } from './AnalysisModal';
 import 'react-datepicker/dist/react-datepicker.css';
-import './Dashboard.css';
+import './Subjects.css'; // Asegúrate que la importación sea correcta
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -80,7 +80,6 @@ const Subjects: React.FC = () => {
   const { user } = useContext(AuthContext);
   const {
     loading: dbLoading,
-    error: dbError,
     getUserMaterials,
     getUserStudyPlans,
     createMaterial,
@@ -748,1272 +747,438 @@ Genera el JSON del plan de estudio:`;
   };
 
   return (
-    <div className="left-panel">
-      <div className="panel">
-        <h2>
-          <i className="fas fa-book"></i> Nueva Materia
-        </h2>
-        <div className="form-group">
-          <label>Nombre</label>
-          <input
-            type="text"
-            value={subjectName}
-            onChange={(e) => setSubjectName(e.target.value)}
-            placeholder="Ej: Álgebra Lineal"
-          />
-          {
-            <div className="dates-section">
-              <h4
-                style={{
-                  marginBottom: '15px',
-                  color: '#333',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                }}
-              >
-                Fechas Importantes
-              </h4>
-              <div className="form-group">
-                <label>Fecha Primer Parcial</label>
-                <DatePicker
-                  selected={firstPartialDate}
-                  onChange={(date: Date | null) => setFirstPartialDate(date)}
-                  dateFormat="P"
-                  locale={es}
-                  className="w-full p-2 border rounded"
-                  placeholderText="Selecciona una fecha"
-                  minDate={new Date()}
-                />
-              </div>
-              {otherDates.map((otherDate, index) => (
-                <div
-                  key={`other-date-${otherDate.id || index}`}
-                  className="form-group"
-                  style={{
-                    display: 'flex',
-                    gap: '10px',
-                    alignItems: 'end',
-                  }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <label>Nombre del Evento</label>
-                    <input
-                      type="text"
-                      placeholder="ej: Entrega Proyecto Final"
-                      value={otherDate.name}
-                      onChange={(e) =>
-                        updateOtherDate(otherDate.id, 'name', e.target.value)
-                      }
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label>Fecha</label>
-                    <DatePicker
-                      selected={otherDate.date}
-                      onChange={(date: Date | null) =>
-                        updateOtherDate(otherDate.id, 'date', date)
-                      }
-                      dateFormat="P"
-                      locale={es}
-                      className="w-full p-2 border rounded"
-                      placeholderText="Selecciona una fecha"
-                      minDate={new Date()}
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeOtherDate(otherDate.id)}
-                    style={{
-                      backgroundColor: '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      padding: '8px 12px',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                    }}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={addOtherDate}
-                style={{
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '10px 15px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  marginTop: '10px',
-                }}
-              >
-                + Agregar OTROS
-              </button>
-            </div>
-          }
+    <div className="subjects-container">
+      {/* ===== COLUMNA IZQUIERDA ===== */}
+      <div className="subjects-left-column">
+        <div className="panel">
+          <h2>
+            <i className="fas fa-book"></i> Nueva Materia
+          </h2>
           <div className="form-group">
-            <label>Color</label>
-            <div
-              className="color-options"
-              style={{ display: 'flex', gap: '8px' }}
-            >
-              {['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9b59b6'].map(
-                (c) => (
-                  <div
-                    key={c}
-                    className={`color-option ${selectedColor === c ? 'selected' : ''}`}
-                    style={{
-                      backgroundColor: c,
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      border:
-                        selectedColor === c
-                          ? '2px solid #000'
-                          : '1px solid #ccc',
-                    }}
-                    onClick={() => setSelectedColor(c)}
-                  />
-                ),
-              )}
-              <div style={{ position: 'relative' }}>
-                <SelectorDeColor
-                  color={selectedColor}
-                  onChange={setSelectedColor}
-                />
-              </div>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  pointerEvents: 'none',
-                }}
-                title="Elegir color"
-              >
-                ...
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="pdf-section">
-          <h3>
-            <i className="fas fa-file-pdf"></i> Programa de la materia (PDF)
-          </h3>
-          <div
-            className={`upload-area${dragActive ? ' dragover' : ''}`}
-            onClick={() => {
-              if (!analysisStatus.isAnalyzing) {
-                document.getElementById('pdf-upload')?.click();
-              }
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (!analysisStatus.isAnalyzing) {
-                setDragActive(true);
-              }
-            }}
-            onDragLeave={() => setDragActive(false)}
-            onDrop={async (e) => {
-              e.preventDefault();
-              setDragActive(false);
-              if (analysisStatus.isAnalyzing) return;
-              const files = Array.from(e.dataTransfer.files).filter(
-                (f) => f.type === 'application/pdf',
-              );
-              if (pdfs.length + files.length > 5) {
-                console.log('Máximo 5 archivos PDF permitidos');
-                return;
-              }
-              const newPdfs = files.map((file) => ({
-                id: Date.now() + Math.random(),
-                name: file.name,
-                size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-              }));
-              setPdfs([...pdfs, ...newPdfs]);
-              if (files.length > 0 && subjectName.trim()) {
-                await processPDFWithGemini(files[0]);
-              }
-            }}
-            style={{
-              cursor: analysisStatus.isAnalyzing ? 'wait' : 'pointer',
-              opacity: analysisStatus.isAnalyzing ? 0.7 : 1,
-              position: 'relative',
-            }}
-          >
+            <label>Nombre</label>
             <input
-              id="pdf-upload"
-              type="file"
-              multiple
-              accept=".pdf"
-              style={{ display: 'none' }}
-              onChange={handlePdfUpload}
+              type="text"
+              value={subjectName}
+              onChange={(e) => setSubjectName(e.target.value)}
+              placeholder="Ej: Álgebra Lineal"
             />
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
-                <path
-                  d="M24 32V18M24 18L18 24M24 18L30 24"
-                  stroke="#4285F4"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M36 36H12C8.68629 36 6 33.3137 6 30C6 26.6863 8.68629 24 12 24H14.5C15.3284 24 16 23.3284 16 22.5C16 19.4624 18.4624 17 21.5 17C23.9853 17 26 19.0147 26 21.5V22.5C26 23.3284 26.6716 24 27.5 24H36C39.3137 24 42 26.6863 42 30C42 33.3137 39.3137 36 36 36Z"
-                  stroke="#4285F4"
-                  strokeWidth="2"
-                />
-              </svg>
-              <span
-                style={{
-                  marginTop: '10px',
-                  color: analysisStatus.isAnalyzing ? '#f59e0b' : '#4285F4',
-                  fontWeight: '500',
-                  fontSize: '15px',
-                  textAlign: 'center',
-                }}
-              >
-                {analysisStatus.isAnalyzing
-                  ? '🤖 Procesando PDF con IA...'
-                  : 'Haz click o arrastra el contenido de la materia'}
-              </span>
-            </div>
-            {pdfs.length > 0 && (
-              <div style={{ width: '100%', marginTop: '15px' }}>
+            {
+              <div className="dates-section">
                 <h4
                   style={{
-                    margin: '10px 0',
-                    fontSize: '14px',
-                    color: '#4B5563',
+                    marginBottom: '15px',
+                    color: '#333',
+                    fontSize: '16px',
+                    fontWeight: '600',
                   }}
                 >
-                  Archivos cargados:
+                  Fechas Importantes
                 </h4>
-                <div
-                  style={{
-                    maxHeight: '150px',
-                    overflowY: 'auto',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    padding: '8px',
-                  }}
-                >
-                  {pdfs.map((pdf, index) => (
-                    <div
-                      key={`pdf-${pdf.id || index}`}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '6px 10px',
-                        backgroundColor: '#F9FAFB',
-                        marginBottom: '6px',
-                        borderRadius: '4px',
-                        borderLeft: '3px solid #3B82F6',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                        >
-                          <path
-                            d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z"
-                            fill="#EF4444"
-                          />
-                          <path d="M14 2V8H20" fill="#FECACA" />
-                          <path d="M14 2L20 8H14V2Z" fill="#FCA5A5" />
-                        </svg>
-                        <span style={{ fontSize: '13px' }}>{pdf.name}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span
-                          style={{
-                            fontSize: '12px',
-                            color: '#6B7280',
-                            marginRight: '8px',
-                          }}
-                        >
-                          {pdf.size}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removePdf(pdf.id);
-                          }}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#EF4444',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '24px',
-                            height: '24px',
-                            borderRadius: '4px',
-                            transition: 'background-color 0.2s',
-                          }}
-                          onMouseOver={(e) =>
-                            (e.currentTarget.style.backgroundColor = '#FEE2E2')
-                          }
-                          onMouseOut={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              'transparent')
-                          }
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="form-group">
+                  <label>Fecha Primer Parcial</label>
+                  <DatePicker
+                    selected={firstPartialDate}
+                    onChange={(date: Date | null) => setFirstPartialDate(date)}
+                    dateFormat="P"
+                    locale={es}
+                    className="w-full p-2 border rounded"
+                    placeholderText="Selecciona una fecha"
+                    minDate={new Date()}
+                  />
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-        <button
-          className="planify-btn"
-          onClick={handlePlanify}
-          disabled={dbLoading || !user}
-        >
-          {dbLoading ? (
-            <span>⏳ Guardando...</span>
-          ) : (
-            <span>
-              <i className="fas fa-upload"></i> Cargar materia
-            </span>
-          )}
-        </button>
-      </div>
-      {analysisStatus.isAnalyzing && (
-        <div
-          style={{
-            backgroundColor: '#FEF3C7',
-            border: '1px solid #F59E0B',
-            borderRadius: '6px',
-            padding: '15px',
-            marginTop: '15px',
-            color: '#92400E',
-            textAlign: 'center',
-          }}
-        >
-          <strong>🤖 Procesando PDF con IA...</strong>
-          <div style={{ fontSize: '12px', marginTop: '5px' }}>
-            Por favor espera mientras Gemini analiza el contenido
-          </div>
-          <div
-            style={{
-              fontSize: '11px',
-              marginTop: '8px',
-              fontStyle: 'italic',
-            }}
-          >
-            📊 Revisa la consola del navegador para ver el progreso detallado
-          </div>
-        </div>
-      )}
-      {dbError && (
-        <div
-          style={{
-            backgroundColor: '#FEF2F2',
-            border: '1px solid #FECACA',
-            borderRadius: '6px',
-            padding: '15px',
-            marginTop: '15px',
-            color: '#DC2626',
-          }}
-        >
-          <strong>❌ Error en base de datos:</strong> {dbError}
-        </div>
-      )}
-      {user && (
-        <div
-          style={{
-            backgroundColor: '#ECFDF5',
-            border: '1px solid #BBF7D0',
-            borderRadius: '6px',
-            padding: '10px',
-            marginTop: '15px',
-            color: '#047857',
-            fontSize: '14px',
-          }}
-        >
-          <strong>✅ Conectado a Firestore como:</strong> {user.email}
-        </div>
-      )}
-      {extractedTopics.length > 0 && (
-        <div
-          style={{
-            backgroundColor: '#f0f9ff',
-            border: '1px solid #0ea5e9',
-            borderRadius: '6px',
-            padding: '10px',
-            marginTop: '10px',
-            fontSize: '12px',
-          }}
-        >
-          <strong>🔍 DEBUG - Temas extraídos por IA:</strong>
-          <div>Total: {extractedTopics.length} temas</div>
-          <div
-            style={{
-              maxHeight: '100px',
-              overflowY: 'auto',
-              marginTop: '5px',
-            }}
-          >
-            {extractedTopics.map((topic, i) => (
-              <div
-                key={`extracted-topic-${topic.id || i}`}
-                style={{ marginBottom: '2px' }}
-              >
-                {i + 1}. {topic.name}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      <div className="panel">
-        <h2>
-          <i className="fas fa-list"></i> Mis Materias
-        </h2>
-        {subjects.length === 0 ? (
-          <div className="empty-state">
-            <i className="fas fa-book-open"></i>
-            <p>No hay materias planificadas</p>
-            <small>Agrega tu primera materia arriba</small>
-          </div>
-        ) : (
-          <div className="subjects-grid">
-            {subjects.map((subject, index) => {
-              const initial = subject.name.charAt(0).toUpperCase();
-              return (
-                <div
-                  key={`subject-${subject.id || index}`}
-                  className="subject-card"
-                >
-                  <div className="subject-header">
-                    <div
-                      className="subject-icon"
-                      style={{ backgroundColor: subject.color }}
-                    >
-                      <span>{initial}</span>
+                {otherDates.map((otherDate, index) => (
+                  <div
+                    key={`other-date-${otherDate.id || index}`}
+                    className="form-group"
+                    style={{
+                      display: 'flex',
+                      gap: '10px',
+                      alignItems: 'end',
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <label>Nombre del Evento</label>
+                      <input
+                        type="text"
+                        placeholder="ej: Entrega Proyecto Final"
+                        value={otherDate.name}
+                        onChange={(e) =>
+                          updateOtherDate(otherDate.id, 'name', e.target.value)
+                        }
+                      />
                     </div>
-                    <div className="subject-info">
-                      <h3 className="subject-name">{subject.name}</h3>
-                      <p className="subject-date">
-                        <i className="fas fa-calendar-alt"></i>
-                        {subject.examDate && subject.examDate !== ''
-                          ? new Date(subject.examDate).toLocaleDateString(
-                              'es-ES',
-                            )
-                          : 'Fecha no definida'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="subject-footer">
-                    <span className="pdf-count">
-                      <i className="fas fa-file-pdf"></i>
-                      {subject.pdfs.length} PDF(s)
-                    </span>
-                    <div className="subject-progress">
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill"
-                          style={{
-                            width: `${Math.min(100, (subject.pdfs.length / 5) * 100)}%`,
-                            backgroundColor: subject.color,
-                          }}
-                        ></div>
-                      </div>
-                      <span className="progress-text">
-                        {subject.pdfs.length}/5
-                      </span>
+                    <div style={{ flex: 1 }}>
+                      <label>Fecha</label>
+                      <DatePicker
+                        selected={otherDate.date}
+                        onChange={(date: Date | null) =>
+                          updateOtherDate(otherDate.id, 'date', date)
+                        }
+                        dateFormat="P"
+                        locale={es}
+                        className="w-full p-2 border rounded"
+                        placeholderText="Selecciona una fecha"
+                        minDate={new Date()}
+                      />
                     </div>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (
-                          confirm(
-                            `¿Estás seguro de que quieres eliminar la materia "${subject.name}" y todos sus planes de estudio asociados?`,
-                          )
-                        ) {
-                          deleteSubject(subject.id);
-                        }
-                      }}
+                      type="button"
+                      onClick={() => removeOtherDate(otherDate.id)}
                       style={{
                         backgroundColor: '#ef4444',
                         color: 'white',
                         border: 'none',
-                        borderRadius: '6px',
-                        padding: '6px 10px',
+                        borderRadius: '4px',
+                        padding: '8px 12px',
                         cursor: 'pointer',
-                        fontSize: '12px',
-                        fontWeight: '500',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginTop: '8px',
-                        transition: 'background-color 0.2s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#dc2626';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ef4444';
+                        fontSize: '14px',
                       }}
                     >
-                      <i className="fas fa-trash"></i>
                       Eliminar
                     </button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      <div className="panel">
-        <h2>
-          <i className="fas fa-calendar-check"></i> Planificación
-        </h2>
-        {subjects.length === 0 ? (
-          <p>Primero debes cargar una materia para poder planificar</p>
-        ) : (
-          <div>
-            <div className="form-group">
-              <label>Seleccionar Materia</label>
-              <select
-                value={selectedSubjectForPlanning || ''}
-                onChange={(e) => {
-                  const subjectId = e.target.value
-                    ? parseInt(e.target.value)
-                    : null;
-                  setSelectedSubjectForPlanning(subjectId);
-                  setSelectedEvent('');
-                  setTopics([]);
-                  setSelectedWeekDays([]);
-                }}
-              >
-                <option value="">-- Selecciona una materia --</option>
-                {subjects.map((subject, index) => (
-                  <option
-                    key={`option-${subject.id || index}`}
-                    value={subject.id || ''}
-                  >
-                    {subject.name}
-                  </option>
                 ))}
-              </select>
-            </div>
-            {selectedSubjectForPlanning && (
-              <div>
-                <div className="form-group">
-                  <label>Seleccionar Evento</label>
-                  <select
-                    value={selectedEvent}
-                    onChange={(e) => {
-                      setSelectedEvent(e.target.value);
-                      setTopics([]);
-                      setSelectedWeekDays([]);
-                    }}
-                  >
-                    <option value="">-- Selecciona un evento --</option>
-                    <option value="primer-parcial">Primer Parcial</option>
-                    <option value="final">Final</option>
-                  </select>
-                </div>
-                {selectedEvent && (
-                  <div>
-                    {extractedTopics.length > 0 && (
-                      <div style={{ marginBottom: '20px' }}>
-                        <h4
-                          style={{
-                            marginBottom: '10px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            color: '#4285F4',
-                          }}
-                        >
-                          🤖 Temas extraídos por IA del PDF (
-                          {extractedTopics.length} temas encontrados):
-                        </h4>
-                        <div
-                          style={{
-                            maxHeight: '200px',
-                            overflowY: 'auto',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '6px',
-                            padding: '10px',
-                            backgroundColor: '#f9fafb',
-                          }}
-                        >
-                          {extractedTopics.map((extractedTopic, index) => {
-                            const isAlreadyAdded = topics.some(
-                              (t) =>
-                                t.name.toLowerCase() ===
-                                extractedTopic.name.toLowerCase(),
-                            );
-                            return (
-                              <div
-                                key={`planning-topic-${extractedTopic.id || index}`}
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  padding: '8px',
-                                  backgroundColor: isAlreadyAdded
-                                    ? '#dcfce7'
-                                    : 'white',
-                                  borderRadius: '4px',
-                                  marginBottom: '5px',
-                                  border: isAlreadyAdded
-                                    ? '1px solid #16a34a'
-                                    : '1px solid #e5e7eb',
-                                }}
-                              >
-                                <div>
-                                  <span style={{ fontWeight: '500' }}>
-                                    {index + 1}. {extractedTopic.name}
-                                  </span>
-                                  {extractedTopic.description && (
-                                    <div
-                                      style={{
-                                        fontSize: '12px',
-                                        color: '#666',
-                                        marginTop: '2px',
-                                      }}
-                                    >
-                                      {extractedTopic.description}
-                                    </div>
-                                  )}
-                                </div>
-                                <button
-                                  onClick={() => {
-                                    if (!isAlreadyAdded) {
-                                      const newTopic = {
-                                        id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
-                                        name: extractedTopic.name,
-                                      };
-                                      setTopics([...topics, newTopic]);
-                                      setTopicCounter((prev) => prev + 1);
-                                    }
-                                  }}
-                                  disabled={isAlreadyAdded}
-                                  style={{
-                                    backgroundColor: isAlreadyAdded
-                                      ? '#16a34a'
-                                      : '#4285F4',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    padding: '6px 12px',
-                                    cursor: isAlreadyAdded
-                                      ? 'default'
-                                      : 'pointer',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                  }}
-                                >
-                                  {isAlreadyAdded ? '✓ Agregado' : '+ Agregar'}
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <button
-                          onClick={() => {
-                            const newTopics = extractedTopics
-                              .filter((extractedTopic) => {
-                                const isAlreadyAdded = topics.some(
-                                  (t) =>
-                                    t.name.toLowerCase() ===
-                                    extractedTopic.name.toLowerCase(),
-                                );
-                                return !isAlreadyAdded;
-                              })
-                              .map((extractedTopic, index) => ({
-                                id: `topic-${selectedSubjectForPlanning}-${topicCounter + index}`,
-                                name: extractedTopic.name,
-                              }));
-                            setTopics([...topics, ...newTopics]);
-                            setTopicCounter((prev) => prev + newTopics.length);
-                          }}
-                          style={{
-                            backgroundColor: '#16a34a',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            padding: '8px 16px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            marginTop: '10px',
-                            width: '100%',
-                          }}
-                        >
-                          ✨ Agregar todos los temas de IA
-                        </button>
-                      </div>
-                    )}
-                    <div
-                      className="form-group"
-                      style={{ marginBottom: '20px' }}
-                    >
-                      <label
-                        style={{
-                          fontWeight: '600',
-                          marginBottom: '10px',
-                          display: 'block',
-                        }}
-                      >
-                        📅 Selecciona los días de la semana que tienes
-                        disponibles para estudiar
-                      </label>
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns:
-                            'repeat(auto-fit, minmax(120px, 1fr))',
-                          gap: '10px',
-                          marginBottom: '15px',
-                        }}
-                      >
-                        {[
-                          { day: 1, name: 'Lunes' },
-                          { day: 2, name: 'Martes' },
-                          { day: 3, name: 'Miércoles' },
-                          { day: 4, name: 'Jueves' },
-                          { day: 5, name: 'Viernes' },
-                          { day: 6, name: 'Sábado' },
-                          { day: 0, name: 'Domingo' },
-                        ].map(({ day, name }) => (
-                          <div
-                            key={day}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '12px',
-                              cursor: 'pointer',
-                              borderRadius: '8px',
-                              backgroundColor: selectedWeekDays.includes(day)
-                                ? '#dbeafe'
-                                : 'white',
-                              border: selectedWeekDays.includes(day)
-                                ? '2px solid #3b82f6'
-                                : '1px solid #e5e7eb',
-                              transition: 'all 0.2s ease',
-                            }}
-                            onClick={() => {
-                              if (selectedWeekDays.includes(day)) {
-                                setSelectedWeekDays(
-                                  selectedWeekDays.filter((d) => d !== day),
-                                );
-                              } else {
-                                setSelectedWeekDays([...selectedWeekDays, day]);
-                              }
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedWeekDays.includes(day)}
-                              onChange={() => {}}
-                              style={{
-                                marginRight: '8px',
-                                width: '16px',
-                                height: '16px',
-                                cursor: 'pointer',
-                              }}
-                            />
-                            <span
-                              style={{
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                color: selectedWeekDays.includes(day)
-                                  ? '#1e40af'
-                                  : '#374151',
-                              }}
-                            >
-                              {name}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      {(() => {
-                        const selectedSubject = subjects.find(
-                          (s) => s.id === selectedSubjectForPlanning,
-                        );
-                        if (!selectedSubject) {
-                          return (
-                            <p style={{ color: '#ef4444', fontSize: '14px' }}>
-                              ⚠️ No se encontró la materia seleccionada.
-                            </p>
-                          );
-                        }
-                        let examDate = '';
-                        const importantDates =
-                          selectedSubject.importantDates || [];
-                        if (selectedEvent === 'primer-parcial') {
-                          const primerParcial = importantDates.find(
-                            (d) => d.name === 'Primer Parcial',
-                          );
-                          examDate = primerParcial?.date || '';
-                        } else if (selectedEvent === 'final') {
-                          const segundoParcial = importantDates.find(
-                            (d) => d.name === 'Segundo Parcial',
-                          );
-                          examDate = segundoParcial?.date || '';
-                        }
-                        if (!examDate) {
-                          const eventName =
-                            selectedEvent === 'primer-parcial'
-                              ? 'Primer Parcial'
-                              : 'Segundo Parcial';
-                          return (
-                            <p style={{ color: '#666', fontSize: '14px' }}>
-                              No se encontró la fecha del {eventName} para esta
-                              materia.
-                            </p>
-                          );
-                        }
-                        const generatedDates =
-                          selectedWeekDays.length > 0
-                            ? generateStudyDatesFromWeekDays(
-                                examDate,
-                                selectedWeekDays,
-                              )
-                            : [];
-                        return (
-                          <div>
-                            {selectedWeekDays.length > 0 && (
-                              <div
-                                style={{
-                                  marginTop: '15px',
-                                  padding: '15px',
-                                  backgroundColor: '#f0f9ff',
-                                  border: '1px solid #0ea5e9',
-                                  borderRadius: '8px',
-                                  fontSize: '14px',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontWeight: '600',
-                                    marginBottom: '8px',
-                                  }}
-                                >
-                                  📊 Resumen de tu planificación:
-                                </div>
-                                <div
-                                  style={{ fontSize: '13px', color: '#0369a1' }}
-                                >
-                                  • Días de la semana seleccionados:{' '}
-                                  {selectedWeekDays.length}
-                                </div>
-                                <div
-                                  style={{ fontSize: '13px', color: '#0369a1' }}
-                                >
-                                  • Fecha del examen: {formatDate(examDate)}
-                                </div>
-                                <div
-                                  style={{ fontSize: '13px', color: '#0369a1' }}
-                                >
-                                  • Sesiones de estudio generadas:{' '}
-                                  {generatedDates.length}
-                                </div>
-                                {topics.length > 0 && (
-                                  <div
-                                    style={{
-                                      fontSize: '13px',
-                                      color: '#0369a1',
-                                    }}
-                                  >
-                                    • Aproximadamente{' '}
-                                    {Math.ceil(
-                                      generatedDates.length / topics.length,
-                                    )}{' '}
-                                    sesiones por tema
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                            {selectedWeekDays.length > 0 &&
-                              generatedDates.length === 0 && (
-                                <div
-                                  style={{
-                                    marginTop: '15px',
-                                    padding: '15px',
-                                    backgroundColor: '#fef3c7',
-                                    border: '1px solid #f59e0b',
-                                    borderRadius: '8px',
-                                    fontSize: '14px',
-                                    color: '#92400e',
-                                  }}
-                                >
-                                  ⚠️ No hay fechas disponibles con los días de
-                                  la semana seleccionados hasta la fecha del
-                                  examen.
-                                </div>
-                              )}
-                            {selectedWeekDays.length === 0 && (
-                              <div
-                                style={{
-                                  marginTop: '15px',
-                                  padding: '15px',
-                                  backgroundColor: '#f3f4f6',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '8px',
-                                  fontSize: '14px',
-                                  color: '#6b7280',
-                                  textAlign: 'center',
-                                }}
-                              >
-                                👆 Selecciona los días de la semana que tienes
-                                disponibles para estudiar
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    {topics.length > 0 && (
-                      <div>
-                        <h4
-                          style={{
-                            marginBottom: '10px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                          }}
-                        >
-                          📚{' '}
-                          {selectedEvent
-                            .replace(/-/g, ' ')
-                            .replace(/\b\w/g, (l) => l.toUpperCase())}{' '}
-                          ({topics.length} temas):
-                        </h4>
-                        <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                          {topics.map((topic, index) => (
-                            <div
-                              key={`topic-${topic.id || index}`}
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-start',
-                                padding: '8px',
-                                backgroundColor: '#f3f4f6',
-                                borderRadius: '4px',
-                                marginBottom: '5px',
-                              }}
-                            >
-                              <span>{topic.name}</span>
-                              <button
-                                onClick={() => removeTopic(topic.id)}
-                                style={{
-                                  backgroundColor: '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '3px',
-                                  padding: '4px 8px',
-                                  cursor: 'pointer',
-                                  fontSize: '12px',
-                                }}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {topics.length > 0 && selectedWeekDays.length > 0 && (
-                      <div style={{ marginTop: '20px' }}>
-                        <button
-                          onClick={generateStudyPlan}
-                          disabled={generatingPlan}
-                          style={{
-                            backgroundColor: generatingPlan
-                              ? '#9ca3af'
-                              : '#10b981',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '12px 24px',
-                            cursor: generatingPlan ? 'not-allowed' : 'pointer',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!generatingPlan) {
-                              e.currentTarget.style.backgroundColor = '#059669';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!generatingPlan) {
-                              e.currentTarget.style.backgroundColor = '#10b981';
-                            }
-                          }}
-                        >
-                          {generatingPlan ? (
-                            <>
-                              <span>🤖</span>
-                              Generando plan de estudio...
-                            </>
-                          ) : (
-                            <>
-                              <span>📝</span>
-                              Plan de estudio
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                    {generatedStudyPlan && (
-                      <div style={{ marginTop: '20px' }}>
-                        <h4
-                          style={{
-                            marginBottom: '15px',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            color: '#10b981',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
-                          <span>🎯</span>
-                          Plan de Estudio Generado
-                        </h4>
-                        <div
-                          style={{
-                            backgroundColor: '#f8fafc',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            padding: '20px',
-                            maxHeight: '500px',
-                            overflowY: 'auto',
-                            fontSize: '14px',
-                            lineHeight: '1.6',
-                            whiteSpace: 'pre-wrap',
-                          }}
-                        >
-                          {generatedStudyPlan}
-                        </div>
-                        <div
-                          style={{
-                            marginTop: '10px',
-                            display: 'flex',
-                            gap: '10px',
-                          }}
-                        >
-                          <button
-                            onClick={() => setGeneratedStudyPlan('')}
-                            style={{
-                              backgroundColor: '#6b7280',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '8px 16px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                            }}
-                          >
-                            Cerrar plan
-                          </button>
-                          <button
-                            onClick={generateStudyPlan}
-                            disabled={generatingPlan}
-                            style={{
-                              backgroundColor: generatingPlan
-                                ? '#9ca3af'
-                                : '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '8px 16px',
-                              cursor: generatingPlan
-                                ? 'not-allowed'
-                                : 'pointer',
-                              fontSize: '14px',
-                            }}
-                          >
-                            {generatingPlan
-                              ? 'Regenerando...'
-                              : 'Regenerar plan'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={addOtherDate}
+                  style={{
+                    backgroundColor: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '10px 15px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    marginTop: '10px',
+                  }}
+                >
+                  + Agregar OTROS
+                </button>
               </div>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="panel">
-        <h2>
-          <i className="fas fa-graduation-cap"></i> Planes de estudio
-        </h2>
-        {studyPlans.length === 0 ? (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '40px 20px',
-              color: '#6b7280',
-              fontSize: '14px',
-            }}
-          >
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
-            <p>No tienes planes de estudio creados aún.</p>
-            <p>
-              Crea uno desde la sección "Planificar" seleccionando temas y días
-              de estudio.
-            </p>
-          </div>
-        ) : (
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-          >
-            {studyPlans.map((plan, index) => (
+            }
+            <div className="form-group">
+              <label>Color</label>
               <div
-                key={`plan-${plan.id || index}`}
-                style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  backgroundColor: 'white',
-                  overflow: 'hidden',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                  transition: 'all 0.2s ease',
-                }}
+                className="color-options"
+                style={{ display: 'flex', gap: '8px' }}
               >
+                {['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#9b59b6'].map(
+                  (c) => (
+                    <div
+                      key={c}
+                      className={`color-option ${selectedColor === c ? 'selected' : ''}`}
+                      style={{
+                        backgroundColor: c,
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        border:
+                          selectedColor === c
+                            ? '2px solid #000'
+                            : '1px solid #ccc',
+                      }}
+                      onClick={() => setSelectedColor(c)}
+                    />
+                  ),
+                )}
+                <div style={{ position: 'relative' }}>
+                  <SelectorDeColor
+                    color={selectedColor}
+                    onChange={setSelectedColor}
+                  />
+                </div>
                 <div
                   style={{
-                    padding: '20px',
-                    cursor: 'pointer',
-                    borderBottom: plan.expanded ? '1px solid #e5e7eb' : 'none',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    pointerEvents: 'none',
                   }}
-                  onClick={() => togglePlanExpansion(plan.id)}
+                  title="Elegir color"
                 >
-                  <div
+                  ...
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="pdf-section">
+            <h3>
+              <i className="fas fa-file-pdf"></i> Programa de la materia (PDF)
+            </h3>
+            <div
+              className={`upload-area${dragActive ? ' dragover' : ''}`}
+              onClick={() => {
+                if (!analysisStatus.isAnalyzing) {
+                  document.getElementById('pdf-upload')?.click();
+                }
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (!analysisStatus.isAnalyzing) {
+                  setDragActive(true);
+                }
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onDrop={async (e) => {
+                e.preventDefault();
+                setDragActive(false);
+                if (analysisStatus.isAnalyzing) return;
+                const files = Array.from(e.dataTransfer.files).filter(
+                  (f) => f.type === 'application/pdf',
+                );
+                if (pdfs.length + files.length > 5) {
+                  console.log('Máximo 5 archivos PDF permitidos');
+                  return;
+                }
+                const newPdfs = files.map((file) => ({
+                  id: Date.now() + Math.random(),
+                  name: file.name,
+                  size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+                }));
+                setPdfs([...pdfs, ...newPdfs]);
+                if (files.length > 0 && subjectName.trim()) {
+                  await processPDFWithGemini(files[0]);
+                }
+              }}
+              style={{
+                cursor: analysisStatus.isAnalyzing ? 'wait' : 'pointer',
+                opacity: analysisStatus.isAnalyzing ? 0.7 : 1,
+                position: 'relative',
+              }}
+            >
+              <input
+                id="pdf-upload"
+                type="file"
+                multiple
+                accept=".pdf"
+                style={{ display: 'none' }}
+                onChange={handlePdfUpload}
+              />
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
+                <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+                  <path
+                    d="M24 32V18M24 18L18 24M24 18L30 24"
+                    stroke="#4285F4"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M36 36H12C8.68629 36 6 33.3137 6 30C6 26.6863 8.68629 24 12 24H14.5C15.3284 24 16 23.3284 16 22.5C16 19.4624 18.4624 17 21.5 17C23.9853 17 26 19.0147 26 21.5V22.5C26 23.3284 26.6716 24 27.5 24H36C39.3137 24 42 26.6863 42 30C42 33.3137 39.3137 36 36 36Z"
+                    stroke="#4285F4"
+                    strokeWidth="2"
+                  />
+                </svg>
+                <span
+                  style={{
+                    marginTop: '10px',
+                    color: analysisStatus.isAnalyzing ? '#f59e0b' : '#4285F4',
+                    fontWeight: '500',
+                    fontSize: '15px',
+                    textAlign: 'center',
+                  }}
+                >
+                  {analysisStatus.isAnalyzing
+                    ? '🤖 Procesando PDF con IA...'
+                    : 'Haz click o arrastra el contenido de la materia'}
+                </span>
+              </div>
+              {pdfs.length > 0 && (
+                <div style={{ width: '100%', marginTop: '15px' }}>
+                  <h4
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: '12px',
+                      margin: '10px 0',
+                      fontSize: '14px',
+                      color: '#4B5563',
                     }}
                   >
-                    <div style={{ flex: 1 }}>
-                      <h3
-                        style={{
-                          margin: '0 0 8px 0',
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: '#1f2937',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <span>📖</span>
-                        {plan.subjectName}
-                      </h3>
+                    Archivos cargados:
+                  </h4>
+                  <div
+                    style={{
+                      maxHeight: '150px',
+                      overflowY: 'auto',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '6px',
+                      padding: '8px',
+                    }}
+                  >
+                    {pdfs.map((pdf, index) => (
                       <div
+                        key={`pdf-${pdf.id || index}`}
                         style={{
-                          fontSize: '14px',
-                          color: '#6b7280',
                           display: 'flex',
+                          justifyContent: 'space-between',
                           alignItems: 'center',
-                          gap: '16px',
-                          flexWrap: 'wrap',
+                          padding: '6px 10px',
+                          backgroundColor: '#F9FAFB',
+                          marginBottom: '6px',
+                          borderRadius: '4px',
+                          borderLeft: '3px solid #3B82F6',
                         }}
                       >
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>🎯</span>
-                          {plan.eventName}
-                        </span>
-                        {plan.examDate && (
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <path
+                              d="M14 2H6C4.9 2 4 2.9 4 4V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V8L14 2Z"
+                              fill="#EF4444"
+                            />
+                            <path d="M14 2V8H20" fill="#FECACA" />
+                            <path d="M14 2L20 8H14V2Z" fill="#FCA5A5" />
+                          </svg>
+                          <span style={{ fontSize: '13px' }}>{pdf.name}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
                           <span
                             style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
+                              fontSize: '12px',
+                              color: '#6B7280',
+                              marginRight: '8px',
                             }}
                           >
-                            <span>📅</span>
-                            {formatDate(plan.examDate)}
+                            {pdf.size}
                           </span>
-                        )}
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>📚</span>
-                          {plan.topics.length} temas
-                        </span>
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>🗓️</span>
-                          {plan.studyDays.length} días
-                        </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removePdf(pdf.id);
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: '#EF4444',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '24px',
+                              height: '24px',
+                              borderRadius: '4px',
+                              transition: 'background-color 0.2s',
+                            }}
+                            onMouseOver={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                '#FEE2E2')
+                            }
+                            onMouseOut={(e) =>
+                              (e.currentTarget.style.backgroundColor =
+                                'transparent')
+                            }
+                          >
+                            ×
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <button
+            className="planify-btn"
+            onClick={handlePlanify}
+            disabled={dbLoading || !user}
+          >
+            {dbLoading ? (
+              <span>⏳ Guardando...</span>
+            ) : (
+              <span>
+                <i className="fas fa-upload"></i> Cargar materia
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ===== COLUMNA DERECHA ===== */}
+      <div className="subjects-right-column">
+        <div className="panel subjects-list-panel">
+          <h2>
+            <i className="fas fa-list"></i> Mis Materias
+          </h2>
+          {subjects.length === 0 ? (
+            <div className="empty-state">
+              <i className="fas fa-book-open"></i>
+              <p>No hay materias planificadas</p>
+              <small>Agrega tu primera materia a la izquierda</small>
+            </div>
+          ) : (
+            <div className="subjects-grid">
+              {subjects.map((subject, index) => {
+                const initial = subject.name.charAt(0).toUpperCase();
+                return (
+                  <div
+                    key={`subject-${subject.id || index}`}
+                    className="subject-card"
+                  >
+                    <div className="subject-header">
+                      <div
+                        className="subject-icon"
+                        style={{ backgroundColor: subject.color }}
+                      >
+                        <span>{initial}</span>
+                      </div>
+                      <div className="subject-info">
+                        <h3 className="subject-name">{subject.name}</h3>
+                        <p className="subject-date">
+                          <i className="fas fa-calendar-alt"></i>
+                          {subject.examDate && subject.examDate !== ''
+                            ? new Date(subject.examDate).toLocaleDateString(
+                                'es-ES',
+                              )
+                            : 'Fecha no definida'}
+                        </p>
                       </div>
                     </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                      }}
-                    >
+                    <div className="subject-footer">
+                      <span className="pdf-count">
+                        <i className="fas fa-file-pdf"></i>
+                        {subject.pdfs.length} PDF(s)
+                      </span>
+                      <div className="subject-progress">
+                        <div className="progress-bar">
+                          <div
+                            className="progress-fill"
+                            style={{
+                              width: `${Math.min(100, (subject.pdfs.length / 5) * 100)}%`,
+                              backgroundColor: subject.color,
+                            }}
+                          ></div>
+                        </div>
+                        <span className="progress-text">
+                          {subject.pdfs.length}/5
+                        </span>
+                      </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           if (
                             confirm(
-                              `¿Estás seguro de que quieres eliminar el plan de estudio "${plan.subjectName}"?`,
+                              `¿Estás seguro de que quieres eliminar la materia "${subject.name}" y todos sus planes de estudio asociados?`,
                             )
                           ) {
-                            deletePlan(plan.id);
+                            deleteSubject(subject.id);
                           }
                         }}
                         style={{
@@ -2025,107 +1190,692 @@ Genera el JSON del plan de estudio:`;
                           cursor: 'pointer',
                           fontSize: '12px',
                           fontWeight: '500',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          marginTop: '8px',
+                          transition: 'background-color 0.2s',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#dc2626';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#ef4444';
                         }}
                       >
-                        🗑️ Eliminar
+                        <i className="fas fa-trash"></i>
+                        Eliminar
                       </button>
-                      <span
-                        style={{
-                          fontSize: '14px',
-                          color: '#6b7280',
-                          transform: plan.expanded
-                            ? 'rotate(180deg)'
-                            : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease',
-                        }}
-                      >
-                        ▼
-                      </span>
                     </div>
                   </div>
-                  <div style={{ marginBottom: '12px' }}>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        <div className="panel">
+          <h2>
+            <i className="fas fa-calendar-check"></i> Planificación
+          </h2>
+          {subjects.length === 0 ? (
+            <p>Primero debes cargar una materia para poder planificar</p>
+          ) : (
+            <div>
+              <div className="form-group">
+                <label>Seleccionar Materia</label>
+                <select
+                  value={selectedSubjectForPlanning || ''}
+                  onChange={(e) => {
+                    const subjectId = e.target.value
+                      ? parseInt(e.target.value)
+                      : null;
+                    setSelectedSubjectForPlanning(subjectId);
+                    setSelectedEvent('');
+                    setTopics([]);
+                    setSelectedWeekDays([]);
+                  }}
+                >
+                  <option value="">-- Selecciona una materia --</option>
+                  {subjects.map((subject, index) => (
+                    <option
+                      key={`option-${subject.id || index}`}
+                      value={subject.id || ''}
+                    >
+                      {subject.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {selectedSubjectForPlanning && (
+                <div>
+                  <div className="form-group">
+                    <label>Seleccionar Evento</label>
+                    <select
+                      value={selectedEvent}
+                      onChange={(e) => {
+                        setSelectedEvent(e.target.value);
+                        setTopics([]);
+                        setSelectedWeekDays([]);
+                      }}
+                    >
+                      <option value="">-- Selecciona un evento --</option>
+                      <option value="primer-parcial">Primer Parcial</option>
+                      <option value="final">Final</option>
+                    </select>
+                  </div>
+                  {selectedEvent && (
+                    <div>
+                      {extractedTopics.length > 0 && (
+                        <div style={{ marginBottom: '20px' }}>
+                          <h4
+                            style={{
+                              marginBottom: '10px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              color: '#4285F4',
+                            }}
+                          >
+                            🤖 Temas extraídos por IA del PDF (
+                            {extractedTopics.length} temas encontrados):
+                          </h4>
+                          <div
+                            style={{
+                              maxHeight: '200px',
+                              overflowY: 'auto',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '6px',
+                              padding: '10px',
+                              backgroundColor: '#f9fafb',
+                            }}
+                          >
+                            {extractedTopics.map((extractedTopic, index) => {
+                              const isAlreadyAdded = topics.some(
+                                (t) =>
+                                  t.name.toLowerCase() ===
+                                  extractedTopic.name.toLowerCase(),
+                              );
+                              return (
+                                <div
+                                  key={`planning-topic-${extractedTopic.id || index}`}
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '8px',
+                                    backgroundColor: isAlreadyAdded
+                                      ? '#dcfce7'
+                                      : 'white',
+                                    borderRadius: '4px',
+                                    marginBottom: '5px',
+                                    border: isAlreadyAdded
+                                      ? '1px solid #16a34a'
+                                      : '1px solid #e5e7eb',
+                                  }}
+                                >
+                                  <div>
+                                    <span style={{ fontWeight: '500' }}>
+                                      {index + 1}. {extractedTopic.name}
+                                    </span>
+                                    {extractedTopic.description && (
+                                      <div
+                                        style={{
+                                          fontSize: '12px',
+                                          color: '#666',
+                                          marginTop: '2px',
+                                        }}
+                                      >
+                                        {extractedTopic.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      if (!isAlreadyAdded) {
+                                        const newTopic = {
+                                          id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
+                                          name: extractedTopic.name,
+                                        };
+                                        setTopics([...topics, newTopic]);
+                                        setTopicCounter((prev) => prev + 1);
+                                      }
+                                    }}
+                                    disabled={isAlreadyAdded}
+                                    style={{
+                                      backgroundColor: isAlreadyAdded
+                                        ? '#16a34a'
+                                        : '#4285F4',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      padding: '6px 12px',
+                                      cursor: isAlreadyAdded
+                                        ? 'default'
+                                        : 'pointer',
+                                      fontSize: '12px',
+                                      fontWeight: '500',
+                                    }}
+                                  >
+                                    {isAlreadyAdded
+                                      ? '✓ Agregado'
+                                      : '+ Agregar'}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <button
+                            onClick={() => {
+                              const newTopics = extractedTopics
+                                .filter((extractedTopic) => {
+                                  const isAlreadyAdded = topics.some(
+                                    (t) =>
+                                      t.name.toLowerCase() ===
+                                      extractedTopic.name.toLowerCase(),
+                                  );
+                                  return !isAlreadyAdded;
+                                })
+                                .map((extractedTopic, index) => ({
+                                  id: `topic-${selectedSubjectForPlanning}-${topicCounter + index}`,
+                                  name: extractedTopic.name,
+                                }));
+                              setTopics([...topics, ...newTopics]);
+                              setTopicCounter(
+                                (prev) => prev + newTopics.length,
+                              );
+                            }}
+                            style={{
+                              backgroundColor: '#16a34a',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '8px 16px',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              marginTop: '10px',
+                              width: '100%',
+                            }}
+                          >
+                            ✨ Agregar todos los temas de IA
+                          </button>
+                        </div>
+                      )}
+                      <div
+                        className="form-group"
+                        style={{ marginBottom: '20px' }}
+                      >
+                        <label
+                          style={{
+                            fontWeight: '600',
+                            marginBottom: '10px',
+                            display: 'block',
+                          }}
+                        >
+                          📅 Selecciona los días de la semana que tienes
+                          disponibles para estudiar
+                        </label>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns:
+                              'repeat(auto-fit, minmax(120px, 1fr))',
+                            gap: '10px',
+                            marginBottom: '15px',
+                          }}
+                        >
+                          {[
+                            { day: 1, name: 'Lunes' },
+                            { day: 2, name: 'Martes' },
+                            { day: 3, name: 'Miércoles' },
+                            { day: 4, name: 'Jueves' },
+                            { day: 5, name: 'Viernes' },
+                            { day: 6, name: 'Sábado' },
+                            { day: 0, name: 'Domingo' },
+                          ].map(({ day, name }) => (
+                            <div
+                              key={day}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '12px',
+                                cursor: 'pointer',
+                                borderRadius: '8px',
+                                backgroundColor: selectedWeekDays.includes(day)
+                                  ? '#dbeafe'
+                                  : 'white',
+                                border: selectedWeekDays.includes(day)
+                                  ? '2px solid #3b82f6'
+                                  : '1px solid #e5e7eb',
+                                transition: 'all 0.2s ease',
+                              }}
+                              onClick={() => {
+                                if (selectedWeekDays.includes(day)) {
+                                  setSelectedWeekDays(
+                                    selectedWeekDays.filter((d) => d !== day),
+                                  );
+                                } else {
+                                  setSelectedWeekDays([
+                                    ...selectedWeekDays,
+                                    day,
+                                  ]);
+                                }
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={selectedWeekDays.includes(day)}
+                                onChange={() => {}}
+                                style={{
+                                  marginRight: '8px',
+                                  width: '16px',
+                                  height: '16px',
+                                  cursor: 'pointer',
+                                }}
+                              />
+                              <span
+                                style={{
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  color: selectedWeekDays.includes(day)
+                                    ? '#1e40af'
+                                    : '#374151',
+                                }}
+                              >
+                                {name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                        {(() => {
+                          const selectedSubject = subjects.find(
+                            (s) => s.id === selectedSubjectForPlanning,
+                          );
+                          if (!selectedSubject) {
+                            return (
+                              <p style={{ color: '#ef4444', fontSize: '14px' }}>
+                                ⚠️ No se encontró la materia seleccionada.
+                              </p>
+                            );
+                          }
+                          let examDate = '';
+                          const importantDates =
+                            selectedSubject.importantDates || [];
+                          if (selectedEvent === 'primer-parcial') {
+                            const primerParcial = importantDates.find(
+                              (d) => d.name === 'Primer Parcial',
+                            );
+                            examDate = primerParcial?.date || '';
+                          } else if (selectedEvent === 'final') {
+                            const segundoParcial = importantDates.find(
+                              (d) => d.name === 'Segundo Parcial',
+                            );
+                            examDate = segundoParcial?.date || '';
+                          }
+                          if (!examDate) {
+                            const eventName =
+                              selectedEvent === 'primer-parcial'
+                                ? 'Primer Parcial'
+                                : 'Segundo Parcial';
+                            return (
+                              <p style={{ color: '#666', fontSize: '14px' }}>
+                                No se encontró la fecha del {eventName} para
+                                esta materia.
+                              </p>
+                            );
+                          }
+                          const generatedDates =
+                            selectedWeekDays.length > 0
+                              ? generateStudyDatesFromWeekDays(
+                                  examDate,
+                                  selectedWeekDays,
+                                )
+                              : [];
+                          return (
+                            <div>
+                              {selectedWeekDays.length > 0 && (
+                                <div
+                                  style={{
+                                    marginTop: '15px',
+                                    padding: '15px',
+                                    backgroundColor: '#f0f9ff',
+                                    border: '1px solid #0ea5e9',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      fontWeight: '600',
+                                      marginBottom: '8px',
+                                    }}
+                                  >
+                                    📊 Resumen de tu planificación:
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: '13px',
+                                      color: '#0369a1',
+                                    }}
+                                  >
+                                    • Días de la semana seleccionados:{' '}
+                                    {selectedWeekDays.length}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: '13px',
+                                      color: '#0369a1',
+                                    }}
+                                  >
+                                    • Fecha del examen: {formatDate(examDate)}
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: '13px',
+                                      color: '#0369a1',
+                                    }}
+                                  >
+                                    • Sesiones de estudio generadas:{' '}
+                                    {generatedDates.length}
+                                  </div>
+                                  {topics.length > 0 && (
+                                    <div
+                                      style={{
+                                        fontSize: '13px',
+                                        color: '#0369a1',
+                                      }}
+                                    >
+                                      • Aproximadamente{' '}
+                                      {Math.ceil(
+                                        generatedDates.length / topics.length,
+                                      )}{' '}
+                                      sesiones por tema
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {selectedWeekDays.length > 0 &&
+                                generatedDates.length === 0 && (
+                                  <div
+                                    style={{
+                                      marginTop: '15px',
+                                      padding: '15px',
+                                      backgroundColor: '#fef3c7',
+                                      border: '1px solid #f59e0b',
+                                      borderRadius: '8px',
+                                      fontSize: '14px',
+                                      color: '#92400e',
+                                    }}
+                                  >
+                                    ⚠️ No hay fechas disponibles con los días de
+                                    la semana seleccionados hasta la fecha del
+                                    examen.
+                                  </div>
+                                )}
+                              {selectedWeekDays.length === 0 && (
+                                <div
+                                  style={{
+                                    marginTop: '15px',
+                                    padding: '15px',
+                                    backgroundColor: '#f3f4f6',
+                                    border: '1px solid #d1d5db',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    color: '#6b7280',
+                                    textAlign: 'center',
+                                  }}
+                                >
+                                  👆 Selecciona los días de la semana que tienes
+                                  disponibles para estudiar
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      {topics.length > 0 && (
+                        <div>
+                          <h4
+                            style={{
+                              marginBottom: '10px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                            }}
+                          >
+                            📚{' '}
+                            {selectedEvent
+                              .replace(/-/g, ' ')
+                              .replace(/\b\w/g, (l) => l.toUpperCase())}{' '}
+                            ({topics.length} temas):
+                          </h4>
+                          <div
+                            style={{ maxHeight: '150px', overflowY: 'auto' }}
+                          >
+                            {topics.map((topic, index) => (
+                              <div
+                                key={`topic-${topic.id || index}`}
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'flex-start',
+                                  padding: '8px',
+                                  backgroundColor: '#f3f4f6',
+                                  borderRadius: '4px',
+                                  marginBottom: '5px',
+                                }}
+                              >
+                                <span>{topic.name}</span>
+                                <button
+                                  onClick={() => removeTopic(topic.id)}
+                                  style={{
+                                    backgroundColor: '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '3px',
+                                    padding: '4px 8px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                  }}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {topics.length > 0 && selectedWeekDays.length > 0 && (
+                        <div style={{ marginTop: '20px' }}>
+                          <button
+                            onClick={generateStudyPlan}
+                            disabled={generatingPlan}
+                            style={{
+                              backgroundColor: generatingPlan
+                                ? '#9ca3af'
+                                : '#10b981',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '8px',
+                              padding: '12px 24px',
+                              cursor: generatingPlan
+                                ? 'not-allowed'
+                                : 'pointer',
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              width: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              transition: 'all 0.2s ease',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!generatingPlan) {
+                                e.currentTarget.style.backgroundColor =
+                                  '#059669';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!generatingPlan) {
+                                e.currentTarget.style.backgroundColor =
+                                  '#10b981';
+                              }
+                            }}
+                          >
+                            {generatingPlan ? (
+                              <>
+                                <span>🤖</span>
+                                Generando plan de estudio...
+                              </>
+                            ) : (
+                              <>
+                                <span>📝</span>
+                                Plan de estudio
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                      {generatedStudyPlan && (
+                        <div style={{ marginTop: '20px' }}>
+                          <h4
+                            style={{
+                              marginBottom: '15px',
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              color: '#10b981',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <span>🎯</span>
+                            Plan de Estudio Generado
+                          </h4>
+                          <div
+                            style={{
+                              backgroundColor: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              borderRadius: '8px',
+                              padding: '20px',
+                              maxHeight: '500px',
+                              overflowY: 'auto',
+                              fontSize: '14px',
+                              lineHeight: '1.6',
+                              whiteSpace: 'pre-wrap',
+                            }}
+                          >
+                            {generatedStudyPlan}
+                          </div>
+                          <div
+                            style={{
+                              marginTop: '10px',
+                              display: 'flex',
+                              gap: '10px',
+                            }}
+                          >
+                            <button
+                              onClick={() => setGeneratedStudyPlan('')}
+                              style={{
+                                backgroundColor: '#6b7280',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '8px 16px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                              }}
+                            >
+                              Cerrar plan
+                            </button>
+                            <button
+                              onClick={generateStudyPlan}
+                              disabled={generatingPlan}
+                              style={{
+                                backgroundColor: generatingPlan
+                                  ? '#9ca3af'
+                                  : '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '8px 16px',
+                                cursor: generatingPlan
+                                  ? 'not-allowed'
+                                  : 'pointer',
+                                fontSize: '14px',
+                              }}
+                            >
+                              {generatingPlan
+                                ? 'Regenerando...'
+                                : 'Regenerar plan'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="panel">
+          <h2>
+            <i className="fas fa-graduation-cap"></i> Planes de estudio
+          </h2>
+          {studyPlans.length === 0 ? (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '40px 20px',
+                color: '#6b7280',
+                fontSize: '14px',
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
+              <p>No tienes planes de estudio creados aún.</p>
+              <p>
+                Crea uno desde la sección "Planificar" seleccionando temas y
+                días de estudio.
+              </p>
+            </div>
+          ) : (
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+            >
+              {studyPlans.map((plan, index) => (
+                <div
+                  key={`plan-${plan.id || index}`}
+                  style={{
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    backgroundColor: 'white',
+                    overflow: 'hidden',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: '20px',
+                      cursor: 'pointer',
+                      borderBottom: plan.expanded
+                        ? '1px solid #e5e7eb'
+                        : 'none',
+                    }}
+                    onClick={() => togglePlanExpansion(plan.id)}
+                  >
                     <div
                       style={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '6px',
+                        alignItems: 'flex-start',
+                        marginBottom: '12px',
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          color: '#6b7280',
-                          fontWeight: '500',
-                        }}
-                      >
-                        Progreso del estudio
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          color: '#059669',
-                          fontWeight: '600',
-                        }}
-                      >
-                        {plan.progress}%
-                        {plan.structuredPlan && (
-                          <span style={{ color: '#6b7280', marginLeft: '4px' }}>
-                            (
-                            {
-                              plan.structuredPlan.days.filter(
-                                (d) => d.completed,
-                              ).length
-                            }
-                            /{plan.structuredPlan.days.length} días)
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        width: '100%',
-                        backgroundColor: '#f3f4f6',
-                        borderRadius: '10px',
-                        margin: '20px 0',
-                        height: '20px',
-                        overflow: 'hidden',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${plan.progress}%`,
-                          height: '100%',
-                          backgroundColor:
-                            plan.progress === 100 ? '#10b981' : '#3b82f6',
-                          borderRadius: '10px',
-                          transition: 'all 0.3s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        {plan.progress}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {plan.expanded && (
-                  <div
-                    style={{
-                      padding: '20px',
-                      backgroundColor: '#f8fafc',
-                      borderTop: '1px solid #e5e7eb',
-                    }}
-                  >
-                    {plan.structuredPlan ? (
-                      <div>
-                        <h4
+                      <div style={{ flex: 1 }}>
+                        <h3
                           style={{
-                            margin: '0 0 16px 0',
+                            margin: '0 0 8px 0',
                             fontSize: '16px',
                             fontWeight: '600',
                             color: '#1f2937',
@@ -2134,285 +1884,487 @@ Genera el JSON del plan de estudio:`;
                             gap: '8px',
                           }}
                         >
-                          <span>📅</span>
-                          Cronograma de Estudio
-                        </h4>
-                        {plan.structuredPlan.summary && (
-                          <div
-                            style={{
-                              backgroundColor: '#dbeafe',
-                              border: '1px solid #93c5fd',
-                              borderRadius: '8px',
-                              padding: '12px',
-                              marginBottom: '16px',
-                              fontSize: '14px',
-                              color: '#1e40af',
-                            }}
-                          >
-                            <strong>📋 Resumen:</strong>{' '}
-                            {plan.structuredPlan.summary}
-                          </div>
-                        )}
+                          <span>📖</span>
+                          {plan.subjectName}
+                        </h3>
                         <div
                           style={{
+                            fontSize: '14px',
+                            color: '#6b7280',
                             display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px',
+                            alignItems: 'center',
+                            gap: '16px',
+                            flexWrap: 'wrap',
                           }}
                         >
-                          {plan.structuredPlan.days.map((day, dayIndex) => (
-                            <div
-                              key={dayIndex}
+                          <span
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span>🎯</span>
+                            {plan.eventName}
+                          </span>
+                          {plan.examDate && (
+                            <span
                               style={{
-                                backgroundColor: day.completed
-                                  ? '#f0fdf4'
-                                  : 'white',
-                                border: day.completed
-                                  ? '2px solid #22c55e'
-                                  : '1px solid #e5e7eb',
-                                borderRadius: '8px',
-                                padding: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
                               }}
                             >
+                              <span>📅</span>
+                              {formatDate(plan.examDate)}
+                            </span>
+                          )}
+                          <span
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span>📚</span>
+                            {plan.topics.length} temas
+                          </span>
+                          <span
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <span>🗓️</span>
+                            {plan.studyDays.length} días
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '12px',
+                        }}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (
+                              confirm(
+                                `¿Estás seguro de que quieres eliminar el plan de estudio "${plan.subjectName}"?`,
+                              )
+                            ) {
+                              deletePlan(plan.id);
+                            }
+                          }}
+                          style={{
+                            backgroundColor: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '6px 10px',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            fontWeight: '500',
+                          }}
+                        >
+                          🗑️ Eliminar
+                        </button>
+                        <span
+                          style={{
+                            fontSize: '14px',
+                            color: '#6b7280',
+                            transform: plan.expanded
+                              ? 'rotate(180deg)'
+                              : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease',
+                          }}
+                        >
+                          ▼
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{ marginBottom: '12px' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: '6px',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            color: '#6b7280',
+                            fontWeight: '500',
+                          }}
+                        >
+                          Progreso del estudio
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '12px',
+                            color: '#059669',
+                            fontWeight: '600',
+                          }}
+                        >
+                          {plan.progress}%
+                          {plan.structuredPlan && (
+                            <span
+                              style={{ color: '#6b7280', marginLeft: '4px' }}
+                            >
+                              (
+                              {
+                                plan.structuredPlan.days.filter(
+                                  (d) => d.completed,
+                                ).length
+                              }
+                              /{plan.structuredPlan.days.length} días)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#f3f4f6',
+                          borderRadius: '10px',
+                          margin: '20px 0',
+                          height: '20px',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${plan.progress}%`,
+                            height: '100%',
+                            backgroundColor:
+                              plan.progress === 100 ? '#10b981' : '#3b82f6',
+                            borderRadius: '10px',
+                            transition: 'all 0.3s ease',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {plan.progress}%
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {plan.expanded && (
+                    <div
+                      style={{
+                        padding: '20px',
+                        backgroundColor: '#f8fafc',
+                        borderTop: '1px solid #e5e7eb',
+                      }}
+                    >
+                      {plan.structuredPlan ? (
+                        <div>
+                          <h4
+                            style={{
+                              margin: '0 0 16px 0',
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              color: '#1f2937',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}
+                          >
+                            <span>📅</span>
+                            Cronograma de Estudio
+                          </h4>
+                          {plan.structuredPlan.summary && (
+                            <div
+                              style={{
+                                backgroundColor: '#dbeafe',
+                                border: '1px solid #93c5fd',
+                                borderRadius: '8px',
+                                padding: '12px',
+                                marginBottom: '16px',
+                                fontSize: '14px',
+                                color: '#1e40af',
+                              }}
+                            >
+                              <strong>📋 Resumen:</strong>{' '}
+                              {plan.structuredPlan.summary}
+                            </div>
+                          )}
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '12px',
+                            }}
+                          >
+                            {plan.structuredPlan.days.map((day, dayIndex) => (
                               <div
+                                key={dayIndex}
                                 style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'flex-start',
-                                  marginBottom: '12px',
+                                  backgroundColor: day.completed
+                                    ? '#f0fdf4'
+                                    : 'white',
+                                  border: day.completed
+                                    ? '2px solid #22c55e'
+                                    : '1px solid #e5e7eb',
+                                  borderRadius: '8px',
+                                  padding: '16px',
                                 }}
                               >
                                 <div
                                   style={{
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start',
+                                    marginBottom: '12px',
                                   }}
                                 >
-                                  <h5
+                                  <div
                                     style={{
-                                      margin: '0 0 8px 0',
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      color: day.completed
-                                        ? '#15803d'
-                                        : '#374151',
                                       display: 'flex',
                                       alignItems: 'center',
+                                      gap: '12px',
+                                    }}
+                                  >
+                                    <h5
+                                      style={{
+                                        margin: '0 0 8px 0',
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        color: day.completed
+                                          ? '#15803d'
+                                          : '#374151',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                      }}
+                                    >
+                                      <span>{day.completed ? '✅' : '📅'}</span>
+                                      Día {day.dayNumber} -{' '}
+                                      {formatDate(day.date)}
+                                    </h5>
+                                    {day.totalTime && (
+                                      <span
+                                        style={{
+                                          backgroundColor: day.completed
+                                            ? '#dcfce7'
+                                            : '#f3f4f6',
+                                          color: day.completed
+                                            ? '#15803d'
+                                            : '#6b7280',
+                                          padding: '4px 8px',
+                                          borderRadius: '4px',
+                                          fontSize: '12px',
+                                          fontWeight: '500',
+                                        }}
+                                      >
+                                        ⏱️ {day.totalTime}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      toggleDayCompletion(plan.id, dayIndex)
+                                    }
+                                    style={{
+                                      backgroundColor: day.completed
+                                        ? '#22c55e'
+                                        : '#3b82f6',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      padding: '8px 12px',
+                                      cursor: 'pointer',
+                                      fontSize: '12px',
+                                      fontWeight: '500',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    {day.completed
+                                      ? '✓ Completado'
+                                      : 'Marcar como completado'}
+                                  </button>
+                                </div>
+                                <div style={{ marginBottom: '12px' }}>
+                                  <h6
+                                    style={{
+                                      margin: '0 0 8px 0',
+                                      fontSize: '14px',
+                                      fontWeight: '600',
+                                      color: '#374151',
+                                    }}
+                                  >
+                                    📚 Temas a estudiar:
+                                  </h6>
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
                                       gap: '8px',
                                     }}
                                   >
-                                    <span>{day.completed ? '✅' : '📅'}</span>
-                                    Día {day.dayNumber} - {formatDate(day.date)}
-                                  </h5>
-                                  {day.totalTime && (
-                                    <span
-                                      style={{
-                                        backgroundColor: day.completed
-                                          ? '#dcfce7'
-                                          : '#f3f4f6',
-                                        color: day.completed
-                                          ? '#15803d'
-                                          : '#6b7280',
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        fontSize: '12px',
-                                        fontWeight: '500',
-                                      }}
-                                    >
-                                      ⏱️ {day.totalTime}
-                                    </span>
-                                  )}
-                                </div>
-                                <button
-                                  onClick={() =>
-                                    toggleDayCompletion(plan.id, dayIndex)
-                                  }
-                                  style={{
-                                    backgroundColor: day.completed
-                                      ? '#22c55e'
-                                      : '#3b82f6',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    padding: '8px 12px',
-                                    cursor: 'pointer',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                  }}
-                                >
-                                  {day.completed
-                                    ? '✓ Completado'
-                                    : 'Marcar como completado'}
-                                </button>
-                              </div>
-                              <div style={{ marginBottom: '12px' }}>
-                                <h6
-                                  style={{
-                                    margin: '0 0 8px 0',
-                                    fontSize: '14px',
-                                    fontWeight: '600',
-                                    color: '#374151',
-                                  }}
-                                >
-                                  📚 Temas a estudiar:
-                                </h6>
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '8px',
-                                  }}
-                                >
-                                  {day.topics.map((topic, topicIndex) => (
-                                    <div
-                                      key={topicIndex}
-                                      style={{
-                                        backgroundColor: day.completed
-                                          ? '#ecfdf5'
-                                          : '#f9fafb',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '6px',
-                                        padding: '12px',
-                                      }}
-                                    >
+                                    {day.topics.map((topic, topicIndex) => (
                                       <div
+                                        key={topicIndex}
                                         style={{
-                                          display: 'flex',
-                                          justifyContent: 'space-between',
-                                          alignItems: 'flex-start',
-                                          marginBottom: '6px',
+                                          backgroundColor: day.completed
+                                            ? '#ecfdf5'
+                                            : '#f9fafb',
+                                          border: '1px solid #e5e7eb',
+                                          borderRadius: '6px',
+                                          padding: '12px',
                                         }}
                                       >
-                                        <span
+                                        <div
                                           style={{
-                                            margin: 0,
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            color: '#1f2937',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'flex-start',
+                                            marginBottom: '6px',
                                           }}
                                         >
-                                          {topic.name}
-                                        </span>
-                                        {topic.estimatedTime && (
                                           <span
                                             style={{
-                                              backgroundColor: '#e0e7ff',
-                                              color: '#3730a3',
-                                              padding: '2px 6px',
-                                              borderRadius: '3px',
-                                              fontSize: '11px',
-                                              fontWeight: '500',
+                                              margin: 0,
+                                              fontSize: '14px',
+                                              fontWeight: '600',
+                                              color: '#1f2937',
                                             }}
                                           >
-                                            {topic.estimatedTime}
+                                            {topic.name}
                                           </span>
-                                        )}
+                                          {topic.estimatedTime && (
+                                            <span
+                                              style={{
+                                                backgroundColor: '#e0e7ff',
+                                                color: '#3730a3',
+                                                padding: '2px 6px',
+                                                borderRadius: '3px',
+                                                fontSize: '11px',
+                                                fontWeight: '500',
+                                              }}
+                                            >
+                                              {topic.estimatedTime}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p
+                                          style={{
+                                            margin: 0,
+                                            fontSize: '13px',
+                                            color: '#6b7280',
+                                            lineHeight: '1.4',
+                                          }}
+                                        >
+                                          {topic.summary}
+                                        </p>
                                       </div>
-                                      <p
-                                        style={{
-                                          margin: 0,
-                                          fontSize: '13px',
-                                          color: '#6b7280',
-                                          lineHeight: '1.4',
-                                        }}
-                                      >
-                                        {topic.summary}
-                                      </p>
-                                    </div>
-                                  ))}
+                                    ))}
+                                  </div>
                                 </div>
+                                {day.recommendations && (
+                                  <div
+                                    style={{
+                                      backgroundColor: day.completed
+                                        ? '#fef3c7'
+                                        : '#fef7cd',
+                                      border: '1px solid #fbbf24',
+                                      borderRadius: '6px',
+                                      padding: '10px',
+                                      fontSize: '13px',
+                                      color: '#92400e',
+                                    }}
+                                  >
+                                    <strong>💡 Recomendaciones:</strong>{' '}
+                                    {day.recommendations}
+                                  </div>
+                                )}
                               </div>
-                              {day.recommendations && (
-                                <div
-                                  style={{
-                                    backgroundColor: day.completed
-                                      ? '#fef3c7'
-                                      : '#fef7cd',
-                                    border: '1px solid #fbbf24',
-                                    borderRadius: '6px',
-                                    padding: '10px',
-                                    fontSize: '13px',
-                                    color: '#92400e',
-                                  }}
-                                >
-                                  <strong>💡 Recomendaciones:</strong>{' '}
-                                  {day.recommendations}
-                                </div>
-                              )}
+                            ))}
+                          </div>
+                          {plan.structuredPlan.finalRecommendations && (
+                            <div
+                              style={{
+                                marginTop: '16px',
+                                backgroundColor: '#ecfdf5',
+                                border: '1px solid #bbf7d0',
+                                borderRadius: '8px',
+                                padding: '12px',
+                                fontSize: '14px',
+                                color: '#047857',
+                              }}
+                            >
+                              <strong>
+                                🎯 Consejos finales para el examen:
+                              </strong>
+                              <p
+                                style={{
+                                  margin: '8px 0 0 0',
+                                  lineHeight: '1.5',
+                                }}
+                              >
+                                {plan.structuredPlan.finalRecommendations}
+                              </p>
                             </div>
-                          ))}
+                          )}
                         </div>
-                        {plan.structuredPlan.finalRecommendations && (
-                          <div
+                      ) : (
+                        <div>
+                          <h4
                             style={{
-                              marginTop: '16px',
-                              backgroundColor: '#ecfdf5',
-                              border: '1px solid #bbf7d0',
-                              borderRadius: '8px',
-                              padding: '12px',
-                              fontSize: '14px',
-                              color: '#047857',
+                              margin: '0 0 16px 0',
+                              fontSize: '16px',
+                              fontWeight: '600',
+                              color: '#1f2937',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
                             }}
                           >
-                            <strong>🎯 Consejos finales para el examen:</strong>
-                            <p
-                              style={{ margin: '8px 0 0 0', lineHeight: '1.5' }}
-                            >
-                              {plan.structuredPlan.finalRecommendations}
-                            </p>
+                            <span>🎯</span>
+                            Plan de Estudio (Formato Texto)
+                          </h4>
+                          <div
+                            style={{
+                              backgroundColor: 'white',
+                              border: '1px solid #e5e7eb',
+                              borderRadius: '8px',
+                              padding: '16px',
+                              maxHeight: '400px',
+                              overflowY: 'auto',
+                              fontSize: '14px',
+                              lineHeight: '1.6',
+                              whiteSpace: 'pre-wrap',
+                              fontFamily: 'inherit',
+                            }}
+                          >
+                            {plan.content}
                           </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <h4
-                          style={{
-                            margin: '0 0 16px 0',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            color: '#1f2937',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
-                          <span>🎯</span>
-                          Plan de Estudio (Formato Texto)
-                        </h4>
-                        <div
-                          style={{
-                            backgroundColor: 'white',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            padding: '16px',
-                            maxHeight: '400px',
-                            overflowY: 'auto',
-                            fontSize: '14px',
-                            lineHeight: '1.6',
-                            whiteSpace: 'pre-wrap',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          {plan.content}
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <AnalysisModal
+          isAnalyzing={analysisStatus.isAnalyzing}
+          progress={analysisStatus.progress}
+          statusMessage={analysisStatus.statusMessage}
+        />
       </div>
-      <AnalysisModal
-        isAnalyzing={analysisStatus.isAnalyzing}
-        progress={analysisStatus.progress}
-        statusMessage={analysisStatus.statusMessage}
-      />
     </div>
   );
 };

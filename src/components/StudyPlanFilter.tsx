@@ -188,7 +188,7 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
   // Aplicar filtro inicial
   useEffect(() => {
     applyFilter(activeFilter);
-  }, [activeFilter, studyPlans.length]); // Re-aplicar cuando cambien los planes o el filtro activo
+  }, [activeFilter, studyPlans.length, applyFilter]); // Re-aplicar cuando cambien los planes o el filtro activo
 
   return (
     <div className="study-plan-filter">

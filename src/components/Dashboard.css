@@ -1,19 +1,4 @@
-/*
- * =========================================================================
- * Focusear Dashboard: The Final Fusion
- * Version: 8.0 - Sidebar Fixes & Layout Adjustments
- * Author: Your AI Assistant
- * Description: A powerful design system merging the data-rich grid of
- * the first image with the vibrant, atmospheric aesthetics of the second.
- * The calendar is the central element, complemented by dynamic neon
- * graphics and a streamlined layout.
- * =========================================================================
- */
-
-/* =========================================================================
- * 1.0 - CORE DESIGN VARIABLES
- * ========================================================================= */
-
+/* ===== VARIABLES CSS ===== */
 :root {
   /* Fused Dark Theme Palette */
   --background-color: #0d121f; /* Very deep dark navy */

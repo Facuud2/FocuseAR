@@ -25,7 +25,7 @@
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   --transition-fast: all 0.15s ease-out;
 
-  /* ¡NUEVO! Degradados más dramáticos */
+  /* NUEVO! Degradados más dramáticos */
   --gradient-hero: linear-gradient(135deg, #1e3a8a 0%, #1a73e8 100%); /* Azul profundo a vibrante */
   --gradient-ai: linear-gradient(135deg, #228b22 0%, #34a853 100%); /* Verde profundo a vibrante */
   --gradient-accent-1: linear-gradient(90deg, #00ffff, #007bff);
@@ -39,6 +39,7 @@ body {
   margin: 0;
   line-height: 1.6;
   overflow-x: hidden; /* Previene scroll horizontal indeseado */
+  margin-left: 20vh;
 }
 
 .profile-container {
@@ -59,7 +60,7 @@ body {
   display: block;
 }
 
-/* ¡CORRECCIÓN! Agregado 'background-clip: text' estándar */
+/* CORRECCIÓN! Agregado 'background-clip: text' estándar */
 .profile-title .gradient-text {
   background: -webkit-linear-gradient(45deg, var(--primary-color), var(--accent-cyan));
   -webkit-background-clip: text;
@@ -72,7 +73,6 @@ body {
   background-clip: text; /* Agregado */
   -webkit-text-fill-color: transparent;
 }
-
 
 .profile-subtitle {
   font-size: 1.3rem; /* Más grande */
@@ -115,7 +115,7 @@ body {
   box-shadow: 0 20px 40px rgba(0, 123, 255, 0.3); /* Sombra más brillante */
 }
 
-/* ¡NUEVO! Efecto de fondo generativo (placeholder visual) */
+/* NUEVO! Efecto de fondo generativo (placeholder visual) */
 .hero-background-effect {
   position: absolute;
   top: 0;
@@ -144,7 +144,7 @@ body {
   gap: 1.8rem; /* Más espacio */
 }
 
-/* ¡MÁS SPICY! Avatar con marco futurista */
+/* MÁS SPICY! Avatar con marco futurista */
 .user-avatar-frame {
   width: 160px; /* Más grande */
   height: 160px;
@@ -168,7 +168,6 @@ body {
   50% { box-shadow: 0 0 0 5px var(--accent-magenta), 0 0 30px var(--accent-magenta); }
   100% { box-shadow: 0 0 0 5px var(--accent-cyan), 0 0 20px var(--accent-cyan); }
 }
-
 
 .user-avatar-lg {
   width: 140px; /* Imagen ligeramente más pequeña que el marco */
@@ -204,7 +203,7 @@ body {
   text-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Efecto de brillo en el nombre */
 }
 
-.user-status-tag { /* ¡NUEVO! Etiqueta de estado */
+.user-status-tag { /* NUEVO! Etiqueta de estado */
   background: rgba(0, 255, 255, 0.15);
   color: var(--accent-cyan);
   padding: 0.4rem 1rem;
@@ -243,7 +242,7 @@ body {
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-/* ¡NUEVO! Gráfico Holográfico */
+/* NUEVO! Gráfico Holográfico */
 .holographic-progress {
   position: relative;
   z-index: 1;
@@ -342,12 +341,12 @@ body {
   gap: 1.5rem; /* Más espacio */
 }
 
-/* ¡MÁS SPICY! Stat Card con diseño neumórfico y hover */
+/* MÁS SPICY! Stat Card con diseño neumórfico y hover */
 .stat-card-neumorphic {
   background: var(--surface-color);
   border-radius: var(--radius-md);
   padding: 1.8rem; /* Más padding */
-  box-shadow: 
+  box-shadow:
     8px 8px 15px rgba(0, 0, 0, 0.3), /* Sombra exterior */
     -8px -8px 15px rgba(60, 60, 60, 0.1), /* Luz exterior */
     inset 2px 2px 5px rgba(0, 0, 0, 0.1), /* Sombra interior */
@@ -360,8 +359,8 @@ body {
 
 .stat-card-neumorphic:hover {
   transform: translateY(-5px); /* Pequeño levantamiento */
-  box-shadow: 
-    12px 12px 25px rgba(0, 0, 0, 0.4), 
+  box-shadow:
+    12px 12px 25px rgba(0, 0, 0, 0.4),
     -12px -12px 25px rgba(60, 60, 60, 0.15),
     inset 3px 3px 8px rgba(0, 0, 0, 0.15),
     inset -3px -3px 8px rgba(60, 60, 60, 0.08);
@@ -419,7 +418,7 @@ body {
   overflow: hidden;
 }
 
-.ai-insights-panel.glow-border { /* ¡MÁS SPICY! Borde que brilla */
+.ai-insights-panel.glow-border { /* MÁS SPICY! Borde que brilla */
   animation: border-glow 6s infinite ease-in-out alternate;
 }
 @keyframes border-glow {
@@ -428,7 +427,7 @@ body {
   100% { border-color: var(--accent-magenta); box-shadow: 0 0 10px var(--accent-magenta); }
 }
 
-.ai-console-header { /* ¡NUEVO! Header estilo terminal */
+.ai-console-header { /* NUEVO! Header estilo terminal */
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -525,7 +524,7 @@ body {
   box-shadow: 0 0 20px rgba(0, 123, 255, 0.3);
 }
 
-/* ¡NUEVO! Efecto de brillo al pasar el ratón */
+/* NUEVO! Efecto de brillo al pasar el ratón */
 .button-glare-effect {
   position: absolute;
   top: -100%;
