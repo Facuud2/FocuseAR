@@ -75,20 +75,6 @@ const Dashboard: React.FC = () => {
   const [filteredPlanIds] = useState<(string | number)[]>([]);
 
   // --- Dummy Data for New Panels ---
-  const statsData = [
-    { value: 478, label: 'Exámenes', color: 'var(--primary-neon-color)' },
-    {
-      value: 618,
-      label: 'Horas de estudio',
-      color: 'var(--secondary-neon-color)',
-    },
-    {
-      value: 521,
-      label: 'Archivos subidos',
-      color: 'var(--tertiary-neon-color)',
-    },
-    { value: 345, label: 'Recordatorios', color: 'var(--accent-blue)' },
-  ];
 
   const weeklyBarData = [45, 60, 55, 75, 80, 50, 30];
 
@@ -272,7 +258,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-container">
       {/* HEADER */}
-      <header>
+      <header className="grid-span-12">
         <div className="logo-container">
           <div className="logo-circle">
             <img src="/logo.png" alt="FocuseAR Icon" />
@@ -293,100 +279,120 @@ const Dashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* MAIN CONTENT GRID */}
-      <div className="main-content-grid">
-        {/* TOP SECTION */}
-        <div className="panel stats-panel grid-span-2">
-          <div className="panel-title-container">
-            <h3 className="panel-title">General Stats</h3>
-            <span className="panel-title-stat">1065</span>
-          </div>
-          <div className="stats-grid">
-            {statsData.slice(0, 4).map((item, index) => (
-              <div key={index} className="stat-item">
-                <div
-                  className="stat-circle"
-                  style={{ borderColor: item.color, color: item.color }}
-                >
-                  {item.value}
-                </div>
-                <div className="stat-text">{item.label}</div>
-              </div>
-            ))}
+      {/* STATS PANEL */}
+      <div className="panel stats-panel grid-span-3">
+        <div className="stat-item">
+          <div className="stat-icon">📚</div>
+          <div className="stat-content">
+            <span className="stat-value">12</span>
+            <span className="stat-label">Materias activas</span>
           </div>
         </div>
+        <div className="stat-item">
+          <div className="stat-icon">📅</div>
+          <div className="stat-content">
+            <span className="stat-value">3</span>
+            <span className="stat-label">Próximos exámenes</span>
+          </div>
+        </div>
+        <div className="stat-item">
+          <div className="stat-icon">⏱️</div>
+          <div className="stat-content">
+            <span className="stat-value">8.5h</span>
+            <span className="stat-label">Tiempo de estudio</span>
+          </div>
+        </div>
+      </div>
 
-        {/* CENTER SECTION - CALENDAR */}
-        <div className="panel calendar-panel grid-full-row">
-          <div className="panel-title-container">
-            <h3 className="panel-title">Calendario de Estudio</h3>
-            <div className="calendar-header">
-              <button
-                className="calendar-nav-btn"
-                onClick={() => changeMonth(-1)}
-              >
-                <i className="fas fa-chevron-left"></i>
-              </button>
-              <h4 className="calendar-title">
-                {monthNames[currentMonth]} {currentYear}
-              </h4>
-              <button
-                className="calendar-nav-btn"
-                onClick={() => changeMonth(1)}
-              >
-                <i className="fas fa-chevron-right"></i>
-              </button>
+      {/* CALENDAR PANEL */}
+      <div className="panel calendar-panel grid-span-6">
+        <div className="panel-title-container">
+          <h3 className="panel-title">Calendario de Estudio</h3>
+          <div className="calendar-header">
+            <button
+              className="calendar-nav-btn"
+              onClick={() => changeMonth(-1)}
+            >
+              <i className="fas fa-chevron-left"></i>
+            </button>
+            <h4 className="calendar-title">
+              {monthNames[currentMonth]} {currentYear}
+            </h4>
+            <button className="calendar-nav-btn" onClick={() => changeMonth(1)}>
+              <i className="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+        <div className="calendar-grid">
+          {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
+            <div key={d} className="weekday-header">
+              {d}
             </div>
+          ))}
+          {renderDays()}
+        </div>
+      </div>
+
+      {/* UPCOMING EVENTS */}
+      <div className="panel events-panel grid-span-3">
+        <div className="panel-title-container">
+          <h3 className="panel-title">Próximos eventos</h3>
+          <span className="panel-title-stat">3</span>
+        </div>
+        <div className="events-list">
+          <div className="event-item">
+            <div className="event-date">15 SEP</div>
+            <div className="event-details">
+              <div className="event-title">Matemáticas II</div>
+              <div className="event-time">09:00 - 11:00</div>
+            </div>
+            <div className="event-type exam">Examen</div>
           </div>
-          <div className="calendar-grid">
-            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
-              <div key={d} className="weekday-header">
-                {d}
-              </div>
-            ))}
-            {renderDays()}
+          <div className="event-item">
+            <div className="event-date">18 SEP</div>
+            <div className="event-details">
+              <div className="event-title">Física I</div>
+              <div className="event-time">14:00 - 16:00</div>
+            </div>
+            <div className="event-type tp">TP</div>
+          </div>
+          <div className="event-item">
+            <div className="event-date">20 SEP</div>
+            <div className="event-details">
+              <div className="event-title">Programación I</div>
+              <div className="event-time">10:00 - 12:00</div>
+            </div>
+            <div className="event-type exam">Examen</div>
           </div>
         </div>
+      </div>
 
-        {/* BOTTOM SECTION */}
-        <div className="panel notes-panel grid-span-2">
-          <NotesAndChecklist />
+      {/* NOTES PANEL */}
+      <div className="panel notes-panel grid-span-6">
+        <NotesAndChecklist />
+      </div>
+
+      {/* ACTIVITY PANEL */}
+      <div className="panel activity-panel grid-span-6">
+        <div className="panel-title-container">
+          <h3 className="panel-title">Actividad semanal</h3>
+          <span className="panel-title-stat">1047 min</span>
         </div>
-
-        <div className="panel stats-panel grid-span-1">
-          <div className="panel-title-container">
-            <h3 className="panel-title">User Stats</h3>
-            <span className="panel-title-stat">973</span>
-          </div>
-          <div className="stats-grid">
-            {statsData.slice(0, 4).map((item, index) => (
-              <div key={index} className="stat-item">
-                <div
-                  className="stat-circle"
-                  style={{ borderColor: item.color, color: item.color }}
-                >
-                  {item.value}
-                </div>
-                <div className="stat-text">{item.label}</div>
-              </div>
-            ))}
-          </div>
+        <div className="bar-chart-grid">
+          {weeklyBarData.map((height, index) => (
+            <div
+              key={index}
+              className="bar-item"
+              style={{ height: `${height}%` }}
+            ></div>
+          ))}
         </div>
-
-        <div className="panel bar-chart-panel grid-span-3">
-          <div className="panel-title-container">
-            <h3 className="panel-title">User activity</h3>
-            <span className="panel-title-stat">1047</span>
-          </div>
-          <div className="bar-chart-grid">
-            {weeklyBarData.map((height, index) => (
-              <div
-                key={index}
-                className="bar-item"
-                style={{ height: `${height}%` }}
-              ></div>
-            ))}
-          </div>
+        <div className="chart-labels">
+          {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
+            <span key={day} className="chart-label">
+              {day}
+            </span>
+          ))}
         </div>
       </div>
 
