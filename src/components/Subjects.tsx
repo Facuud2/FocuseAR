@@ -7,7 +7,7 @@ import { extractTextFromPDF } from '../services/PDFTextExtractor';
 import SelectorDeColor from './SelectorDeColor';
 import { AnalysisModal } from './AnalysisModal';
 import 'react-datepicker/dist/react-datepicker.css';
-import './Subjects.css'; // Asegúrate que la importación sea correcta
+import './Subjects.css';
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -120,6 +120,9 @@ const Subjects: React.FC = () => {
     statusMessage: '',
   });
 
+  const [analysisSuccess, setAnalysisSuccess] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState(false);
+
   const [topicCounter, setTopicCounter] = useState(1);
 
   const updateAnalysisStatus = (status: Partial<AnalysisState>) => {
@@ -186,6 +189,17 @@ const Subjects: React.FC = () => {
   }, [user, getUserMaterials, getUserStudyPlans]);
 
   const handlePlanify = async () => {
+    if (!analysisSuccess) {
+      alert(
+        'No se puede cargar la materia porque el análisis del PDF falló. Por favor, intenta con otro archivo.',
+      );
+      return;
+    }
+
+    if (isUploading) {
+      return;
+    }
+
     const importantDates: {
       name: string;
       date: string;
@@ -223,6 +237,8 @@ const Subjects: React.FC = () => {
       return;
     }
 
+    setIsUploading(true);
+
     try {
       if (pdfs.length > 0) {
         const materialId = await createMaterial({
@@ -257,6 +273,8 @@ const Subjects: React.FC = () => {
     } catch (error: unknown) {
       console.error('Error al guardar materia en Firebase:', error);
       alert('Error al guardar la materia. Inténtalo de nuevo.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -679,19 +697,23 @@ Genera el JSON del plan de estudio:`;
       return;
     }
     const files = Array.from(e.target.files);
+    if (files.length === 0) {
+      return;
+    }
     if (pdfs.length + files.length > 5) {
       alert('Máximo 5 PDF');
       return;
     }
+    const file = files[0];
     const newPdfs = files.map((file) => ({
       id: Date.now() + Math.random(),
       name: file.name,
       size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
     }));
     setPdfs([...pdfs, ...newPdfs]);
-    if (files.length > 0 && subjectName.trim()) {
-      await processPDFWithGemini(files[0]);
-    } else if (!subjectName.trim()) {
+    if (subjectName.trim()) {
+      await processPDFWithGemini(file);
+    } else {
       console.log('⚠️ No se puede procesar: falta el nombre de la materia');
     }
   };
@@ -701,6 +723,8 @@ Genera el JSON del plan de estudio:`;
       alert('Por favor ingresa el nombre de la materia antes de subir el PDF');
       return;
     }
+    setIsUploading(true);
+    setAnalysisSuccess(false);
     updateAnalysisStatus({
       isAnalyzing: true,
       progress: 10,
@@ -721,16 +745,21 @@ Genera el JSON del plan de estudio:`;
           progress: 100,
           statusMessage: '¡Análisis completado!',
         });
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         setExtractedTopics(result.topics);
+        setAnalysisSuccess(true);
         alert(
           `¡Éxito! Se extrajeron ${result.topics.length} temas del PDF. Puedes verlos en la sección de Planificación.`,
         );
       } else {
+        setAnalysisSuccess(false);
         alert(`Error procesando PDF: ${result.error}`);
+        throw new Error(result.error);
       }
-    } catch {
+    } catch (e) {
+      setAnalysisSuccess(false);
       alert('Error procesando el PDF. Inténtalo de nuevo.');
+      console.error('Error durante el análisis del PDF:', e);
     } finally {
       setTimeout(() => {
         updateAnalysisStatus({
@@ -738,12 +767,15 @@ Genera el JSON del plan de estudio:`;
           progress: 0,
           statusMessage: '',
         });
+        setIsUploading(false);
       }, 500);
     }
   };
 
   const removePdf = (id: number) => {
     setPdfs(pdfs.filter((p) => p.id !== id));
+    setAnalysisSuccess(false);
+    setExtractedTopics([]);
   };
 
   return (
@@ -761,6 +793,7 @@ Genera el JSON del plan de estudio:`;
               value={subjectName}
               onChange={(e) => setSubjectName(e.target.value)}
               placeholder="Ej: Álgebra Lineal"
+              disabled={isUploading}
             />
             {
               <div className="dates-section">
@@ -784,6 +817,7 @@ Genera el JSON del plan de estudio:`;
                     className="w-full p-2 border rounded"
                     placeholderText="Selecciona una fecha"
                     minDate={new Date()}
+                    disabled={isUploading}
                   />
                 </div>
                 {otherDates.map((otherDate, index) => (
@@ -805,6 +839,7 @@ Genera el JSON del plan de estudio:`;
                         onChange={(e) =>
                           updateOtherDate(otherDate.id, 'name', e.target.value)
                         }
+                        disabled={isUploading}
                       />
                     </div>
                     <div style={{ flex: 1 }}>
@@ -819,18 +854,20 @@ Genera el JSON del plan de estudio:`;
                         className="w-full p-2 border rounded"
                         placeholderText="Selecciona una fecha"
                         minDate={new Date()}
+                        disabled={isUploading}
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => removeOtherDate(otherDate.id)}
+                      disabled={isUploading}
                       style={{
                         backgroundColor: '#ef4444',
                         color: 'white',
                         border: 'none',
                         borderRadius: '4px',
                         padding: '8px 12px',
-                        cursor: 'pointer',
+                        cursor: isUploading ? 'not-allowed' : 'pointer',
                         fontSize: '14px',
                       }}
                     >
@@ -841,13 +878,14 @@ Genera el JSON del plan de estudio:`;
                 <button
                   type="button"
                   onClick={addOtherDate}
+                  disabled={isUploading}
                   style={{
                     backgroundColor: '#10b981',
                     color: 'white',
                     border: 'none',
                     borderRadius: '6px',
                     padding: '10px 15px',
-                    cursor: 'pointer',
+                    cursor: isUploading ? 'not-allowed' : 'pointer',
                     fontSize: '14px',
                     fontWeight: '500',
                     marginTop: '10px',
@@ -914,15 +952,15 @@ Genera el JSON del plan de estudio:`;
               <i className="fas fa-file-pdf"></i> Programa de la materia (PDF)
             </h3>
             <div
-              className={`upload-area${dragActive ? ' dragover' : ''}`}
+              className={`upload-area${dragActive ? ' dragover' : ''} ${isUploading ? 'uploading' : ''}`}
               onClick={() => {
-                if (!analysisStatus.isAnalyzing) {
+                if (!isUploading) {
                   document.getElementById('pdf-upload')?.click();
                 }
               }}
               onDragOver={(e) => {
                 e.preventDefault();
-                if (!analysisStatus.isAnalyzing) {
+                if (!isUploading) {
                   setDragActive(true);
                 }
               }}
@@ -930,27 +968,29 @@ Genera el JSON del plan de estudio:`;
               onDrop={async (e) => {
                 e.preventDefault();
                 setDragActive(false);
-                if (analysisStatus.isAnalyzing) return;
+                if (isUploading) return;
                 const files = Array.from(e.dataTransfer.files).filter(
                   (f) => f.type === 'application/pdf',
                 );
+                if (files.length === 0) return;
                 if (pdfs.length + files.length > 5) {
                   console.log('Máximo 5 archivos PDF permitidos');
                   return;
                 }
+                const file = files[0];
                 const newPdfs = files.map((file) => ({
                   id: Date.now() + Math.random(),
                   name: file.name,
                   size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
                 }));
                 setPdfs([...pdfs, ...newPdfs]);
-                if (files.length > 0 && subjectName.trim()) {
-                  await processPDFWithGemini(files[0]);
+                if (subjectName.trim()) {
+                  await processPDFWithGemini(file);
                 }
               }}
               style={{
-                cursor: analysisStatus.isAnalyzing ? 'wait' : 'pointer',
-                opacity: analysisStatus.isAnalyzing ? 0.7 : 1,
+                cursor: isUploading ? 'wait' : 'pointer',
+                opacity: isUploading ? 0.7 : 1,
                 position: 'relative',
               }}
             >
@@ -961,6 +1001,7 @@ Genera el JSON del plan de estudio:`;
                 accept=".pdf"
                 style={{ display: 'none' }}
                 onChange={handlePdfUpload}
+                disabled={isUploading}
               />
               <div
                 style={{
@@ -986,13 +1027,13 @@ Genera el JSON del plan de estudio:`;
                 <span
                   style={{
                     marginTop: '10px',
-                    color: analysisStatus.isAnalyzing ? '#f59e0b' : '#4285F4',
+                    color: isUploading ? '#f59e0b' : '#4285F4',
                     fontWeight: '500',
                     fontSize: '15px',
                     textAlign: 'center',
                   }}
                 >
-                  {analysisStatus.isAnalyzing
+                  {isUploading
                     ? '🤖 Procesando PDF con IA...'
                     : 'Haz click o arrastra el contenido de la materia'}
                 </span>
@@ -1062,11 +1103,12 @@ Genera el JSON del plan de estudio:`;
                               e.stopPropagation();
                               removePdf(pdf.id);
                             }}
+                            disabled={isUploading}
                             style={{
                               background: 'none',
                               border: 'none',
                               color: '#EF4444',
-                              cursor: 'pointer',
+                              cursor: isUploading ? 'not-allowed' : 'pointer',
                               fontSize: '14px',
                               display: 'flex',
                               alignItems: 'center',
@@ -1098,9 +1140,11 @@ Genera el JSON del plan de estudio:`;
           <button
             className="planify-btn"
             onClick={handlePlanify}
-            disabled={dbLoading || !user}
+            disabled={dbLoading || !user || isUploading || !analysisSuccess}
           >
-            {dbLoading ? (
+            {isUploading ? (
+              <span>⏳ Procesando PDF...</span>
+            ) : dbLoading ? (
               <span>⏳ Guardando...</span>
             ) : (
               <span>
