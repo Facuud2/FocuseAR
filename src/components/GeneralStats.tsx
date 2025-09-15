@@ -1,5 +1,3 @@
-import React from 'react';
-
 const GeneralStats = () => {
   const statsData = [
     { value: 478, label: 'Exámenes', color: 'var(--primary-neon-color)' },
