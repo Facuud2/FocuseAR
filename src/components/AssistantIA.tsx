@@ -1,24 +1,24 @@
-// AssistantIA.tsx
-import React, { useState, useEffect, useRef, type FormEvent } from 'react';
-import './Dashboard.css'; // Import the main CSS for styling
+// src/components/AssistantIA.tsx
 
-// Define a type for chat messages
+import React, { useState, useEffect, useRef, type FormEvent } from 'react';
+import './Dashboard.css';
+import { Send, Sparkles } from 'lucide-react';
+
 interface Message {
   text: string;
   sender: 'user' | 'assistant';
   timestamp: string;
 }
 
-// Dummy Cloud Function call service
+// Simulamos la llamada a una Cloud Function de forma asíncrona.
 const askChatbot = async (query: string): Promise<string> => {
   console.log(`Calling mock Cloud Function with query: "${query}"`);
-  // Simulate API call delay
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(
-        'This is a mock AI response to your question about the document. The actual functionality would be handled by a Cloud Function.',
+        '¡Hola! Soy tu asistente de estudio. Puedes preguntarme sobre tus documentos, planes de estudio o cualquier tema que necesites reforzar.',
       );
-    }, 2000); // 2-second delay
+    }, 2000);
   });
 };
 
@@ -28,34 +28,27 @@ const AssistantIA: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-scroll to the latest message
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Auto-scroll al final de los mensajes
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleSendMessage = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (input.trim() === '') return;
+    if (input.trim() === '' || isLoading) return;
 
-    // 1. Add user's message to the state
     const userMessage: Message = {
       text: input,
       sender: 'user',
       timestamp: new Date().toLocaleTimeString(),
     };
+
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      // 2. Call the mock AI service
       const assistantResponse = await askChatbot(input);
-
-      // 3. Add the assistant's response to the state
       const assistantMessage: Message = {
         text: assistantResponse,
         sender: 'assistant',
@@ -65,13 +58,12 @@ const AssistantIA: React.FC = () => {
     } catch (error) {
       console.error('Error fetching AI response:', error);
       const errorMessage: Message = {
-        text: 'Sorry, something went wrong. Please try again.',
+        text: 'Lo siento, algo salió mal. Por favor, inténtalo de nuevo.',
         sender: 'assistant',
         timestamp: new Date().toLocaleTimeString(),
       };
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
     } finally {
-      // 4. Remove loading indicator
       setIsLoading(false);
     }
   };
@@ -81,8 +73,9 @@ const AssistantIA: React.FC = () => {
       <div className="chat-messages">
         {messages.length === 0 && (
           <div className="empty-chat-state">
-            <p>👋 Hola! Estoy listo para ayudarte a estudiar.</p>
-            <p>Pregunta sobre tu documento y te responderé.</p>
+            <Sparkles size={48} className="sparkle-icon" />
+            <p>Hola, ¿en qué puedo ayudarte?</p>
+            <p>Escribe tu pregunta para empezar.</p>
           </div>
         )}
         {messages.map((message, index) => (
@@ -109,8 +102,8 @@ const AssistantIA: React.FC = () => {
           placeholder="Escribe tu pregunta..."
           disabled={isLoading}
         />
-        <button type="submit" disabled={isLoading}>
-          Enviar
+        <button type="submit" disabled={isLoading} className="send-btn">
+          <Send size={20} />
         </button>
       </form>
     </div>

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import NotesAndChecklist from './NotesAndChecklist';
 import AssistantIA from './AssistantIA';
 import './Dashboard.css';
-import { Settings } from 'lucide-react';
+import { Settings, MessageSquare, X } from 'lucide-react';
 
 export type StudyPlanDay = {
   date: string;
@@ -75,8 +75,7 @@ const Dashboard: React.FC = () => {
     color?: string;
   }> | null>(null);
   const [filteredPlanIds] = useState<(string | number)[]>([]);
-
-  const weeklyBarData = [45, 60, 55, 75, 80, 50, 30];
+  const [showChatModal, setShowChatModal] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -284,33 +283,8 @@ const Dashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* STATS PANEL */}
-      <div className="panel stats-panel grid-span-3">
-        <div className="stat-item">
-          <div className="stat-icon">📚</div>
-          <div className="stat-content">
-            <span className="stat-value">12</span>
-            <span className="stat-label">Materias activas</span>
-          </div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-icon">📅</div>
-          <div className="stat-content">
-            <span className="stat-value">3</span>
-            <span className="stat-label">Próximos exámenes</span>
-          </div>
-        </div>
-        <div className="stat-item">
-          <div className="stat-icon">⏱️</div>
-          <div className="stat-content">
-            <span className="stat-value">8.5h</span>
-            <span className="stat-label">Tiempo de estudio</span>
-          </div>
-        </div>
-      </div>
-
-      {/* CALENDAR PANEL */}
-      <div className="panel calendar-panel grid-span-6">
+      {/* CALENDAR PANEL (col-span-12) */}
+      <div className="panel calendar-panel grid-span-12">
         <div className="panel-title-container">
           <h3 className="panel-title">Calendario de Estudio</h3>
           <div className="calendar-header">
@@ -338,78 +312,68 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* UPCOMING EVENTS */}
-      <div className="panel events-panel grid-span-3">
-        <div className="panel-title-container">
-          <h3 className="panel-title">Próximos eventos</h3>
-          <span className="panel-title-stat">3</span>
-        </div>
-        <div className="events-list">
-          <div className="event-item">
-            <div className="event-date">15 SEP</div>
-            <div className="event-details">
-              <div className="event-title">Matemáticas II</div>
-              <div className="event-time">09:00 - 11:00</div>
-            </div>
-            <div className="event-type exam">Examen</div>
-          </div>
-          <div className="event-item">
-            <div className="event-date">18 SEP</div>
-            <div className="event-details">
-              <div className="event-title">Física I</div>
-              <div className="event-time">14:00 - 16:00</div>
-            </div>
-            <div className="event-type tp">TP</div>
-          </div>
-          <div className="event-item">
-            <div className="event-date">20 SEP</div>
-            <div className="event-details">
-              <div className="event-title">Programación I</div>
-              <div className="event-time">10:00 - 12:00</div>
-            </div>
-            <div className="event-type exam">Examen</div>
-          </div>
-        </div>
-      </div>
-
-      {/* AI ASSISTANT PANEL - Reposicionado */}
-      <div className="panel assistant-panel grid-span-12">
-        <div className="panel-title-container">
-          <h3 className="panel-title">Asistente de IA</h3>
-        </div>
-        <AssistantIA />
-      </div>
-
-      {/* NOTES PANEL */}
+      {/* NOTES PANEL (col-span-6) */}
       <div className="panel notes-panel grid-span-6">
         <NotesAndChecklist />
       </div>
 
-      {/* ACTIVITY PANEL */}
-      <div className="panel activity-panel grid-span-6">
-        <div className="panel-title-container">
-          <h3 className="panel-title">Actividad semanal</h3>
-          <span className="panel-title-stat">1047 min</span>
-        </div>
-        <div className="bar-chart-grid">
-          {weeklyBarData.map((height, index) => (
-            <div
-              key={index}
-              className="bar-item"
-              style={{ height: `${height}%` }}
-            ></div>
-          ))}
-        </div>
-        <div className="chart-labels">
-          {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((day) => (
-            <span key={day} className="chart-label">
-              {day}
-            </span>
-          ))}
-        </div>
+      {/* BUTTON TO OPEN CHAT MODAL */}
+      <div
+        className="panel grid-span-6 panel-title-container"
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          background: 'var(--surface-color)',
+          padding: '2.5rem',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-color)',
+          boxShadow: 'var(--shadow-sm)',
+        }}
+      >
+        <h3 className="panel-title">Asistente de IA</h3>
+        <button
+          className="start-chat-btn"
+          onClick={() => setShowChatModal(true)}
+          style={{
+            background: 'var(--primary-neon-color)',
+            color: 'var(--text-inverted)',
+            border: 'none',
+            padding: '1rem 2rem',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '1rem',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'var(--transition-ease)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <MessageSquare size={20} />
+          <span>Iniciar Nueva Conversación</span>
+        </button>
       </div>
 
-      {/* MODAL */}
+      {/* CHAT MODAL */}
+      {showChatModal && (
+        <div className="modal-overlay" onClick={() => setShowChatModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="panel-title-container">
+              <h3 className="modal-title">Asistente de IA</h3>
+              <button
+                className="modal-close-btn"
+                onClick={() => setShowChatModal(false)}
+              >
+                <X size={32} />
+              </button>
+            </div>
+            <AssistantIA />
+          </div>
+        </div>
+      )}
+
+      {/* MODAL for day details */}
       {showDayModal &&
         selectedDayDetails &&
         Array.isArray(selectedDayDetails) && (
