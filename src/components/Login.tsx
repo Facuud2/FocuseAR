@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './Login.css'; // Asegúrate de que esta ruta sea correcta
 
 interface LoginProps {
   onLogin: (email: string, pass: string) => void;
@@ -20,69 +21,54 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
 
   return (
     <div className="login-container">
-      {/* LADO IZQUIERDO - LOGO */}
-      <div className="login-left">
-        <div className="login-logo-full">
-          <div className="login-logo-icon">
-            <img
-              src="/logo.png"
-              alt="FocuseAR Icon"
-              className="w-[180px] h-[180px] object-cover rounded-full mx-auto"
-            />
-          </div>
-          <div className="login-title-container">
-            <img
-              src="Texto.png"
-              alt="FocuseAR Logo"
-              className="login-title-img"
-            />
-            <p className="login-subtitle">Tu asistente de estudio con IA</p>
-          </div>
-        </div>
-      </div>
+      {/* Video de fondo */}
+      <video
+        autoPlay
+        loop
+        muted
+        className="video-background"
+        playsInline // Importante para la reproducción en móviles
+      >
+        <source src="/videolofi.mp4" type="video/mp4" />
+        Tu navegador no soporta el tag de video.
+      </video>
 
-      <div className="login-right">
-        <div className="login-box">
-          <h2>
-            <i className="fas fa-user"></i> Iniciar Sesión
-          </h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="usuario@ejemplo.com"
-              />
-            </div>
-            <div className="form-group">
-              <label>Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="********"
-              />
-            </div>
-            <button type="submit" className="planify-btn">
-              Entrar
-            </button>
-          </form>
-          <div className="mt-4">
-            <button
-              onClick={onGoogleLogin}
-              type="button"
-              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50"
-            >
-              <img
-                src="https://www.google.com/favicon.ico"
-                alt="Google logo"
-                className="w-5 h-5"
-              />
-              Continuar con Google
-            </button>
+      {/* Contenido del formulario */}
+      <div className="login-box">
+        <div className="text-center">
+          <img src="/logo.png" alt="FocuseAR Logo" className="logo-img" />
+          <h2>Inicia Sesión</h2>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            Email
+            <i className="input-icon fas fa-envelope"></i>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+            />
           </div>
+          <div className="form-group">
+            contraseña
+            <i className="input-icon fas fa-lock"></i>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Contraseña"
+            />
+          </div>
+          <button type="submit" className="planify-btn">
+            Entrar
+          </button>
+        </form>
+        <div className="mt-4">
+          <button onClick={onGoogleLogin} type="button" className="google-btn">
+            <img src="https://www.google.com/favicon.ico" alt="Google logo" />
+            Continuar con Google
+          </button>
         </div>
       </div>
     </div>
