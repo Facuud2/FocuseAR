@@ -3,9 +3,8 @@ import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { useNavigate } from 'react-router-dom';
 import NotesAndChecklist from './NotesAndChecklist';
-import AssistantIA from './AssistantIA';
 import './Dashboard.css';
-import { Settings, MessageSquare, X } from 'lucide-react';
+import { Settings } from 'lucide-react';
 
 export type StudyPlanDay = {
   date: string;
@@ -75,7 +74,6 @@ const Dashboard: React.FC = () => {
     color?: string;
   }> | null>(null);
   const [filteredPlanIds] = useState<(string | number)[]>([]);
-  const [showChatModal, setShowChatModal] = useState(false);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -316,62 +314,6 @@ const Dashboard: React.FC = () => {
       <div className="panel notes-panel grid-span-6">
         <NotesAndChecklist />
       </div>
-
-      {/* BUTTON TO OPEN CHAT MODAL */}
-      <div
-        className="panel grid-span-6 panel-title-container"
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: 'var(--surface-color)',
-          padding: '2.5rem',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border-color)',
-          boxShadow: 'var(--shadow-sm)',
-        }}
-      >
-        <h3 className="panel-title">Asistente de IA</h3>
-        <button
-          className="start-chat-btn"
-          onClick={() => setShowChatModal(true)}
-          style={{
-            background: 'var(--primary-neon-color)',
-            color: 'var(--text-inverted)',
-            border: 'none',
-            padding: '1rem 2rem',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '1rem',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'var(--transition-ease)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          <MessageSquare size={20} />
-          <span>Iniciar Nueva Conversación</span>
-        </button>
-      </div>
-
-      {/* CHAT MODAL */}
-      {showChatModal && (
-        <div className="modal-overlay" onClick={() => setShowChatModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="panel-title-container">
-              <h3 className="modal-title">Asistente de IA</h3>
-              <button
-                className="modal-close-btn"
-                onClick={() => setShowChatModal(false)}
-              >
-                <X size={32} />
-              </button>
-            </div>
-            <AssistantIA />
-          </div>
-        </div>
-      )}
 
       {/* MODAL for day details */}
       {showDayModal &&
