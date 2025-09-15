@@ -58,7 +58,7 @@ const Dashboard: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [dragActive, setDragActive] = React.useState(false);
-  
+
   // Estados para análisis de IA
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisComplete, setAnalysisComplete] = useState(false);
@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
   const [extractedTopics, setExtractedTopics] = useState<ExtractedTopic[]>([]);
 
   // === FUNCIONES DE PROCESAMIENTO DE PDF ===
-  
+
   // Simula la extracción de texto de un PDF
   const extractTextFromPDF = async (file: File): Promise<string> => {
     return new Promise((resolve) => {
@@ -87,27 +87,54 @@ La IA analizará este contenido para generar un plan de estudio personalizado.`)
 
   // Simula el procesamiento con IA
   const processPDFTextWithAI = async (text: string, subjectName: string) => {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     console.log(`Procesando ${text.length} caracteres para ${subjectName}`);
-    
+
     return {
       topics: [
-        { id: 'tema_1', name: 'Introducción a la materia', description: 'Conceptos básicos', order: 1 },
-        { id: 'tema_2', name: 'Conceptos fundamentales', description: 'Principios teóricos', order: 2 },
-        { id: 'tema_3', name: 'Aplicaciones prácticas', description: 'Casos de uso reales', order: 3 },
-        { id: 'tema_4', name: 'Ejercicios y problemas', description: 'Práctica', order: 4 },
-        { id: 'tema_5', name: 'Evaluación final', description: 'Preparación exámenes', order: 5 }
+        {
+          id: 'tema_1',
+          name: 'Introducción a la materia',
+          description: 'Conceptos básicos',
+          order: 1,
+        },
+        {
+          id: 'tema_2',
+          name: 'Conceptos fundamentales',
+          description: 'Principios teóricos',
+          order: 2,
+        },
+        {
+          id: 'tema_3',
+          name: 'Aplicaciones prácticas',
+          description: 'Casos de uso reales',
+          order: 3,
+        },
+        {
+          id: 'tema_4',
+          name: 'Ejercicios y problemas',
+          description: 'Práctica',
+          order: 4,
+        },
+        {
+          id: 'tema_5',
+          name: 'Evaluación final',
+          description: 'Preparación exámenes',
+          order: 5,
+        },
       ],
       summary: `Se han identificado 5 temas principales en el material de ${subjectName}.`,
-      success: true
+      success: true,
     };
   };
 
   // === FUNCIÓN DE ANÁLISIS DE IA ===
   const analyzePDFWithAI = async (file: File) => {
     if (!subjectName.trim()) {
-      setAnalysisError('Por favor, ingresa el nombre de la materia antes de analizar el PDF');
+      setAnalysisError(
+        'Por favor, ingresa el nombre de la materia antes de analizar el PDF',
+      );
       return;
     }
 
@@ -117,22 +144,25 @@ La IA analizará este contenido para generar un plan de estudio personalizado.`)
 
     try {
       console.log('📄 Iniciando análisis de PDF:', file.name);
-      
+
       // 1. Extraer texto del PDF
       const text = await extractTextFromPDF(file);
       console.log('✅ Texto extraído del PDF');
-      
+
       // 2. Procesar texto con IA
       const result = await processPDFTextWithAI(text, subjectName);
-      
+
       if (result.success) {
         setExtractedTopics(result.topics);
         setAnalysisComplete(true);
-        console.log('🎉 Análisis completado:', result.topics.length, 'temas encontrados');
+        console.log(
+          '🎉 Análisis completado:',
+          result.topics.length,
+          'temas encontrados',
+        );
       } else {
         setAnalysisError('Error procesando el PDF');
       }
-      
     } catch (error) {
       console.error('❌ Error en análisis:', error);
       setAnalysisError('Error analizando el PDF. Inténtalo de nuevo.');
@@ -166,6 +196,7 @@ La IA analizará este contenido para generar un plan de estudio personalizado.`)
       for (const pdf of pdfs) {
         const materialId = await createMaterial({
           fileName: pdf.name,
+          subjectName: subjectName,
           storagePath: `users/${user.uid}/materials/${pdf.name}`,
           fileType: 'pdf',
         });
@@ -544,33 +575,63 @@ La IA analizará este contenido para generar un plan de estudio personalizado.`)
 
             {/* === SECCIÓN DE ANÁLISIS DE IA === */}
             {pdfs.length > 0 && (
-              <div style={{
-                padding: '16px',
-                borderRadius: '8px',
-                marginBottom: '16px',
-                border: '2px solid',
-                borderColor: isAnalyzing ? '#F59E0B' : analysisComplete ? '#10B981' : analysisError ? '#EF4444' : '#E5E7EB',
-                backgroundColor: isAnalyzing ? '#FEF3C7' : analysisComplete ? '#D1FAE5' : analysisError ? '#FEE2E2' : '#F9FAFB'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+              <div
+                style={{
+                  padding: '16px',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  border: '2px solid',
+                  borderColor: isAnalyzing
+                    ? '#F59E0B'
+                    : analysisComplete
+                      ? '#10B981'
+                      : analysisError
+                        ? '#EF4444'
+                        : '#E5E7EB',
+                  backgroundColor: isAnalyzing
+                    ? '#FEF3C7'
+                    : analysisComplete
+                      ? '#D1FAE5'
+                      : analysisError
+                        ? '#FEE2E2'
+                        : '#F9FAFB',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '8px',
+                  }}
+                >
                   <span style={{ fontSize: '18px', marginRight: '8px' }}>
-                    {isAnalyzing ? '🤖' : analysisComplete ? '✅' : analysisError ? '❌' : '⏳'}
+                    {isAnalyzing
+                      ? '🤖'
+                      : analysisComplete
+                        ? '✅'
+                        : analysisError
+                          ? '❌'
+                          : '⏳'}
                   </span>
-                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>
+                  <h3
+                    style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}
+                  >
                     Análisis de IA
                   </h3>
                 </div>
-                
+
                 {isAnalyzing && (
                   <p style={{ margin: 0, color: '#92400E' }}>
-                    Analizando el contenido del PDF con inteligencia artificial...
+                    Analizando el contenido del PDF con inteligencia
+                    artificial...
                   </p>
                 )}
-                
+
                 {analysisComplete && (
                   <div>
                     <p style={{ margin: '0 0 8px 0', color: '#065F46' }}>
-                      ¡Análisis completado! Se identificaron {extractedTopics.length} temas.
+                      ¡Análisis completado! Se identificaron{' '}
+                      {extractedTopics.length} temas.
                     </p>
                     <details style={{ color: '#065F46' }}>
                       <summary style={{ cursor: 'pointer', fontWeight: '500' }}>
@@ -578,7 +639,10 @@ La IA analizará este contenido para generar un plan de estudio personalizado.`)
                       </summary>
                       <ul style={{ margin: '8px 0 0 16px' }}>
                         {extractedTopics.map((topic, index) => (
-                          <li key={topic.id || index} style={{ marginBottom: '4px' }}>
+                          <li
+                            key={topic.id || index}
+                            style={{ marginBottom: '4px' }}
+                          >
                             {topic.name}
                           </li>
                         ))}
@@ -586,16 +650,17 @@ La IA analizará este contenido para generar un plan de estudio personalizado.`)
                     </details>
                   </div>
                 )}
-                
+
                 {analysisError && (
                   <p style={{ margin: 0, color: '#991B1B' }}>
                     Error: {analysisError}
                   </p>
                 )}
-                
+
                 {!isAnalyzing && !analysisComplete && !analysisError && (
                   <p style={{ margin: 0, color: '#6B7280' }}>
-                    El PDF será analizado automáticamente cuando subas el archivo.
+                    El PDF será analizado automáticamente cuando subas el
+                    archivo.
                   </p>
                 )}
               </div>
@@ -604,7 +669,11 @@ La IA analizará este contenido para generar un plan de estudio personalizado.`)
             <button
               className="planify-btn"
               onClick={handlePlanify}
-              disabled={dbLoading || isAnalyzing || (pdfs.length > 0 && !analysisComplete)}
+              disabled={
+                dbLoading ||
+                isAnalyzing ||
+                (pdfs.length > 0 && !analysisComplete)
+              }
             >
               {dbLoading ? (
                 <span>⏳ Guardando en Firestore...</span>
