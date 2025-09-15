@@ -202,8 +202,6 @@ const TypingIndicatorExample: React.FC = () => {
           style={currentStyle}
           message="preparando ejercicios..."
           showAvatar={true}
-          dotColor="#10B981"
-          backgroundColor="#ECFDF5"
         />
 
         <TypingIndicator
@@ -212,8 +210,6 @@ const TypingIndicatorExample: React.FC = () => {
           style={currentStyle}
           message="creando tu horario..."
           showAvatar={true}
-          dotColor="#F59E0B"
-          backgroundColor="#FFFBEB"
         />
       </div>
 
