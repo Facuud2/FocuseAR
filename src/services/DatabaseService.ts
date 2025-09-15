@@ -28,6 +28,14 @@ export interface Material {
   id?: string;
   userId: string;
   fileName: string;
+  subjectName: string; // CORREGIDO: Campo agregado para preservar el nombre de materia ingresado por el usuario
+  examDate?: string; // CORREGIDO: Campo para guardar la fecha del examen
+  color?: string; // CORREGIDO: Campo para guardar el color de la materia
+  importantDates?: Array<{
+    name: string;
+    date: string;
+    type: 'exam' | 'tp' | 'other';
+  }>; // CORREGIDO: Campo para guardar todas las fechas importantes
   storagePath: string;
   fileType: string;
   createdAt: Timestamp;
@@ -46,6 +54,7 @@ export interface StudyPlan {
     selectedWeekDays?: number[];
     topics?: string[];
     studyDates?: string[];
+    subjectColor?: string; // CORREGIDO: Campo para guardar el color de la materia
     structuredPlan?: {
       title: string;
       summary: string;
