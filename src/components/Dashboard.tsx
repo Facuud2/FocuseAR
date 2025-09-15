@@ -2,7 +2,7 @@ import React, { useState, useEffect, type JSX } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { useContext } from 'react';
 import { AuthContext } from '../hooks/authContext';
-import StudyPlanFilter from './StudyPlanFilter';
+import NotesAndChecklist from './NotesAndChecklist';
 import './Dashboard.css';
 
 // Interface and types for data remain the same
@@ -61,8 +61,6 @@ const Dashboard: React.FC = () => {
       expanded: boolean;
     }>
   >([]);
-  const [question, setQuestion] = useState('');
-  const [answers, setAnswers] = useState<string[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<
@@ -74,16 +72,25 @@ const Dashboard: React.FC = () => {
     day: StudyPlanDay;
     color?: string;
   }> | null>(null);
-  const [filteredPlanIds, setFilteredPlanIds] = useState<(string | number)[]>(
-    [],
-  );
+  const [filteredPlanIds] = useState<(string | number)[]>([]);
 
-  // New state for the notes/checklist
-  const [notes, setNotes] = useState<string>('Escribe tus notas aquí...');
-  const [checklist, setChecklist] = useState<
-    { id: number; text: string; completed: boolean }[]
-  >([]);
-  const [newChecklistItem, setNewChecklistItem] = useState('');
+  // --- Dummy Data for New Panels ---
+  const statsData = [
+    { value: 478, label: 'Exámenes', color: 'var(--primary-neon-color)' },
+    {
+      value: 618,
+      label: 'Horas de estudio',
+      color: 'var(--secondary-neon-color)',
+    },
+    {
+      value: 521,
+      label: 'Archivos subidos',
+      color: 'var(--tertiary-neon-color)',
+    },
+    { value: 345, label: 'Recordatorios', color: 'var(--accent-blue)' },
+  ];
+
+  const weeklyBarData = [45, 60, 55, 75, 80, 50, 30];
 
   // Function to load data from the database
   useEffect(() => {
@@ -181,13 +188,6 @@ const Dashboard: React.FC = () => {
     setCurrentYear(y);
   };
 
-  const handleFilterChange = React.useCallback(
-    (newFilteredPlanIds: (string | number)[]) => {
-      setFilteredPlanIds(newFilteredPlanIds);
-    },
-    [],
-  );
-
   const getFilteredStudyPlans = () => {
     if (filteredPlanIds.length === 0) {
       return studyPlans;
@@ -257,7 +257,7 @@ const Dashboard: React.FC = () => {
                   key={idx}
                   className="day-dot"
                   style={{
-                    background: plan.color || '#10b981',
+                    background: plan.color || '#8A2BE2',
                   }}
                 />
               ))}
@@ -269,267 +269,188 @@ const Dashboard: React.FC = () => {
     return days;
   };
 
-  const askAI = () => {
-    if (!question) return;
-    setAnswers([
-      ...answers,
-      `Pregunta: ${question}`,
-      'Respuesta IA: repasa cada 3 días 🚀',
-    ]);
-    setQuestion('');
-  };
-
-  // Notes/Checklist functions
-  const handleAddChecklistItem = () => {
-    if (newChecklistItem.trim() !== '') {
-      setChecklist([
-        ...checklist,
-        { id: Date.now(), text: newChecklistItem, completed: false },
-      ]);
-      setNewChecklistItem('');
-    }
-  };
-
-  const handleToggleChecklistItem = (id: number) => {
-    setChecklist(
-      checklist.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item,
-      ),
-    );
-  };
-
-  const handleRemoveChecklistItem = (id: number) => {
-    setChecklist(checklist.filter((item) => item.id !== id));
-  };
-
   return (
     <div className="dashboard-container">
       {/* HEADER */}
-      <header className="full-width-header">
-        <div className="logo">
-          <div className="logo-icon">
+      <header>
+        <div className="logo-container">
+          <div className="logo-circle">
             <img src="/logo.png" alt="FocuseAR Icon" />
           </div>
-          <div className="logo-text">
-            <img src="Texto.png" alt="FocuseAR" className="focusear-title" />
-            <h2 className="title-subtitle">
-              Planificación Automatizada con IA
-            </h2>
-          </div>
+          <h1 className="logo-title rgb-text">FOCUSEAR</h1>
         </div>
         <div className="user-info">
-          <div className="user-avatar">
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="Avatar" />
-            ) : (
-              <div>
-                {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
-              </div>
-            )}
-            <span className="online-dot"></span>
-          </div>
-          <div className="user-details">
-            {user?.displayName ? (
-              <>
-                <span className="user-name">
-                  {user.displayName.split(' ')[0]}
-                </span>
-                <span className="user-lastname">
-                  {user.displayName.split(' ').slice(1).join(' ')}
-                </span>
-              </>
-            ) : (
-              <span className="user-email">{user?.email || 'Usuario'}</span>
-            )}
-          </div>
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="Avatar" className="user-avatar" />
+          ) : (
+            <div className="user-avatar placeholder">
+              {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
+            </div>
+          )}
+          <button className="settings-btn">
+            <i className="fas fa-cog"></i>
+          </button>
         </div>
       </header>
 
-      {/* Main content with a two-column grid */}
-      <div className="main-content-layout">
-        {/* Left panel is now for notes and checklist */}
-        <div className="left-panel">
-          <div className="panel notes-panel">
-            <h2 className="panel-title">
-              <i className="fas fa-sticky-note"></i> Notas y Tareas
-            </h2>
-            <div className="note-section">
-              <h3 className="section-title">Notas</h3>
-              <textarea
-                className="notes-textarea"
-                placeholder="Escribe tus notas aquí..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              ></textarea>
-            </div>
-            <div className="checklist-section">
-              <h3 className="section-title">Lista de Tareas</h3>
-              <div className="checklist-input-group">
-                <input
-                  type="text"
-                  className="checklist-input"
-                  placeholder="Añadir una nueva tarea..."
-                  value={newChecklistItem}
-                  onChange={(e) => setNewChecklistItem(e.target.value)}
-                  onKeyPress={(e) =>
-                    e.key === 'Enter' && handleAddChecklistItem()
-                  }
-                />
-                <button
-                  className="add-task-btn"
-                  onClick={handleAddChecklistItem}
+      {/* MAIN CONTENT GRID */}
+      <div className="main-content-grid">
+        {/* TOP SECTION */}
+        <div className="panel stats-panel grid-span-2">
+          <div className="panel-title-container">
+            <h3 className="panel-title">General Stats</h3>
+            <span className="panel-title-stat">1065</span>
+          </div>
+          <div className="stats-grid">
+            {statsData.slice(0, 4).map((item, index) => (
+              <div key={index} className="stat-item">
+                <div
+                  className="stat-circle"
+                  style={{ borderColor: item.color, color: item.color }}
                 >
-                  <i className="fas fa-plus"></i>
-                </button>
+                  {item.value}
+                </div>
+                <div className="stat-text">{item.label}</div>
               </div>
-              <ul className="checklist-list">
-                {checklist.map((item) => (
-                  <li
-                    key={item.id}
-                    className={`checklist-item ${item.completed ? 'completed' : ''}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={item.completed}
-                      onChange={() => handleToggleChecklistItem(item.id)}
-                    />
-                    <span className="checklist-text">{item.text}</span>
-                    <button
-                      onClick={() => handleRemoveChecklistItem(item.id)}
-                      className="remove-task-btn"
-                    >
-                      <i className="fas fa-trash-alt"></i>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* Right panel for the calendar and AI assistant */}
-        <div className="right-panel">
-          <div className="panel calendar-panel">
-            <h2 className="panel-title">
-              <i className="fas fa-calendar-alt"></i> Calendario
-            </h2>
+        {/* CENTER SECTION - CALENDAR */}
+        <div className="panel calendar-panel grid-full-row">
+          <div className="panel-title-container">
+            <h3 className="panel-title">Calendario de Estudio</h3>
             <div className="calendar-header">
-              <button className="nav-button" onClick={() => changeMonth(-1)}>
-                {'<'}
-              </button>
-              <h3 className="calendar-title">
-                {monthNames[currentMonth]} {currentYear}
-              </h3>
-              <button className="nav-button" onClick={() => changeMonth(1)}>
-                {'>'}
-              </button>
-            </div>
-            <div className="calendar-grid">
-              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
-                <div key={d} className="weekday-header">
-                  {d}
-                </div>
-              ))}
-              {renderDays()}
-            </div>
-            <StudyPlanFilter
-              studyPlans={studyPlans}
-              subjects={subjects}
-              onFilterChange={handleFilterChange}
-            />
-          </div>
-          {showDayModal &&
-            selectedDayDetails &&
-            Array.isArray(selectedDayDetails) && (
-              <div
-                className="modal-overlay"
-                onClick={() => setShowDayModal(false)}
+              <button
+                className="calendar-nav-btn"
+                onClick={() => changeMonth(-1)}
               >
-                <div
-                  className="modal-content"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    className="modal-close-btn"
-                    onClick={() => setShowDayModal(false)}
-                  >
-                    ×
-                  </button>
-                  <h3 className="modal-title">
-                    {formatDate(selectedCalendarDate || '')}
-                  </h3>
-                  {selectedDayDetails.map((planDetail, idx: number) => (
-                    <div
-                      key={idx}
-                      className="day-detail-card"
-                      style={{
-                        borderLeftColor: planDetail.color || '#10b981',
-                      }}
-                    >
-                      <div
-                        className="day-detail-header"
-                        style={{
-                          color: planDetail.color || '#10b981',
-                        }}
-                      >
-                        {planDetail.day.title || `Plan #${planDetail.planId}`}
-                      </div>
-                      <div className="day-detail-meta">
-                        <strong>Día {planDetail.day.dayNumber}</strong>
-                      </div>
-                      <div className="day-detail-topics">
-                        <strong>Temas:</strong>
-                        <ul>
-                          {planDetail.day.topics.map((topic, idx2: number) => (
-                            <li key={idx2}>
-                              <span className="topic-name">{topic.name}</span>
-                              {topic.estimatedTime && (
-                                <span className="topic-time">
-                                  ({topic.estimatedTime})
-                                </span>
-                              )}
-                              <p className="topic-summary">{topic.summary}</p>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      {planDetail.day.recommendations && (
-                        <div className="day-detail-recommendations">
-                          <strong>💡 Recomendaciones:</strong>{' '}
-                          {planDetail.day.recommendations}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          <div className="panel assistant-panel">
-            <h2 className="panel-title">
-              <i className="fas fa-robot"></i> Asistente IA
-            </h2>
-            <div className="assistant-answers">
-              {answers.map((a, i) => (
-                <p key={i} className="assistant-answer">
-                  {a}
-                </p>
-              ))}
-            </div>
-            <div className="assistant-input-group">
-              <input
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Pregunta algo..."
-                className="assistant-input"
-                onKeyPress={(e) => e.key === 'Enter' && askAI()}
-              />
-              <button onClick={askAI} className="assistant-send-btn">
-                <i className="fas fa-paper-plane"></i>
+                <i className="fas fa-chevron-left"></i>
+              </button>
+              <h4 className="calendar-title">
+                {monthNames[currentMonth]} {currentYear}
+              </h4>
+              <button
+                className="calendar-nav-btn"
+                onClick={() => changeMonth(1)}
+              >
+                <i className="fas fa-chevron-right"></i>
               </button>
             </div>
+          </div>
+          <div className="calendar-grid">
+            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => (
+              <div key={d} className="weekday-header">
+                {d}
+              </div>
+            ))}
+            {renderDays()}
+          </div>
+        </div>
+
+        {/* BOTTOM SECTION */}
+        <div className="panel notes-panel grid-span-2">
+          <NotesAndChecklist />
+        </div>
+
+        <div className="panel stats-panel grid-span-1">
+          <div className="panel-title-container">
+            <h3 className="panel-title">User Stats</h3>
+            <span className="panel-title-stat">973</span>
+          </div>
+          <div className="stats-grid">
+            {statsData.slice(0, 4).map((item, index) => (
+              <div key={index} className="stat-item">
+                <div
+                  className="stat-circle"
+                  style={{ borderColor: item.color, color: item.color }}
+                >
+                  {item.value}
+                </div>
+                <div className="stat-text">{item.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="panel bar-chart-panel grid-span-3">
+          <div className="panel-title-container">
+            <h3 className="panel-title">User activity</h3>
+            <span className="panel-title-stat">1047</span>
+          </div>
+          <div className="bar-chart-grid">
+            {weeklyBarData.map((height, index) => (
+              <div
+                key={index}
+                className="bar-item"
+                style={{ height: `${height}%` }}
+              ></div>
+            ))}
           </div>
         </div>
       </div>
+
+      {/* MODAL */}
+      {showDayModal &&
+        selectedDayDetails &&
+        Array.isArray(selectedDayDetails) && (
+          <div className="modal-overlay" onClick={() => setShowDayModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="modal-close-btn"
+                onClick={() => setShowDayModal(false)}
+              >
+                ×
+              </button>
+              <h3 className="modal-title">
+                {formatDate(selectedCalendarDate || '')}
+              </h3>
+              {selectedDayDetails.map((planDetail, idx: number) => (
+                <div
+                  key={idx}
+                  className="day-detail-card"
+                  style={{
+                    borderLeftColor: planDetail.color || '#8A2BE2',
+                  }}
+                >
+                  <div
+                    className="day-detail-header"
+                    style={{
+                      color: planDetail.color || '#8A2BE2',
+                    }}
+                  >
+                    {planDetail.day.title || `Plan #${planDetail.planId}`}
+                  </div>
+                  <div className="day-detail-meta">
+                    <strong>Día {planDetail.day.dayNumber}</strong>
+                  </div>
+                  <div className="day-detail-topics">
+                    <strong>Temas:</strong>
+                    <ul>
+                      {planDetail.day.topics.map((topic, idx2: number) => (
+                        <li key={idx2}>
+                          <span className="topic-name">{topic.name}</span>
+                          {topic.estimatedTime && (
+                            <span className="topic-time">
+                              ({topic.estimatedTime})
+                            </span>
+                          )}
+                          <p className="topic-summary">{topic.summary}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  {planDetail.day.recommendations && (
+                    <div className="day-detail-recommendations">
+                      <strong>💡 Recomendaciones:</strong>{' '}
+                      {planDetail.day.recommendations}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
     </div>
   );
 };

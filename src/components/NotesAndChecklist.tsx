@@ -1,6 +1,6 @@
 // src/components/NotesAndChecklist.tsx
 import React, { useState } from 'react';
-import './notes-and-checklist.css';
+import './Dashboard.css'; // Importamos el CSS del dashboard principal
 import { Plus, CheckCircle, Trash2, FileText, CheckSquare } from 'lucide-react';
 
 interface Note {
