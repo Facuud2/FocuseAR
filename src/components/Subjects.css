@@ -258,3 +258,107 @@ select {
   color: var(--text-muted);
   font-weight: 600;
 }
+.react-datepicker-wrapper .react-datepicker__input-container input {
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  border-radius: 0.5rem; /* Bordes más redondeados */
+  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: var(--surface-color, #ffffff);
+  color: var(--text-primary, #1f2937);
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease; /* Transición suave para todos los cambios */
+  font-family: 'Inter', sans-serif;
+}
+
+/* Efecto de foco para una experiencia de usuario más refinada */
+.react-datepicker-wrapper .react-datepicker__input-container input:focus {
+  border-color: var(--accent-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); /* Sombra de foco más suave */
+  outline: none;
+}
+
+/* 2. Contenedor principal del calendario */
+.react-datepicker {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  border-radius: 0.75rem; /* Bordes generosos */
+  box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04));
+  border: none; /* Quitamos el borde para un look más limpio */
+  background-color: var(--surface-color, #ffffff);
+  padding: 1.5rem; /* Más espacio interno */
+  margin-left: 85px;
+}
+
+/* 3. Encabezado del calendario */
+.react-datepicker__header {
+  background-color: var(--surface-color, #ffffff);
+  border-bottom: none;
+  padding-top: 0.5rem;
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+/* Estilo del mes y año */
+.react-datepicker__current-month {
+  font-size: 1.1rem;
+  font-weight: 700; /* Más peso para destacar */
+  color: var(--text-primary, #1f2937);
+}
+
+/* 4. Días de la semana */
+.react-datepicker__day-name {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.8rem;
+  width: 2.5rem; /* Un poco más de espacio */
+  margin: 0.2rem;
+  text-transform: uppercase; /* Para un toque más elegante */
+  letter-spacing: 0.05em;
+}
+
+/* 5. Días del mes (células) */
+.react-datepicker__day {
+  width: 2.5rem;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  color: var(--text-primary, #1f2937);
+  font-weight: 500;
+}
+
+/* Efectos de interacción */
+.react-datepicker__day:hover {
+  background-color: var(--hover-color, #f3f4f6);
+  color: var(--accent-color, #3b82f6);
+}
+
+/* Estilo del día seleccionado */
+.react-datepicker__day--selected,
+.react-datepicker__day--selected:hover {
+  background-color: var(--accent-color, #3b82f6);
+  color: var(--text-on-accent, #ffffff);
+  font-weight: 600;
+}
+
+/* Días de otros meses */
+.react-datepicker__day--outside-month {
+  color: var(--text-muted, #d1d5db); /* Un gris más claro */
+}
+
+/* 6. Botones de navegación (flechas) */
+.react-datepicker__navigation--previous,
+.react-datepicker__navigation--next {
+  top: 1rem;
+  border: none;
+  transition: transform 0.2s ease;
+}
+
+/* Efecto hover en las flechas */
+.react-datepicker__navigation:hover {
+  transform: scale(1.1);
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: var(--text-secondary, #6b7280);
+  border-width: 2px 2px 0 0;
+}
