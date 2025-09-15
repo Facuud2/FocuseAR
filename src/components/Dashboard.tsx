@@ -213,7 +213,7 @@ const Dashboard: React.FC = () => {
     }
     return days;
   };
-
+  // aad
   const handleSettingsClick = () => {
     navigate('/settings');
   };
