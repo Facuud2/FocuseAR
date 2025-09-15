@@ -1,3 +1,4 @@
+/* src/components/Dashboard.css */
 /* ===== VARIABLES CSS ===== */
 :root {
   /* Fused Dark Theme Palette */
@@ -407,6 +408,16 @@ header {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+}
+
+.user-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
 }
 
 .user-avatar {

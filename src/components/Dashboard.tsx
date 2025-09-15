@@ -1,9 +1,10 @@
-import React, { useState, useEffect, type JSX } from 'react';
+import React, { useState, useEffect, type JSX, useContext } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
-import { useContext } from 'react';
 import { AuthContext } from '../hooks/authContext';
+import { useNavigate } from 'react-router-dom';
 import NotesAndChecklist from './NotesAndChecklist';
 import './Dashboard.css';
+import { Settings } from 'lucide-react'; // Importa el componente de ícono de Lucide React
 
 // Interface and types for data remain the same
 export type StudyPlanDay = {
@@ -36,6 +37,7 @@ interface Subject {
 const Dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
   const { getUserMaterials, getUserStudyPlans } = useDatabase();
+  const navigate = useNavigate();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [studyPlans, setStudyPlans] = useState<
@@ -75,7 +77,6 @@ const Dashboard: React.FC = () => {
   const [filteredPlanIds] = useState<(string | number)[]>([]);
 
   // --- Dummy Data for New Panels ---
-
   const weeklyBarData = [45, 60, 55, 75, 80, 50, 30];
 
   // Function to load data from the database
@@ -255,6 +256,11 @@ const Dashboard: React.FC = () => {
     return days;
   };
 
+  const handleSettingsClick = () => {
+    // Redirigir a la página de configuración
+    navigate('/settings');
+  };
+
   return (
     <div className="dashboard-container">
       {/* HEADER */}
@@ -273,8 +279,12 @@ const Dashboard: React.FC = () => {
               {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
             </div>
           )}
-          <button className="settings-btn">
-            <i className="fas fa-cog"></i>
+          <span className="user-name">
+            {user?.displayName || user?.email || 'Usuario'}
+          </span>
+          {/* Aquí el botón con el ícono de Lucide React */}
+          <button className="settings-btn" onClick={handleSettingsClick}>
+            <Settings size={24} />
           </button>
         </div>
       </header>

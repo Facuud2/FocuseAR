@@ -1,6 +1,6 @@
 // src/App.tsx
 import './App.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Importa useEffect
 import {
   BrowserRouter,
   Routes,
@@ -30,11 +30,15 @@ import Analytics from './components/Analytics';
 import { AuthProvider } from './context/AuthContext';
 
 function AppRoutes() {
-  // Ahora el estado de la barra lateral se gestiona aquí
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Solución: Usa useEffect para aplicar el tema al cargar la página
+  useEffect(() => {
+    document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   const handleSectionChange = (path: string) => {
     navigate(path);
@@ -45,8 +49,7 @@ function AppRoutes() {
   };
 
   const handleToggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.body.setAttribute('data-theme', isDarkMode ? 'light' : 'dark');
+    setIsDarkMode((prevMode) => !prevMode);
   };
 
   const currentPath = location.pathname;
@@ -54,7 +57,6 @@ function AppRoutes() {
   return (
     <AuthProvider>
       <div className="app-container">
-        {/* Renderiza el Sidebar si no estamos en la página de inicio */}
         {currentPath !== '/' && (
           <Sidebar
             activeSection={currentPath}
@@ -62,14 +64,12 @@ function AppRoutes() {
             isSidebarOpen={isSidebarOpen}
             isDarkMode={isDarkMode}
             onToggleDarkMode={handleToggleDarkMode}
-            onClose={() => {}} // Pasamos una función vacía para evitar errores
+            onClose={() => {}}
           />
         )}
-        {/* El área de contenido se adapta al ancho de la barra lateral */}
         <main
           className={`content-area ${isSidebarOpen ? '' : 'content-collapsed'}`}
         >
-          {/* Botón para abrir/cerrar el sidebar, visible cuando está colapsado */}
           {!isSidebarOpen && currentPath !== '/' && (
             <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
               <Menu size={24} />
