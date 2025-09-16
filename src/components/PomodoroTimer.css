@@ -1,96 +1,196 @@
-/* src/components/PomodoroTimer.css */
+/* src/styles/PomodoroTimer.css */
 
 :root {
-  --primary-color: #4285f4;
-  --secondary-color: #34a853;
-  --warning-color: #fbbc05;
-  --text-primary: #ffffff;
-  --text-secondary: #e0e0e0;
-  --bg-dark-overlay: rgba(0, 0, 0, 0.2);
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --shadow-lg: 0 12px 20px -4px rgba(0, 0, 0, 0.3), 0 8px 12px -2px rgba(0, 0, 0, 0.15);
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --cottage-bg: #f8f4e3;
+  --cottage-wood: #c8a385;
+  --cottage-accent: #6f543e;
+  --cottage-green: #6ea8ff;
+  --cottage-red: #8f3434;
+  --text-primary: #1e1e1e;
+  --text-secondary: #5e5e5e;
+  --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.1);
+  --radius-lg: 20px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
   margin: 0;
-  overflow: hidden;
+  font-family: 'Georgia', serif;
+  background-color: var(--cottage-bg);
 }
 
-.pomodoro-focus-mode {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+.cottagecore-container {
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #fffaf0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 4px solid var(--cottage-accent);
+}
+
+.cottagecore-header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
-  overflow: hidden;
-  background-color: #000;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px dashed var(--cottage-accent);
 }
 
-.pomodoro-video-background {
+.cottagecore-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--cottage-wood);
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.focus-points, .store-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--cottage-accent);
+  border: 2px solid var(--cottage-wood);
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  background-color: #e8dcb9;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.add-points-btn {
+  background: none;
+  border: none;
+  color: var(--cottage-accent);
+  cursor: pointer;
+  padding: 0;
+  margin-left: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.add-points-btn:hover {
+  transform: scale(1.2);
+}
+
+.focus-points:hover, .store-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.main-content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 3rem;
+}
+
+.study-area-left {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.video-window {
+  width: 100%;
+  height: 400px;
+  background-color: var(--cottage-accent);
+  border: 10px solid var(--cottage-wood);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+}
+
+.study-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-section {
+  position: absolute;
+  bottom: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 150px;
+  border: 5px solid var(--cottage-bg);
+  border-radius: 50%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  background-color: var(--cottage-bg);
+}
+
+/* Modificación para hacer que la imagen del avatar sea circular */
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* ¡Esto es clave para que llene la pantalla! */
-  z-index: 1;
+  border-radius: 50%;
 }
 
-.pomodoro-overlay {
-  position: relative;
-  z-index: 2;
-  color: var(--text-primary);
+/* ¡Esto es lo que hace que los ítems del avatar también sean circulares! */
+.avatar-item {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  border-radius: 50%;
+}
+
+.garden-area {
+  position: absolute;
+  bottom: -3rem;
+  width: 100%;
+  height: 150px;
+  z-index: 5;
+  pointer-events: none;
+}
+.garden-item {
+  position: absolute;
+  height: auto;
+  pointer-events: auto;
+  z-index: 6;
+}
+
+.study-area-right {
+  background-color: #fff;
+  border: 4px solid var(--cottage-wood);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+.timer-panel {
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  width: 100%;
-  padding: 3rem;
-  background-color: var(--bg-dark-overlay);
-}
-
-.glass-effect {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-md);
-}
-
-.timer-controls-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
-  flex-grow: 1;
 }
 
 .mode-selection {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   justify-content: center;
-  padding: 0.5rem;
-  border-radius: var(--radius-lg);
   margin-bottom: 2rem;
 }
 
 .mode-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  font-weight: 600;
+  background-color: var(--cottage-wood);
+  border: 2px solid var(--cottage-accent);
+  color: white;
   padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-md);
+  border-radius: 50px;
+  font-weight: bold;
   cursor: pointer;
   transition: var(--transition);
   display: flex;
@@ -99,82 +199,197 @@ body {
 }
 
 .mode-btn.active {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  box-shadow: var(--shadow-md);
+  background-color: var(--cottage-green);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
   transform: translateY(-2px);
 }
-
-.timer-countdown-video {
-  font-size: 6rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  animation: pulse 2s infinite;
+.mode-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+.timer-display {
+  margin-bottom: 2rem;
+}
+
+.timer-countdown {
+  font-family: 'Courier New', monospace;
+  font-size: 5rem;
+  font-weight: bold;
+  color: var(--cottage-accent);
 }
 
 .timer-controls {
   display: flex;
-  gap: 2rem;
-  margin-top: 2rem;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 .control-btn {
-  background: var(--primary-color);
+  background-color: var(--cottage-green);
   color: white;
   border: none;
-  padding: 1.5rem;
-  border-radius: 50%;
-  font-size: 1.2rem;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition);
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-lg);
+  gap: 0.5rem;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
 }
 .control-btn.play-pause {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #1a73e8 100%);
+  background-color: var(--cottage-green);
 }
 .control-btn.reset {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  box-shadow: none;
+  background-color: var(--cottage-red);
 }
 .control-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.3);
 }
 
 .cycle-info {
-  font-size: 1.2rem;
+  margin-top: 2rem;
+  font-size: 1.1rem;
   color: var(--text-secondary);
-  font-weight: 500;
-  margin-top: 3rem;
 }
 
-/* Media Queries para dispositivos móviles */
-@media (max-width: 768px) {
-  .pomodoro-overlay {
-    padding: 2rem 1rem;
+.store-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+}
+
+.store-modal {
+  padding: 2rem;
+  border-radius: 16px;
+  text-align: center;
+  max-width: 600px;
+  width: 90%;
+  position: relative;
+  background-color: #fffaf0;
+  border: 4px solid var(--cottage-wood);
+  box-shadow: var(--shadow-lg);
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--cottage-accent);
+  cursor: pointer;
+}
+
+.store-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.user-points {
+  font-size: 1.2rem;
+  color: var(--cottage-accent);
+  margin-bottom: 2rem;
+}
+
+.items-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+
+.item-card {
+  padding: 1.5rem;
+  border-radius: 10px;
+  background-color: #e8dcb9;
+  border: 2px solid var(--cottage-wood);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.item-image {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.item-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.item-price {
+  font-size: 1rem;
+  color: var(--cottage-accent);
+}
+
+.buy-btn {
+  background: var(--cottage-green);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.buy-btn:disabled {
+  background: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Media Queries para responsividad */
+@media (max-width: 900px) {
+  .main-content-wrapper {
+    grid-template-columns: 1fr;
   }
-  .mode-title {
+  .study-area-left {
+    order: 2;
+  }
+  .study-area-right {
+    order: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .cottagecore-container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+  .cottagecore-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .cottagecore-title {
     font-size: 2rem;
   }
-  .timer-countdown-video {
+  .timer-countdown {
     font-size: 4rem;
   }
   .timer-controls {
     flex-direction: column;
-    gap: 1rem;
-  }
-  .control-btn {
-    padding: 1rem;
   }
 }
