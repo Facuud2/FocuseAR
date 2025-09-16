@@ -16,7 +16,9 @@ export interface PDFProcessingResult {
 
 export class PDFProcessor {
   private static readonly GEMINI_FUNCTION_URL =
-    'https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse';
+    // Nueva función server-side para extraer temas desde el texto del PDF
+    import.meta.env.VITE_PROCESS_PDF_ENDPOINT ||
+    'https://us-central1-proyecto-final-universitario.cloudfunctions.net/processPdfTopics';
 
   /**
    * Procesa el texto extraído de un PDF y extrae los temas usando Gemini AI
@@ -30,22 +32,15 @@ export class PDFProcessor {
       console.log(` Materia: ${subjectName}`);
       console.log(`📝 Longitud del texto: ${text.length} caracteres`);
 
-      // Crear prompt específico para extracción de temas
-      const prompt = this.createTopicExtractionPromptWithText(
-        subjectName,
-        text,
-      );
-      console.log('✅ Prompt creado exitosamente');
-      console.log(`📏 Longitud del prompt: ${prompt.length} caracteres`);
-
-      // Llamar a la función Gemini
+      // Llamar a la función server-side que gestiona el prompt y la llamada a Gemini
       const response = await fetch(this.GEMINI_FUNCTION_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: prompt,
+          text,
+          subjectName,
         }),
       });
 
@@ -61,8 +56,43 @@ export class PDFProcessor {
       console.log('✅ Respuesta JSON parseada exitosamente');
       console.log('📊 Contenido de la respuesta:', result);
 
-      // Procesar respuesta de Gemini
-      return this.parseGeminiResponse(result);
+      // Procesar respuesta de la función server-side
+      // Si la función devolvió 'parsed' asumimos JSON correcto
+      if (result && result.parsed) {
+        const parsed = result.parsed as Record<string, unknown>;
+        const rawTopics = Array.isArray(parsed.topics)
+          ? (parsed.topics as unknown[])
+          : [];
+        const topics = rawTopics.slice(0, 30).map((t: unknown, i: number) => {
+          const tt = (t as Record<string, unknown>) || {};
+          const id = typeof tt.id === 'string' ? tt.id : `tema_${i + 1}`;
+          const name = typeof tt.name === 'string' ? tt.name : `Tema ${i + 1}`;
+          const description =
+            typeof tt.description === 'string' ? tt.description : '';
+          const order = typeof tt.order === 'number' ? tt.order : i + 1;
+          return {
+            id,
+            name,
+            description,
+            order,
+          } as ExtractedTopic;
+        });
+        const summary =
+          typeof parsed.summary === 'string' ? parsed.summary : '';
+        return { topics, summary, success: true };
+      }
+
+      // Si la función devolvió raw_response, usar el parser local de fallback
+      if (result && result.raw_response) {
+        return this.parseGeminiResponse(result.raw_response);
+      }
+
+      return {
+        topics: [],
+        summary: '',
+        success: false,
+        error: 'Respuesta inválida del servidor',
+      };
     } catch (error) {
       console.error('❌ Error procesando texto de PDF:', error);
       return {
@@ -72,24 +102,6 @@ export class PDFProcessor {
         error: error instanceof Error ? error.message : 'Error desconocido',
       };
     }
-  }
-
-  /**
-   * Crea el prompt específico para extraer temas del PDF usando texto plano
-   * NO BORRAR {{"topics":[{"id":"tema_1","name":"Tema 1","order":1}]} O UTILIZARLO EN EL SIGUIENTE PROMPT
-   */
-  private static createTopicExtractionPromptWithText(
-    subjectName: string,
-    text: string,
-  ): string {
-    return `
-Eres un asistente de planificación de estudios. Analiza el siguiente texto del programa de la materia "${subjectName}" y genera un plan de estudio diario.
-El plan debe ser un JSON con la siguiente estructura:
-{{"topics":[{"id":"tema_1","name":"Tema 1","order":1}]}
-No incluyas resúmenes, recomendaciones ni texto adicional. Solo el tema, el día y la cantidad de horas por día.
-Texto extraído del PDF:
-${text.substring(0, 2000)}
-`;
   }
 
   /**
