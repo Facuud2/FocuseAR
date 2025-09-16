@@ -252,15 +252,6 @@ const Subjects: React.FC = () => {
   };
 
   const handlePdfUpload = async (file: File) => {
-    if (!subjectName.trim()) {
-      alert('Por favor ingresa el nombre de la materia antes de subir el PDF');
-      // Reset file input to allow re-selection
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      return;
-    }
-
     setIsUploading(true);
     setAnalysisSuccess(false);
 
