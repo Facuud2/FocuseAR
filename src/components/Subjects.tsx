@@ -165,6 +165,8 @@ const Subjects: React.FC = () => {
           storagePath: `materials/${user?.uid}/${pdfs[0].name}`,
           fileType: 'pdf',
           color: selectedColor,
+          examDate: importantDates.length > 0 ? importantDates[0].date : '',
+          importantDates: importantDates,
         });
 
         if (materialId) {
