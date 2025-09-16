@@ -289,6 +289,31 @@
 }
 
 /* Ajustes para modo colapsado */
+
+.collapsed-chat-button {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--sidebar-icon-color, #4a90e2);
+  font-size: 28px;
+}
+
+.collapsed-chat-button:hover {
+  transform: translateX(-50%) scale(1.2);
+  color: #ff9800;
+}
+
+
 .sidebar-container.collapsed .dark-mode-toggle-section {
   padding: 1rem 0;
 }

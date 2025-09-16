@@ -185,37 +185,36 @@ export default function Sidebar({
 
  {/* Sección de ayuda con el botón para abrir el chat */}
 
-<div className="sidebar-help-section">
-  <div className="sidebar-help-content">
-    {!isCollapsed && (
-      <>
-        <div className="sidebar-help-header">
-          <div className="sidebar-help-icon">
-            <Bot />
-          </div>
-          <p className="sidebar-help-title">AI Assistant</p>
+{/* Sección de ayuda con el botón para abrir el chat */}
+{!isCollapsed ? (
+  <div className="sidebar-help-section">
+    <div className="sidebar-help-content">
+      <div className="sidebar-help-header">
+        <div className="sidebar-help-icon">
+          <Bot />
         </div>
-        <p className="sidebar-help-text">Get help with your studies</p>
-        <button
-          className="sidebar-chat-button"
-          onClick={() => setIsChatOpen(true)}
-        >
-          <Bot size={16} />
-          Open Chat
-        </button>
-      </>
-    )}
-    
-    {/* Solo icono para modo colapsado */}
-    <button
-      className={`collapsed-chat-button ${isCollapsed ? 'visible' : 'hidden'}`}
-      onClick={() => setIsChatOpen(true)}
-      aria-label="Chat with AI Assistant"
-    >
-      <Bot size={24} />
-    </button>
+        <p className="sidebar-help-title">AI Assistant</p>
+      </div>
+      <p className="sidebar-help-text">Get help with your studies</p>
+      <button
+        className="sidebar-chat-button"
+        onClick={() => setIsChatOpen(true)}
+      >
+        <Bot size={16} />
+        Open Chat
+      </button>
+    </div>
   </div>
-</div>
+) : (
+  <button
+    className="collapsed-chat-button"
+    onClick={() => setIsChatOpen(true)}
+    aria-label="Chat with AI Assistant"
+  >
+    <Bot size={28} />
+  </button>
+)}
+
 </aside>
 
       {isChatOpen && (
