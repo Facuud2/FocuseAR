@@ -3,67 +3,84 @@
 :root {
   --primary-color: #4285f4;
   --secondary-color: #34a853;
-  --danger-color: #ea4335;
   --warning-color: #fbbc05;
-  --background-color: #f0f4f8;
-  --surface-color: #ffffff;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 12px 20px -4px rgba(0, 0, 0, 0.15), 0 8px 12px -2px rgba(0, 0, 0, 0.08);
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --bg-dark-overlay: rgba(0, 0, 0, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --shadow-lg: 0 12px 20px -4px rgba(0, 0, 0, 0.3), 0 8px 12px -2px rgba(0, 0, 0, 0.15);
   --radius-md: 10px;
   --radius-lg: 16px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.pomodoro-container {
-  padding: 2.5rem;
-  max-width: 1000px;
-  margin: 0 auto;
-  text-align: center;
+body {
+  margin: 0;
+  overflow: hidden;
 }
 
-.pomodoro-header {
-  margin-bottom: 2.5rem;
-}
-
-.pomodoro-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
-}
-
-.pomodoro-subtitle {
-  font-size: 1.1rem;
-  color: var(--text-secondary);
-}
-
-.pomodoro-main-content {
+.pomodoro-focus-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
+  background-color: #000;
 }
 
-.timer-panel {
-  background: var(--surface-color);
-  border-radius: var(--radius-lg);
-  padding: 2.5rem;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
+.pomodoro-video-background {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  max-width: 600px;
+  height: 100%;
+  object-fit: cover; /* ¡Esto es clave para que llene la pantalla! */
+  z-index: 1;
+}
+
+.pomodoro-overlay {
+  position: relative;
+  z-index: 2;
+  color: var(--text-primary);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+  padding: 3rem;
+  background-color: var(--bg-dark-overlay);
+}
+
+.glass-effect {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-md);
+}
+
+.timer-controls-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  flex-grow: 1;
 }
 
 .mode-selection {
   display: flex;
   gap: 0.75rem;
   justify-content: center;
-  margin-bottom: 2rem;
-  background: var(--background-color);
-  border-radius: var(--radius-md);
   padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 2rem;
 }
 
 .mode-btn {
@@ -82,127 +99,82 @@
 }
 
 .mode-btn.active {
-  background: var(--primary-color);
+  background: rgba(255, 255, 255, 0.2);
   color: white;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
-.timer-display {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  margin: 0 auto 2.5rem;
-}
-
-.progress-ring {
-  transform: rotate(-90deg);
-}
-
-.progress-ring-background {
-  stroke: var(--border-color);
-}
-
-.progress-ring-foreground {
-  stroke: var(--primary-color);
-  transition: stroke-dashoffset 1s linear;
-}
-.progress-ring-foreground.mode-short-break {
-    stroke: var(--secondary-color);
-}
-.progress-ring-foreground.mode-long-break {
-    stroke: var(--warning-color);
-}
-
-.timer-countdown {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 4rem;
+.timer-countdown-video {
+  font-size: 6rem;
   font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1;
+  letter-spacing: 2px;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
 }
 
 .timer-controls {
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
+  gap: 2rem;
+  margin-top: 2rem;
 }
 
 .control-btn {
   background: var(--primary-color);
   color: white;
   border: none;
-  padding: 1.1rem 2.5rem;
-  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  border-radius: 50%;
   font-size: 1.2rem;
-  font-weight: 600;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  box-shadow: var(--shadow-md);
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
 }
-
 .control-btn.play-pause {
   background: linear-gradient(135deg, var(--primary-color) 0%, #1a73e8 100%);
 }
 .control-btn.reset {
-  background: var(--background-color);
-  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
   box-shadow: none;
 }
-.control-btn.play-pause:hover {
-  background: linear-gradient(135deg, #1a73e8 0%, var(--primary-color) 100%);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-.control-btn.reset:hover {
-  background: var(--border-color);
-  color: var(--text-primary);
+.control-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
 }
 
 .cycle-info {
-  margin-top: 2rem;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   color: var(--text-secondary);
   font-weight: 500;
+  margin-top: 3rem;
 }
 
+/* Media Queries para dispositivos móviles */
 @media (max-width: 768px) {
-  .pomodoro-container {
-    padding: 1rem;
+  .pomodoro-overlay {
+    padding: 2rem 1rem;
   }
-  .pomodoro-title {
+  .mode-title {
     font-size: 2rem;
   }
-  .pomodoro-subtitle {
-    font-size: 1rem;
-  }
-  .timer-panel {
-    padding: 1.5rem;
-  }
-  .mode-selection {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .mode-btn {
-    padding: 0.75rem;
-    justify-content: center;
-  }
-  .timer-countdown {
-    font-size: 3rem;
+  .timer-countdown-video {
+    font-size: 4rem;
   }
   .timer-controls {
     flex-direction: column;
     gap: 1rem;
   }
   .control-btn {
-    width: 100%;
-    justify-content: center;
     padding: 1rem;
   }
 }
