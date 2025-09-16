@@ -1,5 +1,4 @@
 // src/components/Sidebar.tsx
-
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import CompleteChat from './CompleteChat';
@@ -35,9 +34,9 @@ export default function Sidebar({
   isDarkMode,
   onToggleDarkMode,
 }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(true); // Por defecto colapsado
-  // Estado para mostrar el chat flotante
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  
   const menuSections = [
     {
       title: 'Dashboard',
@@ -113,7 +112,6 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Botón hamburguesa solo visible en móvil */}
       <button
         className="sidebar-hamburger-btn"
         onClick={() => setIsCollapsed((prev) => !prev)}
@@ -121,6 +119,7 @@ export default function Sidebar({
       >
         <Menu size={28} />
       </button>
+      
       <aside
         className={`sidebar-container${isCollapsed ? ' collapsed' : ''}`}
         onMouseEnter={() => setIsCollapsed(false)}
@@ -164,16 +163,23 @@ export default function Sidebar({
           ))}
         </nav>
 
-        <div className="dark-mode-toggle-section">
-          <button className="dark-mode-btn" onClick={onToggleDarkMode}>
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            {!isCollapsed && (
+        {/* Botón de modo oscuro que solo aparece cuando el sidebar está abierto */}
+        {!isCollapsed && (
+          <div className="dark-mode-toggle-section">
+            <button className="dark-mode-btn" onClick={onToggleDarkMode}>
+              <div className="dark-mode-icon-container">
+                {isDarkMode ? (
+                  <Sun className="dark-mode-icon" size={22} />
+                ) : (
+                  <Moon className="dark-mode-icon" size={22} />
+                )}
+              </div>
               <span className="toggle-label">
                 {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
               </span>
-            )}
-          </button>
-        </div>
+            </button>
+          </div>
+        )}
 
         <div className="sidebar-help-section">
           <div className="sidebar-help-content">
@@ -199,7 +205,6 @@ export default function Sidebar({
         </div>
       </aside>
 
-      {/* Chat flotante */}
       {isChatOpen && (
         <div
           style={{
