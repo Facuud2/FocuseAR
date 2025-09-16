@@ -50,6 +50,35 @@
   --shadow-lg: 0 12px 30px rgba(255, 255, 255, 0.2);
 }
 
+/* ...existing code... */
+html, body, #root {
+  height: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden; /* evita scroll horizontal global */
+}
+
+/* Imágenes y medios no desbordan */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Box sizing seguro */
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Modales / formularios responsivos */
+.modal { width: 90%; max-width: 620px; margin: 0 auto; }
+.form-grid { display: grid; grid-template-columns: 1fr; gap: .75rem; }
+@media (min-width: 768px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+
+/* DatePicker touch-friendly */
+.react-datepicker__day { width:2.2rem; height:2.2rem; margin:.12rem; border-radius:.5rem; }
+/* ...existing code... */
+
 /* ===== ESTILOS GENERALES ===== */
 * {
   box-sizing: border-box;
