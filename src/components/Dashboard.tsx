@@ -333,12 +333,6 @@ const Dashboard: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button
-              className="close-modal"
-              onClick={() => setShowDayModal(false)}
-            >
-              Cerrar
-            </button>
           </div>
         )}
     </div>
