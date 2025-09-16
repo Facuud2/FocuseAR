@@ -15,7 +15,6 @@ import {
   TrendingUp,
   BarChart3,
   Settings,
-  MessageCircle,
   Moon,
   Sun,
   Menu,
