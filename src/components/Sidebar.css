@@ -229,72 +229,92 @@
   flex: 1;
 }
 
-/* Nuevo diseño para el botón de modo oscuro */
+/* Botón de modo oscuro con iconos de sol y luna -solo iconos */
+
 .dark-mode-toggle-section {
-  padding: 1rem 1.5rem;
+  padding: 1.5rem 0;
   border-top: 1px solid var(--border-light);
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .dark-mode-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  background: var(--bg-light);
-  color: var(--text-dark);
-  border: none;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.dark-mode-btn:hover {
-  background-color: var(--border-light);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-
-[data-theme='dark'] .dark-mode-btn {
-  background: var(--bg-white);
-  color: var(--text-dark);
-  border: 1px solid var(--border-light);
-}
-
-.dark-mode-icon-container {
-  width: 36px;
-  height: 36px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: none;
+  cursor: pointer;
   transition: all 0.3s ease;
-  background: linear-gradient(135deg, #ffd700, #ff8c00);
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
 }
 
-[data-theme='dark'] .dark-mode-icon-container {
-  background: linear-gradient(135deg, #1e40af, #000000);
-  box-shadow: 0 0 10px rgba(30, 64, 175, 0.6);
+.dark-mode-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme='dark'] .dark-mode-btn {
+  background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
+}
+
+/* Efecto de partículas en el fondo del botón */
+.dark-mode-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2px),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.4) 1px, transparent 1.5px),
+    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.4) 2px, transparent 2.5px);
+  background-size: 200% 200%;
+  opacity: 0.7;
+  animation: sparkle 3s linear infinite;
 }
 
 .dark-mode-icon {
   color: white;
   filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
+  z-index: 2;
+  position: relative;
 }
 
-.dark-mode-btn:hover .dark-mode-icon {
-  transform: rotate(15deg) scale(1.1);
+/* Ajustes para modo colapsado */
+.sidebar-container.collapsed .dark-mode-toggle-section {
+  padding: 1rem 0;
 }
+
+.sidebar-container.collapsed .dark-mode-btn {
+  width: 40px;
+  height: 40px;
+}
+
 
 .toggle-label {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-label svg {
+  color: #f59e0b;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));
+}
+
+[data-theme='dark'] .toggle-label svg {
+  color: #a78bfa;
 }
 
 .sidebar-help-section {

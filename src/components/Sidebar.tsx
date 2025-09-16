@@ -163,23 +163,24 @@ export default function Sidebar({
           ))}
         </nav>
 
-        {/* Botón de modo oscuro que solo aparece cuando el sidebar está abierto */}
-        {!isCollapsed && (
-          <div className="dark-mode-toggle-section">
-            <button className="dark-mode-btn" onClick={onToggleDarkMode}>
-              <div className="dark-mode-icon-container">
-                {isDarkMode ? (
+ {/* Botón de modo oscuro que solo aparece cuando el sidebar está abierto */}
+       {!isCollapsed && (
+         <div className="dark-mode-toggle-section">
+          <button 
+            className="dark-mode-btn" 
+            onClick={onToggleDarkMode}
+             aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+  >
+             <div className={`dark-mode-icon-container ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
+              {isDarkMode ? (
                   <Sun className="dark-mode-icon" size={22} />
-                ) : (
-                  <Moon className="dark-mode-icon" size={22} />
-                )}
-              </div>
-              <span className="toggle-label">
-                {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
-              </span>
-            </button>
-          </div>
-        )}
+               ) : (
+                <Moon className="dark-mode-icon" size={22} />
+           )}
+         </div>
+        </button>
+      </div>
+     )}
 
         <div className="sidebar-help-section">
           <div className="sidebar-help-content">
