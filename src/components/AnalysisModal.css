@@ -1,10 +1,21 @@
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Nuevo CSS para el modal de análisis */
+
+/* Variables para el tema claro */
+:root {
+  --modal-bg: #ffffff;
+  --modal-text: #1f2937;
+  --modal-secondary-text: #6b7280;
+  --modal-accent: #3b82f6;
+  --progress-bg: #e5e7eb;
+}
+
+/* Variables para el tema oscuro */
+[data-theme='dark'] {
+  --modal-bg: #1e293b;
+  --modal-text: #f3f4f6;
+  --modal-secondary-text: #9ca3af;
+  --modal-accent: #60a5fa;
+  --progress-bg: #374151;
 }
 
 .analysis-modal {
@@ -22,7 +33,7 @@
 }
 
 .analysis-modal-content {
-  background-color: #fff;
+  background-color: var(--modal-bg);
   border-radius: 12px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
   padding: 2.5rem;
@@ -45,7 +56,7 @@
 
 .modal-header .modal-icon {
   font-size: 3rem;
-  color: #3b82f6;
+  color: var(--modal-accent);
   animation: spin 2s linear infinite;
   margin-bottom: 1rem;
 }
@@ -53,13 +64,13 @@
 .modal-header h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--modal-text);
   margin: 0;
 }
 
 .modal-header p {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--modal-secondary-text);
 }
 
 .modal-body {
@@ -68,13 +79,13 @@
 
 .status-message {
   font-size: 1rem;
-  color: #4b5563;
+  color: var(--modal-secondary-text);
   margin-bottom: 1rem;
   min-height: 20px;
 }
 
 .progress-container {
-  background-color: #e5e7eb;
+  background-color: var(--progress-bg);
   border-radius: 50px;
   height: 14px;
   overflow: hidden;
@@ -83,7 +94,7 @@
 
 .progress-bar {
   height: 100%;
-  background-image: linear-gradient(to right, #3b82f6, #60a5fa);
+  background-image: linear-gradient(to right, var(--modal-accent), #3b82f6);
   transition: width 0.4s ease-in-out;
   display: flex;
   align-items: center;
@@ -121,7 +132,7 @@
   right: 1rem;
   font-size: 0.8rem;
   font-weight: bold;
-  color: #1f2937;
+  color: var(--modal-text);
   text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
@@ -131,6 +142,6 @@
 
 .note-text {
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: var(--modal-secondary-text);
   font-style: italic;
 }

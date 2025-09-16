@@ -4,7 +4,6 @@ import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
 import { type StudyPlanDay } from './Dashboard';
 import { usePlanner } from '../context/PlannerContext';
-// import { type ExtractedTopic } from '../services/PDFProcessor';
 
 interface Topic {
   id: string;
@@ -578,28 +577,12 @@ Genera el JSON del plan de estudio:`;
                 {selectedEvent && (
                   <div>
                     {extractedTopics.length > 0 && (
-                      <div style={{ marginBottom: '20px' }}>
-                        <h4
-                          style={{
-                            marginBottom: '10px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            color: '#4285F4',
-                          }}
-                        >
+                      <div className="form-group">
+                        <h4 className="label-heading">
                           🤖 Temas extraídos por IA del PDF (
                           {extractedTopics.length} temas encontrados):
                         </h4>
-                        <div
-                          style={{
-                            maxHeight: '200px',
-                            overflowY: 'auto',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '6px',
-                            padding: '10px',
-                            backgroundColor: '#f9fafb',
-                          }}
-                        >
+                        <div className="topic-list-container">
                           {extractedTopics.map((extractedTopic, index) => {
                             const isAlreadyAdded = topics.some(
                               (t) =>
@@ -609,63 +592,31 @@ Genera el JSON del plan de estudio:`;
                             return (
                               <div
                                 key={`planning-topic-${extractedTopic.id || index}`}
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  padding: '8px',
-                                  backgroundColor: isAlreadyAdded
-                                    ? '#dcfce7'
-                                    : 'white',
-                                  borderRadius: '4px',
-                                  marginBottom: '5px',
-                                  border: isAlreadyAdded
-                                    ? '1px solid #16a34a'
-                                    : '1px solid #e5e7eb',
+                                className={`topic-item ${isAlreadyAdded ? 'added' : ''}`}
+                                onClick={() => {
+                                  if (!isAlreadyAdded) {
+                                    const newTopic = {
+                                      id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
+                                      name: extractedTopic.name,
+                                    };
+                                    setTopics([...topics, newTopic]);
+                                    setTopicCounter((prev) => prev + 1);
+                                  }
                                 }}
                               >
                                 <div>
-                                  <span style={{ fontWeight: '500' }}>
+                                  <span className="topic-name">
                                     {index + 1}. {extractedTopic.name}
                                   </span>
                                   {extractedTopic.description && (
-                                    <div
-                                      style={{
-                                        fontSize: '12px',
-                                        color: '#666',
-                                        marginTop: '2px',
-                                      }}
-                                    >
+                                    <div className="topic-description">
                                       {extractedTopic.description}
                                     </div>
                                   )}
                                 </div>
                                 <button
-                                  onClick={() => {
-                                    if (!isAlreadyAdded) {
-                                      const newTopic = {
-                                        id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
-                                        name: extractedTopic.name,
-                                      };
-                                      setTopics([...topics, newTopic]);
-                                      setTopicCounter((prev) => prev + 1);
-                                    }
-                                  }}
+                                  className={`topic-add-btn ${isAlreadyAdded ? 'added' : ''}`}
                                   disabled={isAlreadyAdded}
-                                  style={{
-                                    backgroundColor: isAlreadyAdded
-                                      ? '#16a34a'
-                                      : '#4285F4',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    padding: '6px 12px',
-                                    cursor: isAlreadyAdded
-                                      ? 'default'
-                                      : 'pointer',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                  }}
                                 >
                                   {isAlreadyAdded ? '✓ Agregado' : '+ Agregar'}
                                 </button>
@@ -691,46 +642,18 @@ Genera el JSON del plan de estudio:`;
                             setTopics([...topics, ...newTopics]);
                             setTopicCounter((prev) => prev + newTopics.length);
                           }}
-                          style={{
-                            backgroundColor: '#16a34a',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            padding: '8px 16px',
-                            cursor: 'pointer',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            marginTop: '10px',
-                            width: '100%',
-                          }}
+                          className="button-primary"
                         >
                           ✨ Agregar todos los temas de IA
                         </button>
                       </div>
                     )}
-                    <div
-                      className="form-group"
-                      style={{ marginBottom: '20px' }}
-                    >
-                      <label
-                        style={{
-                          fontWeight: '600',
-                          marginBottom: '10px',
-                          display: 'block',
-                        }}
-                      >
+                    <div className="form-group">
+                      <label>
                         📅 Selecciona los días de la semana que tienes
                         disponibles para estudiar
                       </label>
-                      <div
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns:
-                            'repeat(auto-fit, minmax(120px, 1fr))',
-                          gap: '10px',
-                          marginBottom: '15px',
-                        }}
-                      >
+                      <div className="day-selector-grid">
                         {[
                           { day: 1, name: 'Lunes' },
                           { day: 2, name: 'Martes' },
@@ -742,20 +665,7 @@ Genera el JSON del plan de estudio:`;
                         ].map(({ day, name }) => (
                           <div
                             key={day}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              padding: '12px',
-                              cursor: 'pointer',
-                              borderRadius: '8px',
-                              backgroundColor: selectedWeekDays.includes(day)
-                                ? '#dbeafe'
-                                : 'white',
-                              border: selectedWeekDays.includes(day)
-                                ? '2px solid #3b82f6'
-                                : '1px solid #e5e7eb',
-                              transition: 'all 0.2s ease',
-                            }}
+                            className={`day-selector-card ${selectedWeekDays.includes(day) ? 'selected-day' : ''}`}
                             onClick={() => {
                               if (selectedWeekDays.includes(day)) {
                                 setSelectedWeekDays(
@@ -770,24 +680,8 @@ Genera el JSON del plan de estudio:`;
                               type="checkbox"
                               checked={selectedWeekDays.includes(day)}
                               onChange={() => {}}
-                              style={{
-                                marginRight: '8px',
-                                width: '16px',
-                                height: '16px',
-                                cursor: 'pointer',
-                              }}
                             />
-                            <span
-                              style={{
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                color: selectedWeekDays.includes(day)
-                                  ? '#1e40af'
-                                  : '#374151',
-                              }}
-                            >
-                              {name}
-                            </span>
+                            <span>{name}</span>
                           </div>
                         ))}
                       </div>
@@ -797,7 +691,7 @@ Genera el JSON del plan de estudio:`;
                         );
                         if (!selectedSubject) {
                           return (
-                            <p style={{ color: '#ef4444', fontSize: '14px' }}>
+                            <p className="error-message">
                               ⚠️ No se encontró la materia seleccionada.
                             </p>
                           );
@@ -822,7 +716,7 @@ Genera el JSON del plan de estudio:`;
                               ? 'Primer Parcial'
                               : 'Segundo Parcial';
                           return (
-                            <p style={{ color: '#666', fontSize: '14px' }}>
+                            <p className="info-message">
                               No se encontró la fecha del {eventName} para esta
                               materia.
                             </p>
@@ -838,97 +732,44 @@ Genera el JSON del plan de estudio:`;
                         return (
                           <div>
                             {selectedWeekDays.length > 0 && (
-                              <div
-                                style={{
-                                  marginTop: '15px',
-                                  padding: '15px',
-                                  backgroundColor: '#f0f9ff',
-                                  border: '1px solid #0ea5e9',
-                                  borderRadius: '8px',
-                                  fontSize: '14px',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontWeight: '600',
-                                    marginBottom: '8px',
-                                  }}
-                                >
+                              <div className="summary-box">
+                                <div className="summary-title">
                                   📊 Resumen de tu planificación:
                                 </div>
-                                <div
-                                  style={{
-                                    fontSize: '13px',
-                                    color: '#0369a1',
-                                  }}
-                                >
-                                  • Días de la semana seleccionados:{' '}
-                                  {selectedWeekDays.length}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: '13px',
-                                    color: '#0369a1',
-                                  }}
-                                >
-                                  • Fecha del examen: {formatDate(examDate)}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: '13px',
-                                    color: '#0369a1',
-                                  }}
-                                >
-                                  • Sesiones de estudio generadas:{' '}
-                                  {generatedDates.length}
-                                </div>
-                                {topics.length > 0 && (
-                                  <div
-                                    style={{
-                                      fontSize: '13px',
-                                      color: '#0369a1',
-                                    }}
-                                  >
-                                    • Aproximadamente{' '}
-                                    {Math.ceil(
-                                      generatedDates.length / topics.length,
-                                    )}{' '}
-                                    sesiones por tema
-                                  </div>
-                                )}
+                                <ul className="summary-list">
+                                  <li>
+                                    • Días de la semana seleccionados:{' '}
+                                    {selectedWeekDays.length}
+                                  </li>
+                                  <li>
+                                    • Fecha del examen: {formatDate(examDate)}
+                                  </li>
+                                  <li>
+                                    • Sesiones de estudio generadas:{' '}
+                                    {generatedDates.length}
+                                  </li>
+                                  {topics.length > 0 && (
+                                    <li>
+                                      • Aproximadamente{' '}
+                                      {Math.ceil(
+                                        generatedDates.length / topics.length,
+                                      )}{' '}
+                                      sesiones por tema
+                                    </li>
+                                  )}
+                                </ul>
                               </div>
                             )}
                             {selectedWeekDays.length > 0 &&
                               generatedDates.length === 0 && (
-                                <div
-                                  style={{
-                                    marginTop: '15px',
-                                    padding: '15px',
-                                    backgroundColor: '#fef3c7',
-                                    border: '1px solid #f59e0b',
-                                    borderRadius: '8px',
-                                    fontSize: '14px',
-                                    color: '#92400e',
-                                  }}
-                                >
+                                <div className="warning-box">
                                   ⚠️ No hay fechas disponibles con los días de
                                   la semana seleccionados hasta la fecha del
                                   examen.
                                 </div>
                               )}
                             {selectedWeekDays.length === 0 && (
-                              <div
-                                style={{
-                                  marginTop: '15px',
-                                  padding: '15px',
-                                  backgroundColor: '#f3f4f6',
-                                  border: '1px solid #d1d5db',
-                                  borderRadius: '8px',
-                                  fontSize: '14px',
-                                  color: '#6b7280',
-                                  textAlign: 'center',
-                                }}
-                              >
+                              <div className="info-box">
                                 👆 Selecciona los días de la semana que tienes
                                 disponibles para estudiar
                               </div>
@@ -939,45 +780,23 @@ Genera el JSON del plan de estudio:`;
                     </div>
                     {topics.length > 0 && (
                       <div>
-                        <h4
-                          style={{
-                            marginBottom: '10px',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                          }}
-                        >
+                        <h4 className="label-heading">
                           📚{' '}
                           {selectedEvent
                             .replace(/-/g, ' ')
                             .replace(/\b\w/g, (l) => l.toUpperCase())}{' '}
                           ({topics.length} temas):
                         </h4>
-                        <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                        <div className="topic-list">
                           {topics.map((topic, index) => (
                             <div
                               key={`topic-${topic.id || index}`}
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'flex-start',
-                                padding: '8px',
-                                backgroundColor: '#f3f4f6',
-                                borderRadius: '4px',
-                                marginBottom: '5px',
-                              }}
+                              className="topic-tag"
                             >
                               <span>{topic.name}</span>
                               <button
                                 onClick={() => removeTopic(topic.id)}
-                                style={{
-                                  backgroundColor: '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '3px',
-                                  padding: '4px 8px',
-                                  cursor: 'pointer',
-                                  fontSize: '12px',
-                                }}
+                                className="remove-btn"
                               >
                                 ×
                               </button>
@@ -987,38 +806,11 @@ Genera el JSON del plan de estudio:`;
                       </div>
                     )}
                     {topics.length > 0 && selectedWeekDays.length > 0 && (
-                      <div style={{ marginTop: '20px' }}>
+                      <div className="action-container">
                         <button
                           onClick={generateStudyPlan}
                           disabled={generatingPlan}
-                          style={{
-                            backgroundColor: generatingPlan
-                              ? '#9ca3af'
-                              : '#10b981',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '12px 24px',
-                            cursor: generatingPlan ? 'not-allowed' : 'pointer',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            transition: 'all 0.2s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!generatingPlan) {
-                              e.currentTarget.style.backgroundColor = '#059669';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!generatingPlan) {
-                              e.currentTarget.style.backgroundColor = '#10b981';
-                            }
-                          }}
+                          className="button-primary generate-btn"
                         >
                           {generatingPlan ? (
                             <>
@@ -1035,73 +827,25 @@ Genera el JSON del plan de estudio:`;
                       </div>
                     )}
                     {generatedStudyPlan && (
-                      <div style={{ marginTop: '20px' }}>
-                        <h4
-                          style={{
-                            marginBottom: '15px',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            color: '#10b981',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
+                      <div className="generated-plan-container">
+                        <h4 className="generated-plan-title">
                           <span>🎯</span>
                           Plan de Estudio Generado
                         </h4>
-                        <div
-                          style={{
-                            backgroundColor: '#f8fafc',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: '8px',
-                            padding: '20px',
-                            maxHeight: '500px',
-                            overflowY: 'auto',
-                            fontSize: '14px',
-                            lineHeight: '1.6',
-                            whiteSpace: 'pre-wrap',
-                          }}
-                        >
-                          {generatedStudyPlan}
+                        <div className="generated-plan-content">
+                          <pre>{generatedStudyPlan}</pre>
                         </div>
-                        <div
-                          style={{
-                            marginTop: '10px',
-                            display: 'flex',
-                            gap: '10px',
-                          }}
-                        >
+                        <div className="generated-plan-actions">
                           <button
                             onClick={() => setGeneratedStudyPlan('')}
-                            style={{
-                              backgroundColor: '#6b7280',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '8px 16px',
-                              cursor: 'pointer',
-                              fontSize: '14px',
-                            }}
+                            className="button-secondary"
                           >
                             Cerrar plan
                           </button>
                           <button
                             onClick={generateStudyPlan}
                             disabled={generatingPlan}
-                            style={{
-                              backgroundColor: generatingPlan
-                                ? '#9ca3af'
-                                : '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              padding: '8px 16px',
-                              cursor: generatingPlan
-                                ? 'not-allowed'
-                                : 'pointer',
-                              fontSize: '14px',
-                            }}
+                            className="button-primary"
                           >
                             {generatingPlan
                               ? 'Regenerando...'
@@ -1122,444 +866,153 @@ Genera el JSON del plan de estudio:`;
           <i className="fas fa-graduation-cap"></i> Planes de estudio
         </h2>
         {studyPlans.length === 0 ? (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '40px 20px',
-              color: '#6b7280',
-              fontSize: '14px',
-            }}
-          >
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
+          <div className="empty-state">
+            <div className="empty-state-icon">📚</div>
             <p>No tienes planes de estudio creados aún.</p>
             <p>
-              Crea uno desde la sección "Planificar" seleccionando temas y días
-              de estudio.
+              Crea uno desde la sección "Planificación" seleccionando temas y
+              días de estudio.
             </p>
           </div>
         ) : (
-          <div
-            style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-          >
+          <div className="plans-list">
             {studyPlans.map((plan, index) => (
-              <div
-                key={`plan-${plan.id || index}`}
-                style={{
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  backgroundColor: 'white',
-                  overflow: 'hidden',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                  transition: 'all 0.2s ease',
-                }}
-              >
+              <div key={`plan-${plan.id || index}`} className="history-item">
                 <div
-                  style={{
-                    padding: '20px',
-                    cursor: 'pointer',
-                    borderBottom: plan.expanded ? '1px solid #e5e7eb' : 'none',
-                  }}
+                  className="history-header"
                   onClick={() => togglePlanExpansion(plan.id)}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      marginBottom: '12px',
-                    }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <h3
-                        style={{
-                          margin: '0 0 8px 0',
-                          fontSize: '16px',
-                          fontWeight: '600',
-                          color: '#1f2937',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                        }}
-                      >
-                        <span>📖</span>
-                        {plan.subjectName}
-                      </h3>
-                      <div
-                        style={{
-                          fontSize: '14px',
-                          color: '#6b7280',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '16px',
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>🎯</span>
-                          {plan.eventName}
+                  <div className="plan-info">
+                    <h3 className="plan-title-text">
+                      <span>📖</span>
+                      {plan.subjectName}
+                    </h3>
+                    <div className="plan-details">
+                      <span className="plan-detail">
+                        <span>🎯</span> {plan.eventName}
+                      </span>
+                      {plan.examDate && (
+                        <span className="plan-detail">
+                          <span>📅</span> {formatDate(plan.examDate)}
                         </span>
-                        {plan.examDate && (
-                          <span
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <span>📅</span>
-                            {formatDate(plan.examDate)}
-                          </span>
-                        )}
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>📚</span>
-                          {plan.topics.length} temas
-                        </span>
-                        <span
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                          }}
-                        >
-                          <span>🗓️</span>
-                          {plan.studyDays.length} días
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                      }}
-                    >
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (
-                            confirm(
-                              `¿Estás seguro de que quieres eliminar el plan de estudio "${plan.subjectName}"?`,
-                            )
-                          ) {
-                            deletePlan(plan.id);
-                          }
-                        }}
-                        style={{
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '6px 10px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                        }}
-                      >
-                        🗑️ Eliminar
-                      </button>
-                      <span
-                        style={{
-                          fontSize: '14px',
-                          color: '#6b7280',
-                          transform: plan.expanded
-                            ? 'rotate(180deg)'
-                            : 'rotate(0deg)',
-                          transition: 'transform 0.2s ease',
-                        }}
-                      >
-                        ▼
+                      )}
+                      <span className="plan-detail">
+                        <span>📚</span> {plan.topics.length} temas
+                      </span>
+                      <span className="plan-detail">
+                        <span>🗓️</span> {plan.studyDays.length} días
                       </span>
                     </div>
                   </div>
-                  <div style={{ marginBottom: '12px' }}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: '6px',
+                  <div className="action-buttons">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (
+                          confirm(
+                            `¿Estás seguro de que quieres eliminar el plan de estudio "${plan.subjectName}"?`,
+                          )
+                        ) {
+                          deletePlan(plan.id);
+                        }
                       }}
+                      className="button-danger"
                     >
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          color: '#6b7280',
-                          fontWeight: '500',
-                        }}
-                      >
-                        Progreso del estudio
+                      🗑️ Eliminar
+                    </button>
+                    <span
+                      className={`toggle-icon ${plan.expanded ? 'expanded' : ''}`}
+                    >
+                      ▼
+                    </span>
+                  </div>
+                </div>
+                <div className="progress-container">
+                  <span className="progress-label">Progreso del estudio</span>
+                  <span className="progress-value">
+                    {plan.progress}%
+                    {plan.structuredPlan && (
+                      <span className="progress-days">
+                        (
+                        {
+                          plan.structuredPlan.days.filter((d) => d.completed)
+                            .length
+                        }
+                        /{plan.structuredPlan.days.length} días)
                       </span>
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          color: '#059669',
-                          fontWeight: '600',
-                        }}
-                      >
-                        {plan.progress}%
-                        {plan.structuredPlan && (
-                          <span style={{ color: '#6b7280', marginLeft: '4px' }}>
-                            (
-                            {
-                              plan.structuredPlan.days.filter(
-                                (d) => d.completed,
-                              ).length
-                            }
-                            /{plan.structuredPlan.days.length} días)
-                          </span>
-                        )}
-                      </span>
-                    </div>
+                    )}
+                  </span>
+                  <div className="progress-bar-container">
                     <div
-                      style={{
-                        width: '100%',
-                        backgroundColor: '#f3f4f6',
-                        borderRadius: '10px',
-                        margin: '20px 0',
-                        height: '20px',
-                        overflow: 'hidden',
-                      }}
+                      className="progress-bar"
+                      style={{ width: `${plan.progress}%` }}
                     >
-                      <div
-                        style={{
-                          width: `${plan.progress}%`,
-                          height: '100%',
-                          backgroundColor:
-                            plan.progress === 100 ? '#10b981' : '#3b82f6',
-                          borderRadius: '10px',
-                          transition: 'all 0.3s ease',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          fontSize: '12px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        {plan.progress}%
-                      </div>
+                      {plan.progress}%
                     </div>
                   </div>
                 </div>
                 {plan.expanded && (
-                  <div
-                    style={{
-                      padding: '20px',
-                      backgroundColor: '#f8fafc',
-                      borderTop: '1px solid #e5e7eb',
-                    }}
-                  >
+                  <div className="expanded-plan-content">
                     {plan.structuredPlan ? (
                       <div>
-                        <h4
-                          style={{
-                            margin: '0 0 16px 0',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            color: '#1f2937',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
-                          <span>📅</span>
-                          Cronograma de Estudio
+                        <h4 className="section-title">
+                          <span>📅</span> Cronograma de Estudio
                         </h4>
                         {plan.structuredPlan.summary && (
-                          <div
-                            style={{
-                              backgroundColor: '#dbeafe',
-                              border: '1px solid #93c5fd',
-                              borderRadius: '8px',
-                              padding: '12px',
-                              marginBottom: '16px',
-                              fontSize: '14px',
-                              color: '#1e40af',
-                            }}
-                          >
-                            <strong>📋 Resumen:</strong>{' '}
+                          <div className="plan-summary">
                             {plan.structuredPlan.summary}
                           </div>
                         )}
-                        <div
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px',
-                          }}
-                        >
+                        <div className="day-list">
                           {plan.structuredPlan.days.map((day, dayIndex) => (
                             <div
                               key={dayIndex}
-                              style={{
-                                backgroundColor: day.completed
-                                  ? '#f0fdf4'
-                                  : 'white',
-                                border: day.completed
-                                  ? '2px solid #22c55e'
-                                  : '1px solid #e5e7eb',
-                                borderRadius: '8px',
-                                padding: '16px',
-                              }}
+                              className={`study-day-card ${day.completed ? 'completed' : ''}`}
                             >
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'flex-start',
-                                  marginBottom: '12px',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '12px',
-                                  }}
-                                >
-                                  <h5
-                                    style={{
-                                      margin: '0 0 8px 0',
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      color: day.completed
-                                        ? '#15803d'
-                                        : '#374151',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '8px',
-                                    }}
-                                  >
-                                    <span>{day.completed ? '✅' : '📅'}</span>
-                                    Día {day.dayNumber} - {formatDate(day.date)}
-                                  </h5>
-                                  {day.totalTime && (
-                                    <span
-                                      style={{
-                                        backgroundColor: day.completed
-                                          ? '#dcfce7'
-                                          : '#f3f4f6',
-                                        color: day.completed
-                                          ? '#15803d'
-                                          : '#6b7280',
-                                        padding: '4px 8px',
-                                        borderRadius: '4px',
-                                        fontSize: '12px',
-                                        fontWeight: '500',
-                                      }}
-                                    >
-                                      ⏱️ {day.totalTime}
-                                    </span>
-                                  )}
-                                </div>
+                              <div className="day-header">
+                                <h5 className="day-title">
+                                  <span>{day.completed ? '✅' : '📅'}</span> Día{' '}
+                                  {day.dayNumber} - {formatDate(day.date)}
+                                </h5>
                                 <button
                                   onClick={() =>
                                     toggleDayCompletion(plan.id, dayIndex)
                                   }
-                                  style={{
-                                    backgroundColor: day.completed
-                                      ? '#22c55e'
-                                      : '#3b82f6',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    padding: '8px 12px',
-                                    cursor: 'pointer',
-                                    fontSize: '12px',
-                                    fontWeight: '500',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                  }}
+                                  className={`plan-completion-btn ${day.completed ? 'completed' : ''}`}
                                 >
                                   {day.completed
                                     ? '✓ Completado'
                                     : 'Marcar como completado'}
                                 </button>
                               </div>
-                              <div style={{ marginBottom: '12px' }}>
-                                <h6
-                                  style={{
-                                    margin: '0 0 8px 0',
-                                    fontSize: '14px',
-                                    fontWeight: '600',
-                                    color: '#374151',
-                                  }}
-                                >
+                              <div className="day-info">
+                                {day.totalTime && (
+                                  <span className="day-time">
+                                    ⏱️ {day.totalTime}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="day-topics">
+                                <h6 className="topics-title">
                                   📚 Temas a estudiar:
                                 </h6>
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '8px',
-                                  }}
-                                >
+                                <div className="topic-sublist">
                                   {day.topics.map((topic, topicIndex) => (
                                     <div
                                       key={topicIndex}
-                                      style={{
-                                        backgroundColor: day.completed
-                                          ? '#ecfdf5'
-                                          : '#f9fafb',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '6px',
-                                        padding: '12px',
-                                      }}
+                                      className="plan-day-topics"
                                     >
-                                      <div
-                                        style={{
-                                          display: 'flex',
-                                          justifyContent: 'space-between',
-                                          alignItems: 'flex-start',
-                                          marginBottom: '6px',
-                                        }}
-                                      >
-                                        <span
-                                          style={{
-                                            margin: 0,
-                                            fontSize: '14px',
-                                            fontWeight: '600',
-                                            color: '#1f2937',
-                                          }}
-                                        >
+                                      <div className="topic-header">
+                                        <span className="topic-name">
                                           {topic.name}
                                         </span>
                                         {topic.estimatedTime && (
-                                          <span
-                                            style={{
-                                              backgroundColor: '#e0e7ff',
-                                              color: '#3730a3',
-                                              padding: '2px 6px',
-                                              borderRadius: '3px',
-                                              fontSize: '11px',
-                                              fontWeight: '500',
-                                            }}
-                                          >
+                                          <span className="topic-time">
                                             {topic.estimatedTime}
                                           </span>
                                         )}
                                       </div>
-                                      <p
-                                        style={{
-                                          margin: 0,
-                                          fontSize: '13px',
-                                          color: '#6b7280',
-                                          lineHeight: '1.4',
-                                        }}
-                                      >
+                                      <p className="topic-summary">
                                         {topic.summary}
                                       </p>
                                     </div>
@@ -1567,80 +1020,27 @@ Genera el JSON del plan de estudio:`;
                                 </div>
                               </div>
                               {day.recommendations && (
-                                <div
-                                  style={{
-                                    backgroundColor: day.completed
-                                      ? '#fef3c7'
-                                      : '#fef7cd',
-                                    border: '1px solid #fbbf24',
-                                    borderRadius: '6px',
-                                    padding: '10px',
-                                    fontSize: '13px',
-                                    color: '#92400e',
-                                  }}
-                                >
-                                  <strong>💡 Recomendaciones:</strong>{' '}
-                                  {day.recommendations}
+                                <div className="plan-recommendations">
+                                  💡 {day.recommendations}
                                 </div>
                               )}
                             </div>
                           ))}
                         </div>
                         {plan.structuredPlan.finalRecommendations && (
-                          <div
-                            style={{
-                              marginTop: '16px',
-                              backgroundColor: '#ecfdf5',
-                              border: '1px solid #bbf7d0',
-                              borderRadius: '8px',
-                              padding: '12px',
-                              fontSize: '14px',
-                              color: '#047857',
-                            }}
-                          >
+                          <div className="plan-final-tips">
                             <strong>🎯 Consejos finales para el examen:</strong>
-                            <p
-                              style={{
-                                margin: '8px 0 0 0',
-                                lineHeight: '1.5',
-                              }}
-                            >
-                              {plan.structuredPlan.finalRecommendations}
-                            </p>
+                            <p>{plan.structuredPlan.finalRecommendations}</p>
                           </div>
                         )}
                       </div>
                     ) : (
                       <div>
-                        <h4
-                          style={{
-                            margin: '0 0 16px 0',
-                            fontSize: '16px',
-                            fontWeight: '600',
-                            color: '#1f2937',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                          }}
-                        >
-                          <span>🎯</span>
-                          Plan de Estudio (Formato Texto)
+                        <h4 className="section-title">
+                          <span>🎯</span> Plan de Estudio (Formato Texto)
                         </h4>
-                        <div
-                          style={{
-                            backgroundColor: 'white',
-                            border: '1px solid #e5e7eb',
-                            borderRadius: '8px',
-                            padding: '16px',
-                            maxHeight: '400px',
-                            overflowY: 'auto',
-                            fontSize: '14px',
-                            lineHeight: '1.6',
-                            whiteSpace: 'pre-wrap',
-                            fontFamily: 'inherit',
-                          }}
-                        >
-                          {plan.content}
+                        <div className="text-plan-container">
+                          <pre>{plan.content}</pre>
                         </div>
                       </div>
                     )}
