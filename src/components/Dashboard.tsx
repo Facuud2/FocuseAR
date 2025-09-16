@@ -1,4 +1,4 @@
-import React, { useState, useEffect, type JSX, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { useNavigate } from 'react-router-dom';
@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
       color?: string;
     }>
   > = {};
-  
+
   useEffect(() => {
     const loadUserData = async () => {
       if (!user) return;
@@ -168,7 +168,7 @@ const Dashboard: React.FC = () => {
     else startDay--;
 
     const today = new Date();
-    const days: JSX.Element[] = [];
+    const days: React.ReactNode[] = [];
 
     for (let i = 0; i < startDay; i++) {
       days.push(
@@ -244,7 +244,6 @@ const Dashboard: React.FC = () => {
         </div>
       </header>
 
-
       {/* CALENDAR PANEL (col-span-12) */}
       <div className="panel calendar-panel grid-span-12">
         <div className="panel-title-container">
@@ -273,7 +272,6 @@ const Dashboard: React.FC = () => {
           {renderDays()}
         </div>
       </div>
-
 
       {/* NOTES PANEL (col-span-6) */}
       <div className="panel notes-panel grid-span-6">
@@ -325,11 +323,13 @@ const Dashboard: React.FC = () => {
                 <div
                   key={idx}
                   className="activity-item"
-                  style={{ borderLeftColor: detail.color || '#4285F4' }}
+                  style={{ borderLeftColor: planDetail.color || '#4285F4' }}
                 >
-                  <h4>{detail.day.topics.map((t) => t.name).join(', ')}</h4>
-                  <p>{detail.day.recommendations}</p>
-                  <div className="activity-time">{detail.day.totalTime}</div>
+                  <h4>{planDetail.day.topics.map((t) => t.name).join(', ')}</h4>
+                  <p>{planDetail.day.recommendations}</p>
+                  <div className="activity-time">
+                    {planDetail.day.totalTime}
+                  </div>
                 </div>
               ))}
             </div>
@@ -340,8 +340,7 @@ const Dashboard: React.FC = () => {
               Cerrar
             </button>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 };
