@@ -20,48 +20,31 @@ export type StudyPlanDay = {
   title?: string;
 };
 
-interface Subject {
+interface StudyPlanData {
   id: string | number;
-  name: string;
+  subjectName: string;
+  eventName: string;
   examDate: string;
-  color: string;
-  pdfs: { id: number; name: string; size: string }[];
-  importantDates: {
-    name: string;
-    date: string;
-    type: 'exam' | 'tp' | 'other';
-  }[];
+  topics: string[];
+  studyDays: string[];
+  content: string;
+  structuredPlan: {
+    title: string;
+    summary: string;
+    days: StudyPlanDay[];
+    finalRecommendations: string;
+  } | null;
+  progress: number;
+  createdAt: string;
+  expanded: boolean;
+  subjectColor?: string;
 }
 
 const Dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { getUserMaterials, getUserStudyPlans } = useDatabase();
+  const { getUserStudyPlans } = useDatabase();
   const navigate = useNavigate();
-
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [studyPlans, setStudyPlans] = useState<
-    Array<{
-      id: string | number;
-      subjectName: string;
-      eventName: string;
-      examDate: string;
-      topics: string[];
-      studyDays: string[];
-      content: string;
-      structuredPlan:
-        | {
-            title: string;
-            summary: string;
-            days: Array<StudyPlanDay>;
-            finalRecommendations: string;
-          }
-        | null
-        | undefined;
-      progress: number;
-      createdAt: string;
-      expanded: boolean;
-    }>
-  >([]);
+  const [studyPlans, setStudyPlans] = useState<StudyPlanData[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<
@@ -75,44 +58,32 @@ const Dashboard: React.FC = () => {
   }> | null>(null);
   const [filteredPlanIds] = useState<(string | number)[]>([]);
 
+  const studyPlanDays: Record<
+    string,
+    Array<{
+      planId: string | number;
+      day: StudyPlanDay;
+      color?: string;
+    }>
+  > = {};
+  
   useEffect(() => {
     const loadUserData = async () => {
       if (!user) return;
       try {
-        const materials = await getUserMaterials();
-        const convertedSubjects: Subject[] = materials.map(
-          (material, index) => {
-            const subjectId = material.id || `subject-${Date.now()}-${index}`;
-            return {
-              id: subjectId,
-              name: material.fileName.replace(/\.(pdf|docx|doc)$/i, ''),
-              examDate: '',
-              color: '#4285F4',
-              pdfs: [
-                {
-                  id: 1,
-                  name: material.fileName,
-                  size: '0 MB',
-                },
-              ],
-              importantDates: [],
-            };
-          },
-        );
-        setSubjects(convertedSubjects);
-
-        const studyPlans = await getUserStudyPlans();
-        const convertedPlans = studyPlans.map((plan, index) => {
+        const studyPlansData = await getUserStudyPlans();
+        const convertedPlans = studyPlansData.map((plan, index) => {
           const planId = plan.id || `plan-${Date.now()}-${index}`;
           return {
             id: planId,
-            subjectName: plan.generatedPlan.title || 'Plan de Estudio',
+            subjectName: plan.generatedPlan?.title || 'Plan de Estudio',
+            subjectColor: plan.generatedPlan?.subjectColor || '#4285F4',
             eventName: 'Examen',
-            examDate: plan.generatedPlan.examDate || '',
-            topics: plan.generatedPlan.topics || [],
-            studyDays: plan.generatedPlan.studyDates || [],
-            content: JSON.stringify(plan.generatedPlan.structuredPlan || {}),
-            structuredPlan: plan.generatedPlan.structuredPlan,
+            examDate: plan.generatedPlan?.examDate || '',
+            topics: plan.generatedPlan?.topics || [],
+            studyDays: plan.generatedPlan?.studyDates || [],
+            content: JSON.stringify(plan.generatedPlan?.structuredPlan || {}),
+            structuredPlan: plan.generatedPlan?.structuredPlan || null,
             progress: 0,
             createdAt:
               plan.createdAt?.toDate?.()?.toISOString() ||
@@ -122,11 +93,11 @@ const Dashboard: React.FC = () => {
         });
         setStudyPlans(convertedPlans);
       } catch (error: unknown) {
-        console.error('Error al cargar datos del usuario:', error);
+        console.error('Error al cargar planes de estudio:', error);
       }
     };
     loadUserData();
-  }, [user, getUserMaterials, getUserStudyPlans]);
+  }, [user, getUserStudyPlans]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString + 'T00:00:00');
@@ -155,8 +126,8 @@ const Dashboard: React.FC = () => {
   ];
 
   const changeMonth = (dir: number) => {
-    let m = currentMonth + dir,
-      y = currentYear;
+    let m = currentMonth + dir;
+    let y = currentYear;
     if (m < 0) {
       m = 11;
       y--;
@@ -170,30 +141,19 @@ const Dashboard: React.FC = () => {
   };
 
   const getFilteredStudyPlans = () => {
-    if (filteredPlanIds.length === 0) {
-      return studyPlans;
-    }
+    if (filteredPlanIds.length === 0) return studyPlans;
     return studyPlans.filter((plan) => filteredPlanIds.includes(plan.id));
   };
 
-  const studyPlanDays: {
-    [date: string]: Array<{
-      planId: string | number;
-      day: StudyPlanDay;
-      color?: string;
-    }>;
-  } = {};
-
   const filteredStudyPlans = getFilteredStudyPlans();
   filteredStudyPlans.forEach((plan) => {
-    if (plan.structuredPlan && Array.isArray(plan.structuredPlan.days)) {
-      plan.structuredPlan.days.forEach((day: StudyPlanDay) => {
+    if (plan.structuredPlan?.days) {
+      plan.structuredPlan.days.forEach((day) => {
         if (!studyPlanDays[day.date]) studyPlanDays[day.date] = [];
-        const subject = subjects.find((s) => s.name === plan.subjectName);
         studyPlanDays[day.date].push({
           planId: plan.id,
           day,
-          color: subject?.color,
+          color: plan.subjectColor || '#10b981',
         });
       });
     }
@@ -206,11 +166,16 @@ const Dashboard: React.FC = () => {
     let startDay = firstDay.getDay();
     if (startDay === 0) startDay = 6;
     else startDay--;
+
     const today = new Date();
     const days: JSX.Element[] = [];
+
     for (let i = 0; i < startDay; i++) {
-      days.push(<div key={'e' + i} className="calendar-cell empty-cell"></div>);
+      days.push(
+        <div key={`empty-${i}`} className="calendar-cell empty-cell"></div>,
+      );
     }
+
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const isToday =
@@ -218,6 +183,7 @@ const Dashboard: React.FC = () => {
         today.getMonth() === currentMonth &&
         today.getFullYear() === currentYear;
       const plansForDay = studyPlanDays[dateStr] || [];
+
       days.push(
         <div
           key={d}
@@ -237,9 +203,7 @@ const Dashboard: React.FC = () => {
                 <div
                   key={idx}
                   className="day-dot"
-                  style={{
-                    background: plan.color || '#8A2BE2',
-                  }}
+                  style={{ background: plan.color || '#8A2BE2' }}
                 />
               ))}
             </div>
@@ -249,14 +213,13 @@ const Dashboard: React.FC = () => {
     }
     return days;
   };
-
+  // aad
   const handleSettingsClick = () => {
     navigate('/settings');
   };
 
   return (
     <div className="dashboard-container">
-      {/* HEADER */}
       <header className="grid-span-12">
         <div className="logo-container">
           <div className="logo-circle">
@@ -280,6 +243,7 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </header>
+
 
       {/* CALENDAR PANEL (col-span-12) */}
       <div className="panel calendar-panel grid-span-12">
@@ -310,9 +274,36 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+
       {/* NOTES PANEL (col-span-6) */}
       <div className="panel notes-panel grid-span-6">
         <NotesAndChecklist />
+      </div>
+
+      <div className="panel activity-panel grid-span-6">
+        <div className="panel-title-container">
+          <h3 className="panel-title">Actividad reciente</h3>
+        </div>
+        <div className="activity-content">
+          {studyPlans.length === 0 ? (
+            <p>No hay planes de estudio recientes</p>
+          ) : (
+            <ul className="recent-plans">
+              {studyPlans.slice(0, 3).map((plan) => (
+                <li key={plan.id} className="recent-plan-item">
+                  <div
+                    className="plan-color"
+                    style={{ backgroundColor: plan.subjectColor || '#4285F4' }}
+                  ></div>
+                  <div className="plan-details">
+                    <h4>{plan.subjectName}</h4>
+                    <p>Progreso: {plan.progress}%</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
       {/* MODAL for day details */}
@@ -333,49 +324,24 @@ const Dashboard: React.FC = () => {
               {selectedDayDetails.map((planDetail, idx: number) => (
                 <div
                   key={idx}
-                  className="day-detail-card"
-                  style={{
-                    borderLeftColor: planDetail.color || '#8A2BE2',
-                  }}
+                  className="activity-item"
+                  style={{ borderLeftColor: detail.color || '#4285F4' }}
                 >
-                  <div
-                    className="day-detail-header"
-                    style={{
-                      color: planDetail.color || '#8A2BE2',
-                    }}
-                  >
-                    {planDetail.day.title || `Plan #${planDetail.planId}`}
-                  </div>
-                  <div className="day-detail-meta">
-                    <strong>Día {planDetail.day.dayNumber}</strong>
-                  </div>
-                  <div className="day-detail-topics">
-                    <strong>Temas:</strong>
-                    <ul>
-                      {planDetail.day.topics.map((topic, idx2: number) => (
-                        <li key={idx2}>
-                          <span className="topic-name">{topic.name}</span>
-                          {topic.estimatedTime && (
-                            <span className="topic-time">
-                              ({topic.estimatedTime})
-                            </span>
-                          )}
-                          <p className="topic-summary">{topic.summary}</p>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  {planDetail.day.recommendations && (
-                    <div className="day-detail-recommendations">
-                      <strong>💡 Recomendaciones:</strong>{' '}
-                      {planDetail.day.recommendations}
-                    </div>
-                  )}
+                  <h4>{detail.day.topics.map((t) => t.name).join(', ')}</h4>
+                  <p>{detail.day.recommendations}</p>
+                  <div className="activity-time">{detail.day.totalTime}</div>
                 </div>
               ))}
             </div>
+            <button
+              className="close-modal"
+              onClick={() => setShowDayModal(false)}
+            >
+              Cerrar
+            </button>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };
