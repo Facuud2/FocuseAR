@@ -423,9 +423,9 @@ body.settings-page {
 
 .checkout-close {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
-  font-size: 2rem;
+  top: 0.25rem;
+  right: 0.5rem;
+  font-size: 1.25rem;
   font-weight: 300;
   color: var(--text-muted);
   cursor: pointer;
@@ -487,172 +487,356 @@ body.settings-page {
   margin-right: 0.75rem;
 }
 
-/* From Uiverse.io by SSpisso */
-/* Body */
-.container {
-  display: grid;
-  grid-template-columns: auto;
-  gap: 0px;
-}
-
-hr {
-  height: 1px;
-  background-color: rgba(16, 86, 82, .75);
-  border: none;
-}
-
-.card {
-  width: 400px;
-  background: rgb(255, 250, 235);
+/* From Uiverse.io by zanina-yassine */
+.modal {
+  width: fit-content;
+  height: fit-content;
+  background: #FFFFFF;
   box-shadow: 0px 187px 75px rgba(0, 0, 0, 0.01), 0px 105px 63px rgba(0, 0, 0, 0.05), 0px 47px 47px rgba(0, 0, 0, 0.09), 0px 12px 26px rgba(0, 0, 0, 0.1), 0px 0px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 26px;
+  max-width: 450px;
 }
 
-.title {
-  width: 100%;
-  height: 40px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding-left: 20px;
-  border-bottom: 1px solid rgba(16, 86, 82, .75);
-  font-weight: 700;
-  font-size: 11px;
-  color: #000000;
-}
-
-/* Cart */
-.cart {
-  border-radius: 19px 19px 0px 0px;
-}
-
-.cart .steps {
+.form {
   display: flex;
   flex-direction: column;
+  gap: 20px;
   padding: 20px;
 }
 
-.cart .steps .step {
+.payment--options {
+  width: calc(100% - 40px);
   display: grid;
-  gap: 10px;
+  grid-template-columns: 33% 34% 33%;
+  gap: 20px;
+  padding: 10px;
 }
 
-.cart .steps .step span {
-  font-size: 13px;
-  font-weight: 600;
-  color: #000000;
-  margin-bottom: 8px;
+.payment--options button {
+  height: 55px;
+  background: #F2F2F2;
+  border-radius: 11px;
+  padding: 0;
+  border: 0;
+  outline: none;
+}
+
+.payment--options button svg {
+  height: 18px;
+}
+
+.payment--options button:last-child svg {
+  height: 22px;
+}
+
+.separator {
+  width: calc(100% - 20px);
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 10px;
+  color: #8B8E98;
+  margin: 0 10px;
+}
+
+.separator > p {
+  word-break: keep-all;
   display: block;
-}
-
-.cart .steps .step p {
-  font-size: 11px;
+  text-align: center;
   font-weight: 600;
-  color: #000000;
+  font-size: 11px;
+  margin: auto;
 }
 
-/* Promo */
-.promo form {
+.separator .line {
+  display: inline-block;
+  width: 100%;
+  height: 1px;
+  border: 0;
+  background-color: #e8e8e8;
+  margin: auto;
+}
+
+.credit-card-info--form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input_container {
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.split {
   display: grid;
-  grid-template-columns: 1fr 80px;
-  gap: 10px;
-  padding: 0px;
+  grid-template-columns: 4fr 2fr;
+  gap: 15px;
+}
+
+.split input {
+  width: 100%;
+}
+
+.input_label {
+  font-size: 10px;
+  color: #8B8E98;
+  font-weight: 600;
 }
 
 .input_field {
   width: auto;
-  height: 36px;
-  padding: 0 0 0 12px;
-  border-radius: 5px;
+  height: 40px;
+  padding: 0 0 0 16px;
+  border-radius: 9px;
   outline: none;
-  border: 1px solid rgb(16, 86, 82);
-  background-color: rgb(251, 243, 228);
+  background-color: #F2F2F2;
+  border: 1px solid #e5e5e500;
   transition: all 0.3s cubic-bezier(0.15, 0.83, 0.66, 1);
 }
 
 .input_field:focus {
   border: 1px solid transparent;
-  box-shadow: 0px 0px 0px 2px rgb(251, 243, 228);
-  background-color: rgb(201, 193, 178);
+  box-shadow: 0px 0px 0px 2px #242424;
+  background-color: transparent;
 }
 
-.promo form button {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  padding: 10px 18px;
-  gap: 10px;
-  width: 100%;
-  height: 36px;
-  background: rgba(16, 86, 82, .75);
-  box-shadow: 0px 0.5px 0.5px #F3D2C9, 0px 1px 0.5px rgba(239, 239, 239, 0.5);
-  border-radius: 5px;
+.purchase--btn {
+  height: 55px;
+  background: #F2F2F2;
+  border-radius: 11px;
   border: 0;
-  font-style: normal;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 15px;
-  color: #000000;
-}
-
-/* Checkout */
-.payments .details {
-  display: grid;
-  grid-template-columns: 10fr 1fr;
-  padding: 0px;
-  gap: 5px;
-}
-
-.payments .details span:nth-child(odd) {
-  font-size: 12px;
-  font-weight: 600;
-  color: #000000;
-  margin: auto auto auto 0;
-}
-
-.payments .details span:nth-child(even) {
+  outline: none;
+  color: #ffffff;
   font-size: 13px;
-  font-weight: 600;
-  color: #000000;
-  margin: auto 0 auto auto;
-}
-
-.checkout .footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 10px 10px 20px;
-  background-color: rgba(16, 86, 82, .5);
-}
-
-.price {
-  position: relative;
-  font-size: 22px;
-  color: #2B2B2F;
-  font-weight: 900;
-}
-
-.checkout .checkout-btn {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  width: 150px;
-  height: 36px;
-  background: rgba(16, 86, 82, .55);
-  box-shadow: 0px 0.5px 0.5px rgba(16, 86, 82, .75), 0px 1px 0.5px rgba(16, 86, 82, .75);
-  border-radius: 7px;
-  border: 1px solid rgb(16, 86, 82);
-  color: #000000;
-  font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
+  background: linear-gradient(180deg, #363636 0%, #1B1B1B 50%, #000000 100%);
+  box-shadow: 0px 0px 0px 0px #FFFFFF, 0px 0px 0px 0px #000000;
   transition: all 0.3s cubic-bezier(0.15, 0.83, 0.66, 1);
+}
+
+.purchase--btn:hover {
+  box-shadow: 0px 0px 0px 2px #FFFFFF, 0px 0px 0px 4px #0000003a;
+}
+
+/* Reset input number styles */
+.input_field::-webkit-outer-spin-button,
+.input_field::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* --- Root Variables & Wrapper --- */
+.glitch-checkbox-wrapper {
+  --bg-color: #0d0d0d;
+  --primary-color: #00f2ea;
+  --secondary-color: #a855f7;
+  --text-color: #e5e5e5;
+  --disabled-color: #555;
+  --font-family: "Fira Code", Consolas, "Courier New", Courier, monospace;
+  --glitch-anim-duration: 0.3s;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: var(--font-family);
+  background-color: #050505;
+  padding: 2rem;
+  border-radius: 1rem;
+}
+
+/* --- Container Checkbox --- */
+.glitch-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.glitch-checkbox-container input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* --- Checkbox --- */
+.checkbox-box {
+  width: 1.5em;
+  height: 1.5em;
+  border: 2px solid var(--primary-color);
+  position: relative;
+  transition: all 0.3s ease;
+
+  clip-path: polygon(
+    15% 0,
+    85% 0,
+    100% 15%,
+    100% 85%,
+    85% 100%,
+    15% 100%,
+    0 85%,
+    0 15%
+  );
+}
+
+.checkbox-mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 60%;
+  background-color: var(--primary-color);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  clip-path: inherit;
+}
+
+/* --- Label --- */
+.checkbox-label {
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  position: relative;
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease;
+}
+
+/* --- Checked --- */
+.glitch-checkbox-container input:checked + .checkbox-box .checkbox-mark {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  animation: glitch-anim-checkbox var(--glitch-anim-duration) both;
+}
+
+.glitch-checkbox-container input:checked ~ .checkbox-label {
+  color: var(--primary-color);
+  text-shadow: 0 0 8px rgba(0, 242, 234, 0.7);
+}
+
+/* --- Hover --- */
+.glitch-checkbox-container:hover .checkbox-box {
+  box-shadow: 0 0 10px var(--primary-color);
+}
+
+.glitch-checkbox-container:hover .checkbox-label::before,
+.glitch-checkbox-container:hover .checkbox-label::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #050505;
+}
+
+.glitch-checkbox-container:hover .checkbox-label::before {
+  color: var(--secondary-color);
+  animation: glitch-anim-text var(--glitch-anim-duration)
+    cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.glitch-checkbox-container:hover .checkbox-label::after {
+  color: var(--primary-color);
+  animation: glitch-anim-text var(--glitch-anim-duration)
+    cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both;
+}
+
+/* ---  Disabled --- */
+.glitch-checkbox-container:has(input:disabled) {
+  cursor: not-allowed;
+}
+
+.glitch-checkbox-container input:disabled + .checkbox-box {
+  border-color: var(--disabled-color);
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+.glitch-checkbox-container input:disabled ~ .checkbox-label {
+  color: var(--disabled-color);
+  text-shadow: none;
+}
+
+.glitch-checkbox-container:has(input:disabled):hover .checkbox-box {
+  box-shadow: none;
+}
+.glitch-checkbox-container:has(input:disabled):hover .checkbox-label::before,
+.glitch-checkbox-container:has(input:disabled):hover .checkbox-label::after {
+  content: none;
+}
+
+/* --- Keyframes --- */
+@keyframes glitch-anim-checkbox {
+  0% {
+    transform: translate(-50%, -50%);
+    clip-path: inset(0 0 0 0);
+  }
+  20% {
+    transform: translate(calc(-50% - 3px), calc(-50% + 2px));
+    clip-path: inset(50% 0 20% 0);
+  }
+  40% {
+    transform: translate(calc(-50% + 2px), calc(-50% - 1px));
+    clip-path: inset(20% 0 60% 0);
+  }
+  60% {
+    transform: translate(calc(-50% - 2px), calc(-50% + 1px));
+    clip-path: inset(80% 0 5% 0);
+  }
+  80% {
+    transform: translate(calc(-50% + 2px), calc(-50% - 2px));
+    clip-path: inset(30% 0 45% 0);
+  }
+  100% {
+    transform: translate(-50%, -50%);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes glitch-anim-text {
+  0% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+  20% {
+    transform: translate(-3px, 2px);
+    clip-path: inset(50% 0 20% 0);
+  }
+  40% {
+    transform: translate(2px, -1px);
+    clip-path: inset(20% 0 60% 0);
+  }
+  60% {
+    transform: translate(-2px, 1px);
+    clip-path: inset(80% 0 5% 0);
+  }
+  80% {
+    transform: translate(2px, -2px);
+    clip-path: inset(30% 0 45% 0);
+  }
+  100% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
 }
 
 /* Responsive para el modal de checkout */
 @media (max-width: 768px) {
   .checkout-modal {
     width: 90%;
+  }
+
+  .payment--options {
+    grid-template-columns: 1fr;
   }
 }
 
