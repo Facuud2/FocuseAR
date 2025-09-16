@@ -150,61 +150,49 @@ body.dark-mode .theme-toggle-btn:hover {
   color: var(--color-primary);
 }
 
-/* Panel de subida de documentos - Diseño original del proyecto */
-.upload-panel {
-  height: fit-content;
-}
-
-.drag-drop-area {
-  border: 2px dashed var(--color-border);
-  border-radius: var(--border-radius-sm);
-  padding: 2.5rem;
+/* New File Upload Styles */
+.file-upload-wrapper {
+  width: 100%;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  min-height: 384px; /* 24rem */
+  border-width: 1px;
+  border-style: dashed;
+  background-color: var(--panel-bg-light);
+  border-color: #e0e0e0;
+  border-radius: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
-  cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  background-color: var(--background-main);
 }
 
-.drag-drop-area:hover,
-.drag-drop-area.dragging {
-  border-color: var(--color-primary);
-  background: var(--color-primary-light);
+body.dark-mode .file-upload-wrapper {
+  background-color: #121212;
+  border-color: #444444;
 }
 
-.file-input {
-  position: absolute;
-  top: 0;
-  left: 0;
+.new-file-upload {
   width: 100%;
   height: 100%;
-  opacity: 0;
+  padding: 2rem;
   cursor: pointer;
 }
 
-.upload-icon {
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-md);
 }
 
-.drag-drop-area p {
-  margin: 0;
+.upload-content p {
   font-size: 0.9rem;
-  font-weight: 500;
 }
 
-.drag-drop-area small {
-  display: block;
-  margin-top: var(--spacing-sm);
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-}
-
-/* Panel de lista de documentos */
-.search-container {
-  position: relative;
-  margin-bottom: var(--spacing-lg);
-}
 
 /* Estilos de la barra de búsqueda (los originales que me diste) */
 .grid {

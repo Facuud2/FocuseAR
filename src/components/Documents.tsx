@@ -56,12 +56,71 @@ const initialDocuments: Document[] = [
   },
 ];
 
+// Placeholder para FileUpload, ya que el componente original no está disponible
+const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    onChange(files);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files || []);
+    onChange(files);
+  };
+
+  return (
+    <div
+      className="new-file-upload"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onClick={() => fileInputRef.current?.click()}
+    >
+      <input
+        type="file"
+        multiple
+        style={{ display: 'none' }}
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+      />
+      <div className="upload-content">
+        <Upload size={36} />
+        <p>Arrastra y suelta tus archivos aquí, o haz clic para seleccionar.</p>
+      </div>
+    </div>
+  );
+};
+
+// Nuevo componente de subida de archivos
+const FileUploadDemo = ({
+  onFilesUploaded,
+}: {
+  onFilesUploaded: (files: File[]) => void;
+}) => {
+  const [, setFiles] = useState<File[]>([]);
+  const handleFileUpload = (files: File[]) => {
+    setFiles(files);
+    onFilesUploaded(files);
+    console.log(files);
+  };
+
+  return (
+    <div className="file-upload-wrapper">
+      <FileUpload onChange={handleFileUpload} />
+    </div>
+  );
+};
+
 const Documents: React.FC = () => {
   const [documents, setDocuments] = useState(initialDocuments);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDragging, setIsDragging] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-mode' : '';
@@ -69,37 +128,6 @@ const Documents: React.FC = () => {
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
-  };
-
-  const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    uploadFiles(files);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    uploadFiles(files);
   };
 
   const uploadFiles = useCallback((files: File[]) => {
@@ -161,30 +189,12 @@ const Documents: React.FC = () => {
       </header>
 
       <div className="documents-main-content">
-        <div className="upload-panel">
+        <div className="panel upload-panel">
           <h2 className="panel-title">
             <Upload className="panel-icon" />
             Subir Documentos
           </h2>
-          <div
-            className={`drag-drop-area ${isDragging ? 'dragging' : ''}`}
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              type="file"
-              multiple
-              className="file-input"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
-            />
-            <Upload size={48} className="upload-icon" />
-            <p>Arrastra y suelta tus archivos aquí</p>
-            <small>o haz clic para seleccionar archivos</small>
-          </div>
+          <FileUploadDemo onFilesUploaded={uploadFiles} />
         </div>
 
         <div className="documents-list-panel">
