@@ -154,7 +154,7 @@ const AIPlanner = () => {
       }
     };
     loadUserData();
-  }, [user, getUserStudyPlans]);
+  }, [user, getUserStudyPlans, getUserMaterials]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
