@@ -10,6 +10,7 @@ import './Subjects.css';
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { usePlanner } from '../context/PlannerContext.tsx';
 
 interface Pdf {
   id: number;
@@ -38,6 +39,7 @@ interface AnalysisState {
 
 const Subjects: React.FC = () => {
   const { user } = useContext(AuthContext);
+  const { setExtractedTopics } = usePlanner();
   const {
     loading: dbLoading,
     getUserMaterials,
@@ -295,6 +297,8 @@ const Subjects: React.FC = () => {
           `¡Éxito! Se extrajeron ${result.topics.length} temas del PDF. Ahora puedes guardar la materia.`,
         );
         setAnalysisSuccess(true);
+        // Save topics to the global context
+        setExtractedTopics(result.topics);
       } else {
         alert(`Error procesando PDF: ${result.error}`);
         throw new Error(result.error);

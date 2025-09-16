@@ -1,6 +1,5 @@
-// src/App.tsx
 import './App.css';
-import { useState, useEffect } from 'react'; // Importa useEffect
+import { useState, useEffect } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -28,6 +27,7 @@ import Progress from './components/Progress';
 import Analytics from './components/Analytics';
 
 import { AuthProvider } from './context/AuthContext';
+import { PlannerProvider } from './context/PlannerContext';
 
 function AppRoutes() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -35,7 +35,6 @@ function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Solución: Usa useEffect para aplicar el tema al cargar la página
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
@@ -55,55 +54,57 @@ function AppRoutes() {
   const currentPath = location.pathname;
 
   return (
-    <AuthProvider>
-      <div className="app-container">
-        {currentPath !== '/' && (
-          <Sidebar
-            activeSection={currentPath}
-            onSectionChange={handleSectionChange}
-            isSidebarOpen={isSidebarOpen}
-            isDarkMode={isDarkMode}
-            onToggleDarkMode={handleToggleDarkMode}
-            onClose={() => {}}
-          />
+    <div className="app-container">
+      {currentPath !== '/' && (
+        <Sidebar
+          activeSection={currentPath}
+          onSectionChange={handleSectionChange}
+          isSidebarOpen={isSidebarOpen}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={handleToggleDarkMode}
+          onClose={() => {}}
+        />
+      )}
+      <main
+        className={`content-area ${isSidebarOpen ? '' : 'content-collapsed'}`}
+      >
+        {!isSidebarOpen && currentPath !== '/' && (
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+            <Menu size={24} />
+          </button>
         )}
-        <main
-          className={`content-area ${isSidebarOpen ? '' : 'content-collapsed'}`}
-        >
-          {!isSidebarOpen && currentPath !== '/' && (
-            <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-              <Menu size={24} />
-            </button>
-          )}
 
-          <Toaster position="top-right" />
-          <Routes>
-            <Route path="/" element={<Auth />} />
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/study-schedule" element={<StudySchedule />} />
-              <Route path="/subjects" element={<Subjects />} />
-              <Route path="/documents" element={<Documents />} />
-              <Route path="/pomodoro" element={<PomodoroTimer />} />
-              <Route path="/ai-planner" element={<AIPlanner />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<AccountSettings />} />
-              <Route path="/progress" element={<Progress />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/pdf-summary-test" element={<PDFSummaryTest />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Route>
-          </Routes>
-        </main>
-      </div>
-    </AuthProvider>
+        <Toaster position="top-right" />
+        <Routes>
+          <Route path="/" element={<Auth />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/study-schedule" element={<StudySchedule />} />
+            <Route path="/subjects" element={<Subjects />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/pomodoro" element={<PomodoroTimer />} />
+            <Route path="/ai-planner" element={<AIPlanner />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<AccountSettings />} />
+            <Route path="/progress" element={<Progress />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/pdf-summary-test" element={<PDFSummaryTest />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Route>
+        </Routes>
+      </main>
+    </div>
   );
 }
 
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AuthProvider>
+        <PlannerProvider>
+          <AppRoutes />
+        </PlannerProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

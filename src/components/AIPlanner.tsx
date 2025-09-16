@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './AIPlanner.css';
 import { Sparkles, Calendar, Search, FileText } from 'lucide-react';
-import { useContext } from 'react';
 import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
 import { type StudyPlanDay } from './Dashboard';
-import { type ExtractedTopic } from '../services/PDFProcessor';
+import { usePlanner } from '../context/PlannerContext';
+// import { type ExtractedTopic } from '../services/PDFProcessor';
 
 // Datos de ejemplo para planes anteriores
 const previousPlans = [
@@ -72,6 +72,8 @@ interface StudyPlan {
 
 const AIPlanner = () => {
   const { user } = useContext(AuthContext);
+  const { extractedTopics } = usePlanner();
+
   const [isGenerating, setIsGenerating] = useState(false);
   const [planGenerated, setPlanGenerated] = useState(false);
   const [formData, setFormData] = useState({
@@ -91,7 +93,6 @@ const AIPlanner = () => {
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [nextPlanId, setNextPlanId] = useState(1);
-  const [extractedTopics] = useState<ExtractedTopic[]>([]);
 
   const {
     getUserStudyPlans,
@@ -109,12 +110,12 @@ const AIPlanner = () => {
           (material, index) => {
             const subjectId = material.id || `subject-${Date.now()}-${index}`;
             return {
-              id: subjectId, // Usar string directamente, no parseInt
+              id: subjectId,
               name:
                 material.subjectName ||
-                material.fileName.replace(/\.(pdf|docx|doc)$/i, ''), // CORREGIDO: Usar subjectName primero, con fallback a fileName para compatibilidad
-              examDate: material.examDate || '', // CORREGIDO: Usar la fecha del examen guardada en Firebase
-              color: material.color || '#4285F4', // CORREGIDO: Usar el color guardado en Firebase
+                material.fileName.replace(/\.(pdf|docx|doc)$/i, ''),
+              examDate: material.examDate || '',
+              color: material.color || '#4285F4',
               pdfs: [
                 {
                   id: 1,
@@ -122,7 +123,7 @@ const AIPlanner = () => {
                   size: '0 MB',
                 },
               ],
-              importantDates: material.importantDates || [], // CORREGIDO: Usar las fechas importantes guardadas en Firebase
+              importantDates: material.importantDates || [],
             };
           },
         );
@@ -131,16 +132,36 @@ const AIPlanner = () => {
         const studyPlans = await getUserStudyPlans();
         const convertedPlans = studyPlans.map((plan, index) => {
           const planId = plan.id || `plan-${Date.now()}-${index}`;
+          const structuredPlan = plan.generatedPlan.structuredPlan as
+            | {
+                title: string;
+                summary: string;
+                days: Array<{
+                  date: string;
+                  dayNumber: number;
+                  topics: Array<{
+                    name: string;
+                    summary: string;
+                    estimatedTime: string;
+                  }>;
+                  totalTime: string;
+                  recommendations: string;
+                  completed: boolean;
+                }>;
+                finalRecommendations: string;
+              }
+            | null
+            | undefined;
+
           return {
             id: planId,
             subjectName: plan.generatedPlan.title || 'Plan de Estudio',
-            subjectColor: plan.generatedPlan.subjectColor || '#4285F4', // CORREGIDO: Cargar el color guardado en Firebase
             eventName: 'Examen',
             examDate: plan.generatedPlan.examDate || '',
             topics: plan.generatedPlan.topics || [],
             studyDays: plan.generatedPlan.studyDates || [],
-            content: JSON.stringify(plan.generatedPlan.structuredPlan || {}),
-            structuredPlan: plan.generatedPlan.structuredPlan,
+            content: JSON.stringify(structuredPlan || {}),
+            structuredPlan: structuredPlan,
             progress: 0,
             createdAt:
               plan.createdAt?.toDate?.()?.toISOString() ||

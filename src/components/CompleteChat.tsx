@@ -69,7 +69,7 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
       ]);
     };
     fetchMaterials();
-  }, [user]);
+  }, [user, assistantName, welcomeMessage]);
 
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
