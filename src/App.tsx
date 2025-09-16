@@ -27,7 +27,7 @@ import Progress from './components/Progress';
 import Analytics from './components/Analytics';
 
 import { AuthProvider } from './context/AuthContext';
-import { PlannerProvider } from './context/PlannerContext';
+import { PlannerProvider } from './context/PlannerProvider';
 
 function AppRoutes() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
