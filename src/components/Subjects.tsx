@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { PDFProcessor } from '../services/PDFProcessor';
@@ -56,7 +56,8 @@ const Subjects: React.FC = () => {
   >([]);
 
   const [pdfs, setPdfs] = useState<Pdf[]>([]);
-  const [dragActive, setDragActive] = React.useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [analysisStatus, setAnalysisStatus] = useState<AnalysisState>({
     isAnalyzing: false,
@@ -80,12 +81,12 @@ const Subjects: React.FC = () => {
           (material, index) => {
             const subjectId = material.id || `subject-${Date.now()}-${index}`;
             return {
-              id: subjectId, // Usar string directamente, no parseInt
+              id: subjectId,
               name:
                 material.subjectName ||
-                material.fileName.replace(/\.(pdf|docx|doc)$/i, ''), // CORREGIDO: Usar subjectName primero, con fallback a fileName para compatibilidad
-              examDate: material.examDate || '', // CORREGIDO: Usar la fecha del examen guardada en Firebase
-              color: material.color || '#4285F4', // CORREGIDO: Usar el color guardado en Firebase
+                material.fileName.replace(/\.(pdf|docx|doc)$/i, ''),
+              examDate: material.examDate || '',
+              color: material.color || '#4285F4',
               pdfs: [
                 {
                   id: 1,
@@ -93,7 +94,7 @@ const Subjects: React.FC = () => {
                   size: '0 MB',
                 },
               ],
-              importantDates: material.importantDates || [], // CORREGIDO: Usar las fechas importantes guardadas en Firebase
+              importantDates: material.importantDates || [],
             };
           },
         );
@@ -246,44 +247,32 @@ const Subjects: React.FC = () => {
     }
   };
 
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
-      return;
-    }
-    const files = Array.from(e.target.files);
-    if (files.length === 0) {
-      return;
-    }
-    if (pdfs.length + files.length > 5) {
-      alert('Máximo 5 PDF');
-      return;
-    }
-    const file = files[0];
-    const newPdfs = files.map((file) => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-    }));
-    setPdfs([...pdfs, ...newPdfs]);
-    if (subjectName.trim()) {
-      await processPDFWithGemini(file);
-    } else {
-      console.log('⚠️ No se puede procesar: falta el nombre de la materia');
-    }
-  };
-
-  const processPDFWithGemini = async (file: File) => {
+  const handlePdfUpload = async (file: File) => {
     if (!subjectName.trim()) {
       alert('Por favor ingresa el nombre de la materia antes de subir el PDF');
+      // Reset file input to allow re-selection
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       return;
     }
+
     setIsUploading(true);
     setAnalysisSuccess(false);
+
+    const newPdf = {
+      id: Date.now(),
+      name: file.name,
+      size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+    };
+    setPdfs([newPdf]); // Only allow one PDF at a time
+
     updateAnalysisStatus({
       isAnalyzing: true,
       progress: 10,
       statusMessage: 'Extrayendo texto del PDF...',
     });
+
     try {
       const text = await extractTextFromPDF(file);
       updateAnalysisStatus({
@@ -301,8 +290,9 @@ const Subjects: React.FC = () => {
         });
         await new Promise((resolve) => setTimeout(resolve, 500));
         alert(
-          `¡Éxito! Se extrajeron ${result.topics.length} temas del PDF. Puedes verlos en la sección de Planificación.`,
+          `¡Éxito! Se extrajeron ${result.topics.length} temas del PDF. Ahora puedes guardar la materia.`,
         );
+        setAnalysisSuccess(true);
       } else {
         alert(`Error procesando PDF: ${result.error}`);
         throw new Error(result.error);
@@ -310,6 +300,8 @@ const Subjects: React.FC = () => {
     } catch (e) {
       alert('Error procesando el PDF. Inténtalo de nuevo.');
       console.error('Error durante el análisis del PDF:', e);
+      setAnalysisSuccess(false);
+      setPdfs([]); // Clear the PDF list on failure
     } finally {
       setTimeout(() => {
         updateAnalysisStatus({
@@ -322,8 +314,27 @@ const Subjects: React.FC = () => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handlePdfUpload(e.target.files[0]);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragActive(false);
+    if (isUploading) return;
+    const files = Array.from(e.dataTransfer.files).filter(
+      (f) => f.type === 'application/pdf',
+    );
+    if (files.length > 0) {
+      handlePdfUpload(files[0]);
+    }
+  };
+
   const removePdf = (id: number) => {
     setPdfs(pdfs.filter((p) => p.id !== id));
+    setAnalysisSuccess(false); // Reset analysis state if PDF is removed
   };
 
   return (
@@ -343,106 +354,104 @@ const Subjects: React.FC = () => {
               placeholder="Ej: Álgebra Lineal"
               disabled={isUploading}
             />
-            {
-              <div className="dates-section">
-                <h4
+            <div className="dates-section">
+              <h4
+                style={{
+                  marginBottom: '15px',
+                  color: '#333',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                }}
+              >
+                Fechas Importantes
+              </h4>
+              <div className="form-group">
+                <label>Fecha Primer Parcial</label>
+                <DatePicker
+                  selected={firstPartialDate}
+                  onChange={(date: Date | null) => setFirstPartialDate(date)}
+                  dateFormat="P"
+                  locale={es}
+                  className="date-picker-input" // Use a consistent class name
+                  placeholderText="Selecciona una fecha"
+                  minDate={new Date()}
+                  disabled={isUploading}
+                />
+              </div>
+              {otherDates.map((otherDate, index) => (
+                <div
+                  key={`other-date-${otherDate.id || index}`}
+                  className="form-group"
                   style={{
-                    marginBottom: '15px',
-                    color: '#333',
-                    fontSize: '16px',
-                    fontWeight: '600',
+                    display: 'flex',
+                    gap: '10px',
+                    alignItems: 'end',
                   }}
                 >
-                  Fechas Importantes
-                </h4>
-                <div className="form-group">
-                  <label>Fecha Primer Parcial</label>
-                  <DatePicker
-                    selected={firstPartialDate}
-                    onChange={(date: Date | null) => setFirstPartialDate(date)}
-                    dateFormat="P"
-                    locale={es}
-                    className="w-full p-2 border rounded"
-                    placeholderText="Selecciona una fecha"
-                    minDate={new Date()}
+                  <div style={{ flex: 1 }}>
+                    <label>Nombre del Evento</label>
+                    <input
+                      type="text"
+                      placeholder="ej: Entrega Proyecto Final"
+                      value={otherDate.name}
+                      onChange={(e) =>
+                        updateOtherDate(otherDate.id, 'name', e.target.value)
+                      }
+                      disabled={isUploading}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label>Fecha</label>
+                    <DatePicker
+                      selected={otherDate.date}
+                      onChange={(date: Date | null) =>
+                        updateOtherDate(otherDate.id, 'date', date)
+                      }
+                      dateFormat="P"
+                      locale={es}
+                      className="date-picker-input" // Use a consistent class name
+                      placeholderText="Selecciona una fecha"
+                      minDate={new Date()}
+                      disabled={isUploading}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeOtherDate(otherDate.id)}
                     disabled={isUploading}
-                  />
-                </div>
-                {otherDates.map((otherDate, index) => (
-                  <div
-                    key={`other-date-${otherDate.id || index}`}
-                    className="form-group"
                     style={{
-                      display: 'flex',
-                      gap: '10px',
-                      alignItems: 'end',
+                      backgroundColor: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '8px 12px',
+                      cursor: isUploading ? 'not-allowed' : 'pointer',
+                      fontSize: '14px',
                     }}
                   >
-                    <div style={{ flex: 1 }}>
-                      <label>Nombre del Evento</label>
-                      <input
-                        type="text"
-                        placeholder="ej: Entrega Proyecto Final"
-                        value={otherDate.name}
-                        onChange={(e) =>
-                          updateOtherDate(otherDate.id, 'name', e.target.value)
-                        }
-                        disabled={isUploading}
-                      />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <label>Fecha</label>
-                      <DatePicker
-                        selected={otherDate.date}
-                        onChange={(date: Date | null) =>
-                          updateOtherDate(otherDate.id, 'date', date)
-                        }
-                        dateFormat="P"
-                        locale={es}
-                        className="w-full p-2 border rounded"
-                        placeholderText="Selecciona una fecha"
-                        minDate={new Date()}
-                        disabled={isUploading}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeOtherDate(otherDate.id)}
-                      disabled={isUploading}
-                      style={{
-                        backgroundColor: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        padding: '8px 12px',
-                        cursor: isUploading ? 'not-allowed' : 'pointer',
-                        fontSize: '14px',
-                      }}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={addOtherDate}
-                  disabled={isUploading}
-                  style={{
-                    backgroundColor: '#10b981',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '10px 15px',
-                    cursor: isUploading ? 'not-allowed' : 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    marginTop: '10px',
-                  }}
-                >
-                  + Agregar OTROS
-                </button>
-              </div>
-            }
+                    Eliminar
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addOtherDate}
+                disabled={isUploading}
+                style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '10px 15px',
+                  cursor: isUploading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  marginTop: '10px',
+                }}
+              >
+                + Agregar OTROS
+              </button>
+            </div>
             <div className="form-group">
               <label>Color</label>
               <div
@@ -502,8 +511,8 @@ const Subjects: React.FC = () => {
             <div
               className={`upload-area${dragActive ? ' dragover' : ''} ${isUploading ? 'uploading' : ''}`}
               onClick={() => {
-                if (!isUploading) {
-                  document.getElementById('pdf-upload')?.click();
+                if (!isUploading && fileInputRef.current) {
+                  fileInputRef.current.click();
                 }
               }}
               onDragOver={(e) => {
@@ -513,29 +522,7 @@ const Subjects: React.FC = () => {
                 }
               }}
               onDragLeave={() => setDragActive(false)}
-              onDrop={async (e) => {
-                e.preventDefault();
-                setDragActive(false);
-                if (isUploading) return;
-                const files = Array.from(e.dataTransfer.files).filter(
-                  (f) => f.type === 'application/pdf',
-                );
-                if (files.length === 0) return;
-                if (pdfs.length + files.length > 5) {
-                  console.log('Máximo 5 archivos PDF permitidos');
-                  return;
-                }
-                const file = files[0];
-                const newPdfs = files.map((file) => ({
-                  id: Date.now() + Math.random(),
-                  name: file.name,
-                  size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-                }));
-                setPdfs([...pdfs, ...newPdfs]);
-                if (subjectName.trim()) {
-                  await processPDFWithGemini(file);
-                }
-              }}
+              onDrop={handleDrop}
               style={{
                 cursor: isUploading ? 'wait' : 'pointer',
                 opacity: isUploading ? 0.7 : 1,
@@ -545,11 +532,11 @@ const Subjects: React.FC = () => {
               <input
                 id="pdf-upload"
                 type="file"
-                multiple
                 accept=".pdf"
                 style={{ display: 'none' }}
-                onChange={handlePdfUpload}
+                onChange={handleFileChange}
                 disabled={isUploading}
+                ref={fileInputRef}
               />
               <div
                 style={{
@@ -688,7 +675,7 @@ const Subjects: React.FC = () => {
           <button
             className="planify-btn"
             onClick={handlePlanify}
-            disabled={dbLoading || !user || isUploading}
+            disabled={dbLoading || !user || isUploading || !analysisSuccess}
           >
             {isUploading ? (
               <span>⏳ Procesando PDF...</span>
