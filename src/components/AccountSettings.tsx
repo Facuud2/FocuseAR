@@ -25,12 +25,71 @@ const diasSemana = [
   'domingo',
 ];
 
+// Define un tipo para las claves de los planes.
+type PlanKey = 'monthly' | 'annual' | 'lifetime';
+
+const plans = {
+  monthly: {
+    title: 'Plan Mensual',
+    price: '$9.99/mes',
+    description: 'Ideal para pruebas a corto plazo.',
+    benefits: [
+      'Acceso a todas las funciones de IA',
+      'Analíticas de progreso detalladas',
+      'Soporte por correo electrónico',
+    ],
+  },
+  annual: {
+    title: 'Plan Anual',
+    price: '$99.99/año',
+    description: 'Ahorra un 15% en comparación con el plan mensual.',
+    benefits: [
+      'Todo lo del Plan Mensual',
+      'Soporte prioritario',
+      'Informes trimestrales de desempeño',
+      'Acceso a nuevas funciones en beta',
+    ],
+  },
+  lifetime: {
+    title: 'Plan de por Vida',
+    price: '$249.99',
+    description: 'Acceso completo de por vida. ¡Un único pago!',
+    benefits: [
+      'Todo lo del Plan Anual',
+      'Acceso a eventos exclusivos para miembros',
+      'Consultas personalizadas con asesores académicos',
+      '¡Nunca más te preocupes por renovaciones!',
+    ],
+  },
+};
+
 const AccountSettings = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [availability, setAvailability] = useState(initialAvailability);
+  // Usa el nuevo tipo para el estado
+  const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
+  const [showBenefitsModal, setShowBenefitsModal] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   const handleAvailabilityChange = (day: string) => {
     setAvailability((prev) => ({ ...prev, [day]: !prev[day] }));
+  };
+
+  // Asegúrate de que el argumento también sea de tipo PlanKey
+  const handleSelectPlan = (plan: PlanKey) => {
+    setSelectedPlan(plan);
+    setShowBenefitsModal(true);
+  };
+
+  const handleConfirmPlan = () => {
+    setShowBenefitsModal(false);
+    setShowCheckoutModal(true);
+  };
+
+  const closeModal = () => {
+    setShowBenefitsModal(false);
+    setShowCheckoutModal(false);
+    setSelectedPlan(null);
   };
 
   const renderContent = () => {
@@ -291,6 +350,58 @@ const AccountSettings = () => {
           </>
         );
 
+      case 'membership':
+        return (
+          <>
+            <div className="settings-section">
+              <h3 className="settings-section-title">Membresía Premium</h3>
+              <p className="settings-section-subtitle">
+                Accede a funciones exclusivas, analíticas avanzadas y soporte
+                prioritario.
+              </p>
+              <div className="membership-plans-container">
+                <div className="plan-card">
+                  <h4>{plans.monthly.title}</h4>
+                  <p className="plan-price">{plans.monthly.price}</p>
+                  <p className="plan-description">
+                    {plans.monthly.description}
+                  </p>
+                  <button
+                    className="plan-btn"
+                    onClick={() => handleSelectPlan('monthly')}
+                  >
+                    Seleccionar
+                  </button>
+                </div>
+                <div className="plan-card featured-plan">
+                  <h4>{plans.annual.title}</h4>
+                  <p className="plan-price">{plans.annual.price}</p>
+                  <p className="plan-description">{plans.annual.description}</p>
+                  <button
+                    className="plan-btn"
+                    onClick={() => handleSelectPlan('annual')}
+                  >
+                    Seleccionar
+                  </button>
+                </div>
+                <div className="plan-card">
+                  <h4>{plans.lifetime.title}</h4>
+                  <p className="plan-price">{plans.lifetime.price}</p>
+                  <p className="plan-description">
+                    {plans.lifetime.description}
+                  </p>
+                  <button
+                    className="plan-btn"
+                    onClick={() => handleSelectPlan('lifetime')}
+                  >
+                    Seleccionar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        );
+
       default:
         return null;
     }
@@ -322,9 +433,100 @@ const AccountSettings = () => {
           >
             Notificaciones
           </button>
+          <button
+            className={`tab-button ${activeTab === 'membership' ? 'active' : ''}`}
+            onClick={() => setActiveTab('membership')}
+          >
+            Membresía Premium
+          </button>
         </div>
         <div className="tab-content">{renderContent()}</div>
       </div>
+
+      {showBenefitsModal && selectedPlan && (
+        <div className="checkout-overlay">
+          <div className="checkout-modal">
+            <button className="checkout-close" onClick={closeModal}>
+              &times;
+            </button>
+            <div className="benefits-content">
+              <h3>Beneficios del {plans[selectedPlan].title}</h3>
+              <p>Precio: {plans[selectedPlan].price}</p>
+              <ul>
+                {plans[selectedPlan].benefits.map((benefit, index) => (
+                  <li key={index}>{benefit}</li>
+                ))}
+              </ul>
+              <button className="save-btn" onClick={handleConfirmPlan}>
+                Continuar con el pago
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCheckoutModal && (
+        <div className="checkout-overlay">
+          <div className="checkout-modal">
+            <button className="checkout-close" onClick={closeModal}>
+              &times;
+            </button>
+            {/* From Uiverse.io by SSpisso */}
+            <div className="container">
+              <div className="card cart">
+                <label className="title">CHECKOUT</label>
+                <div className="steps">
+                  <div className="step">
+                    <div>
+                      <span>SHIPPING</span>
+                      <p>221B Baker Street, W1U 8ED</p>
+                      <p>London, United Kingdom</p>
+                    </div>
+                    <hr />
+                    <div>
+                      <span>PAYMENT METHOD</span>
+                      <p>Visa</p>
+                      <p>**** **** **** 4243</p>
+                    </div>
+                    <hr />
+                    <div className="promo">
+                      <span>HAVE A PROMO CODE?</span>
+                      <form className="form">
+                        <input
+                          type="text"
+                          placeholder="Enter a Promo Code"
+                          className="input_field"
+                        />
+                        <button>Apply</button>
+                      </form>
+                    </div>
+                    <hr />
+                    <div className="payments">
+                      <span>PAYMENT</span>
+                      <div className="details">
+                        <span>Subtotal:</span>
+                        <span>$240.00</span>
+                        <span>Shipping:</span>
+                        <span>$10.00</span>
+                        <span>Tax:</span>
+                        <span>$30.40</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="card checkout">
+                <div className="footer">
+                  <label className="price">$280.40</label>
+                  <button className="checkout-btn" onClick={closeModal}>
+                    Checkout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

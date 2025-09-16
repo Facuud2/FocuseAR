@@ -1,14 +1,15 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import './Documents.css';
 import {
   FileText,
   Upload,
   Trash2,
   Folder,
-  Search,
   CheckCircle,
   AlertCircle,
   Download,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 interface Document {
@@ -59,7 +60,16 @@ const Documents: React.FC = () => {
   const [documents, setDocuments] = useState(initialDocuments);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    document.body.className = isDarkMode ? 'dark-mode' : '';
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -97,7 +107,7 @@ const Documents: React.FC = () => {
       id: Date.now() + Math.random(),
       name: file.name,
       size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-      subject: 'Sin asignar', // Puedes implementar la asignación de materia si es necesario
+      subject: 'Sin asignar',
       uploadProgress: 0,
       uploadStatus: 'pending',
     }));
@@ -105,7 +115,6 @@ const Documents: React.FC = () => {
     setDocuments((prevDocs) => [...prevDocs, ...newDocs]);
 
     newDocs.forEach((doc) => {
-      // Simulación de carga de archivo
       const interval = setInterval(() => {
         setDocuments((prevDocs) =>
           prevDocs.map((d) => {
@@ -139,14 +148,19 @@ const Documents: React.FC = () => {
   return (
     <div className="documents-container">
       <header className="documents-header">
-        <h1 className="documents-title">Mis Documentos 📄</h1>
-        <p className="documents-subtitle">
-          Organiza y gestiona todos tus documentos de estudio en un solo lugar.
-        </p>
+        <div>
+          <h1 className="documents-title">Mis Documentos 📄</h1>
+          <p className="documents-subtitle">
+            Organiza y gestiona todos tus documentos de estudio en un solo
+            lugar.
+          </p>
+        </div>
+        <button className="theme-toggle-btn" onClick={toggleTheme}>
+          {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+        </button>
       </header>
 
       <div className="documents-main-content">
-        {/* Panel para subir documentos */}
         <div className="upload-panel">
           <h2 className="panel-title">
             <Upload className="panel-icon" />
@@ -173,23 +187,93 @@ const Documents: React.FC = () => {
           </div>
         </div>
 
-        {/* Panel de lista de documentos */}
         <div className="documents-list-panel">
           <h2 className="panel-title">
             <Folder className="panel-icon" />
             Documentos Subidos
           </h2>
+          {/* Componente de búsqueda de Uiverse */}
           <div className="search-container">
-            <Search className="search-icon" />
-            <input
-              type="text"
-              placeholder="Buscar documentos..."
-              className="search-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div id="poda">
+              <div className="glow"></div>
+              <div className="darkBorderBg"></div>
+              <div className="darkBorderBg"></div>
+              <div className="darkBorderBg"></div>
+              <div className="white"></div>
+              <div className="border"></div>
+              <div id="main">
+                <input
+                  placeholder="Search..."
+                  type="text"
+                  name="text"
+                  className="input"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <div id="input-mask"></div>
+                <div id="pink-mask"></div>
+                <div className="filterBorder"></div>
+                <div id="filter-icon">
+                  <svg
+                    preserveAspectRatio="none"
+                    height="27"
+                    width="27"
+                    viewBox="4.8 4.56 14.832 15.408"
+                    fill="none"
+                  >
+                    <path
+                      d="M8.16 6.65002H15.83C16.47 6.65002 16.99 7.17002 16.99 7.81002V9.09002C16.99 9.56002 16.7 10.14 16.41 10.43L13.91 12.64C13.56 12.93 13.33 13.51 13.33 13.98V16.48C13.33 16.83 13.1 17.29 12.81 17.47L12 17.98C11.24 18.45 10.2 17.92 10.2 16.99V13.91C10.2 13.5 9.97 12.98 9.73 12.69L7.52 10.36C7.23 10.08 7 9.55002 7 9.20002V7.87002C7 7.17002 7.52 6.65002 8.16 6.65002Z"
+                      stroke="#d6d6e6"
+                      strokeWidth="1"
+                      strokeMiterlimit="10"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    ></path>
+                  </svg>
+                </div>
+                <div id="search-icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    height="24"
+                    fill="none"
+                    className="feather feather-search"
+                  >
+                    <circle
+                      stroke="url(#search)"
+                      r="8"
+                      cy="11"
+                      cx="11"
+                    ></circle>
+                    <line
+                      stroke="url(#searchl)"
+                      y2="16.65"
+                      y1="22"
+                      x2="16.65"
+                      x1="22"
+                    ></line>
+                    <defs>
+                      <linearGradient
+                        gradientTransform="rotate(50)"
+                        id="search"
+                      >
+                        <stop stopColor="#f8e7f8" offset="0%"></stop>
+                        <stop stopColor="#b6a9b7" offset="50%"></stop>
+                      </linearGradient>
+                      <linearGradient id="searchl">
+                        <stop stopColor="#b6a9b7" offset="0%"></stop>
+                        <stop stopColor="#837484" offset="50%"></stop>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
-
           <div className="documents-grid">
             {filteredDocuments.length > 0 ? (
               filteredDocuments.map((doc) => (
