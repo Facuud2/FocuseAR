@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './Login.css';
 
 interface LoginProps {
   onLogin: (email: string, pass: string) => void;
@@ -68,20 +69,18 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
             <button type="submit" className="planify-btn">
               Entrar
             </button>
-            <div className="mt-4">
-              <button
-                onClick={onGoogleLogin}
-                type="button"
-                className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50"
-              >
-                <img
-                  src="https://www.google.com/favicon.ico"
-                  alt="Google logo"
-                  className="w-5 h-5"
-                />
-                Continuar con Google
-              </button>
-            </div>
+            <button
+              onClick={onGoogleLogin}
+              type="button"
+              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md px-4 py-2 text-gray-700 hover:bg-gray-50 google-login-btn"
+            >
+              <img
+                src="https://www.google.com/favicon.ico"
+                alt="Google logo"
+                className="w-5 h-5"
+              />
+              Continuar con Google
+            </button>
           </form>
         </div>
       </div>
