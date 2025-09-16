@@ -19,6 +19,7 @@ import {
   Moon,
   Sun,
   Menu,
+  Bot, //importa el icono del bot
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -182,29 +183,40 @@ export default function Sidebar({
       </div>
      )}
 
-        <div className="sidebar-help-section">
-          <div className="sidebar-help-content">
-            <div className="sidebar-help-header">
-              <div className="sidebar-help-icon">
-                <MessageCircle />
-              </div>
-              {!isCollapsed && <p className="sidebar-help-title">Need Help?</p>}
-            </div>
-            {!isCollapsed && (
-              <p className="sidebar-help-text">Chat with our AI assistant</p>
-            )}
-            {!isCollapsed && (
-              <button
-                className="sidebar-chat-button"
-                onClick={() => setIsChatOpen(true)}
-              >
-                <MessageCircle size={16} />
-                Open Chat
-              </button>
-            )}
+ {/* Sección de ayuda con el botón para abrir el chat */}
+
+<div className="sidebar-help-section">
+  <div className="sidebar-help-content">
+    {!isCollapsed && (
+      <>
+        <div className="sidebar-help-header">
+          <div className="sidebar-help-icon">
+            <Bot />
           </div>
+          <p className="sidebar-help-title">AI Assistant</p>
         </div>
-      </aside>
+        <p className="sidebar-help-text">Get help with your studies</p>
+        <button
+          className="sidebar-chat-button"
+          onClick={() => setIsChatOpen(true)}
+        >
+          <Bot size={16} />
+          Open Chat
+        </button>
+      </>
+    )}
+    
+    {/* Solo icono para modo colapsado */}
+    <button
+      className={`collapsed-chat-button ${isCollapsed ? 'visible' : 'hidden'}`}
+      onClick={() => setIsChatOpen(true)}
+      aria-label="Chat with AI Assistant"
+    >
+      <Bot size={24} />
+    </button>
+  </div>
+</div>
+</aside>
 
       {isChatOpen && (
         <div
