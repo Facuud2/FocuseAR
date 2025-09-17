@@ -1,5 +1,4 @@
 // src/components/Sidebar.tsx
-
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import CompleteChat from './CompleteChat';
@@ -16,16 +15,15 @@ import {
   TrendingUp,
   BarChart3,
   Settings,
-  MessageCircle,
   Moon,
   Sun,
+  Menu,
+  Bot, //importa el icono del bot
 } from 'lucide-react';
 
 interface SidebarProps {
   activeSection: string;
   onSectionChange: (section: string) => void;
-  isSidebarOpen: boolean;
-  onClose: () => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
 }
@@ -33,12 +31,12 @@ interface SidebarProps {
 export default function Sidebar({
   activeSection,
   onSectionChange,
-  isSidebarOpen,
   isDarkMode,
   onToggleDarkMode,
 }: SidebarProps) {
-  // Estado para mostrar el chat flotante
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
+
   const menuSections = [
     {
       title: 'Dashboard',
@@ -114,15 +112,25 @@ export default function Sidebar({
 
   return (
     <>
+      <button
+        className="sidebar-hamburger-btn"
+        onClick={() => setIsCollapsed((prev) => !prev)}
+        aria-label={isCollapsed ? 'Abrir menú' : 'Cerrar menú'}
+      >
+        <Menu size={28} />
+      </button>
+
       <aside
-        className={`sidebar-container ${isSidebarOpen ? '' : 'collapsed'}`}
+        className={`sidebar-container${isCollapsed ? ' collapsed' : ''}`}
+        onMouseEnter={() => setIsCollapsed(false)}
+        onMouseLeave={() => setIsCollapsed(true)}
       >
         <div className="sidebar-logo-section">
           <div className="sidebar-logo-icon">
             <BookOpen />
           </div>
-          {isSidebarOpen && <h1 className="sidebar-logo-text">FocuseAr</h1>}
-          {isSidebarOpen && (
+          {!isCollapsed && <h1 className="sidebar-logo-text">FocuseAr</h1>}
+          {!isCollapsed && (
             <p className="sidebar-logo-subtext">AI Study Planner</p>
           )}
         </div>
@@ -130,7 +138,7 @@ export default function Sidebar({
         <nav className="sidebar-nav">
           {menuSections.map((section) => (
             <div key={section.title} className="sidebar-section">
-              {isSidebarOpen && (
+              {!isCollapsed && (
                 <h3 className="sidebar-section-title">{section.title}</h3>
               )}
               <div>
@@ -144,7 +152,7 @@ export default function Sidebar({
                       onClick={() => onSectionChange(item.path)}
                     >
                       <Icon className="sidebar-nav-icon" />
-                      {isSidebarOpen && (
+                      {!isCollapsed && (
                         <span className="sidebar-nav-label">{item.label}</span>
                       )}
                     </button>
@@ -155,44 +163,62 @@ export default function Sidebar({
           ))}
         </nav>
 
-        <div className="dark-mode-toggle-section">
-          <button className="dark-mode-btn" onClick={onToggleDarkMode}>
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-            {isSidebarOpen && (
-              <span className="toggle-label">
-                {isDarkMode ? 'Modo Claro' : 'Modo Oscuro'}
-              </span>
-            )}
-          </button>
-        </div>
-
-        <div className="sidebar-help-section">
-          <div className="sidebar-help-content">
-            <div className="sidebar-help-header">
-              <div className="sidebar-help-icon">
-                <MessageCircle />
+        {/* Botón de modo oscuro que solo aparece cuando el sidebar está abierto */}
+        {!isCollapsed && (
+          <div className="dark-mode-toggle-section">
+            <button
+              className="dark-mode-btn"
+              onClick={onToggleDarkMode}
+              aria-label={
+                isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'
+              }
+            >
+              <div
+                className={`dark-mode-icon-container ${isDarkMode ? 'dark-mode' : 'light-mode'}`}
+              >
+                {isDarkMode ? (
+                  <Sun className="dark-mode-icon" size={22} />
+                ) : (
+                  <Moon className="dark-mode-icon" size={22} />
+                )}
               </div>
-              {isSidebarOpen && (
-                <p className="sidebar-help-title">Need Help?</p>
-              )}
-            </div>
-            {isSidebarOpen && (
-              <p className="sidebar-help-text">Chat with our AI assistant</p>
-            )}
-            {isSidebarOpen && (
+            </button>
+          </div>
+        )}
+
+        {/* Sección de ayuda con el botón para abrir el chat */}
+
+        {/* Sección de ayuda con el botón para abrir el chat */}
+        {!isCollapsed ? (
+          <div className="sidebar-help-section">
+            <div className="sidebar-help-content">
+              <div className="sidebar-help-header">
+                <div className="sidebar-help-icon">
+                  <Bot />
+                </div>
+                <p className="sidebar-help-title">AI Assistant</p>
+              </div>
+              <p className="sidebar-help-text">Get help with your studies</p>
               <button
                 className="sidebar-chat-button"
                 onClick={() => setIsChatOpen(true)}
               >
-                <MessageCircle size={16} />
+                <Bot size={16} />
                 Open Chat
               </button>
-            )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <button
+            className="collapsed-chat-button"
+            onClick={() => setIsChatOpen(true)}
+            aria-label="Chat with AI Assistant"
+          >
+            <Bot size={28} />
+          </button>
+        )}
       </aside>
 
-      {/* Chat flotante */}
       {isChatOpen && (
         <div
           style={{

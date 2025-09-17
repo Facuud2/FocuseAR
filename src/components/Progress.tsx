@@ -8,7 +8,7 @@ const Progress = () => {
   const progressPercentage = (hoursStudied / monthlyGoal) * 100;
 
   return (
-    <div className="progress-container">
+    <div className="progress-containers">
       <header className="progress-header">
         <h1 className="progress-title">Mi Progreso</h1>
         <p className="progress-subtitle">

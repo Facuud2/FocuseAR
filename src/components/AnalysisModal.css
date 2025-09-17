@@ -1,0 +1,147 @@
+/* Nuevo CSS para el modal de análisis */
+
+/* Variables para el tema claro */
+:root {
+  --modal-bg: #ffffff;
+  --modal-text: #1f2937;
+  --modal-secondary-text: #6b7280;
+  --modal-accent: #3b82f6;
+  --progress-bg: #e5e7eb;
+}
+
+/* Variables para el tema oscuro */
+[data-theme='dark'] {
+  --modal-bg: #1e293b;
+  --modal-text: #f3f4f6;
+  --modal-secondary-text: #9ca3af;
+  --modal-accent: #60a5fa;
+  --progress-bg: #374151;
+}
+
+.analysis-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.analysis-modal-content {
+  background-color: var(--modal-bg);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  transform: scale(0.95);
+  animation: modal-appear 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modal-appear {
+  to {
+    transform: scale(1);
+  }
+}
+
+.modal-header {
+  margin-bottom: 2rem;
+}
+
+.modal-header .modal-icon {
+  font-size: 3rem;
+  color: var(--modal-accent);
+  animation: spin 2s linear infinite;
+  margin-bottom: 1rem;
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--modal-text);
+  margin: 0;
+}
+
+.modal-header p {
+  font-size: 0.9rem;
+  color: var(--modal-secondary-text);
+}
+
+.modal-body {
+  margin-bottom: 2rem;
+}
+
+.status-message {
+  font-size: 1rem;
+  color: var(--modal-secondary-text);
+  margin-bottom: 1rem;
+  min-height: 20px;
+}
+
+.progress-container {
+  background-color: var(--progress-bg);
+  border-radius: 50px;
+  height: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background-image: linear-gradient(to right, var(--modal-accent), #3b82f6);
+  transition: width 0.4s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.progress-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-text {
+  position: absolute;
+  right: 1rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: var(--modal-text);
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.modal-footer {
+  margin-top: 1rem;
+}
+
+.note-text {
+  font-size: 0.8rem;
+  color: var(--modal-secondary-text);
+  font-style: italic;
+}
