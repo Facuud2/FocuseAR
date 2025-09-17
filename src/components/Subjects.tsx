@@ -375,112 +375,48 @@ const Subjects: React.FC = () => {
         return;
       }
 
-      const weekDayNames = [
-        'domingo',
-        'lunes',
-        'martes',
-        'miércoles',
-        'jueves',
-        'viernes',
-        'sábado',
-      ];
-      const prompt = `
-Eres un asistente especializado en crear planes de estudio personalizados.
+      // Llamar a la nueva Cloud Function `generateStudyPlan`
+      const endpoint =
+        import.meta.env.VITE_GENERATE_PLAN_ENDPOINT ||
+        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateStudyPlan';
+      const payload = {
+        subjectName: selectedSubject.name,
+        eventName: selectedEvent,
+        examDate,
+        topics: topics.map((t) => t.name),
+        studyDates: generatedStudyDates,
+        weekDays: selectedWeekDays,
+      };
 
-DATOS DEL ESTUDIANTE:
-- Materia: ${selectedSubject.name}
-- Evento de estudio: ${selectedEvent.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-- Fecha del examen: ${examDate ? formatDate(examDate) : 'No especificada'}
-- Días disponibles para estudiar: ${generatedStudyDates.length} días
-- Días disponibles: ${generatedStudyDates.length} (${selectedWeekDays.map((d) => weekDayNames[d]).join(', ')})
-
-TEMAS A ESTUDIAR:
-${topics.map((topic, topicIndex) => `${topicIndex + 1}. ${topic.name}`).join('\n')}
-
-INSTRUCCIONES:
-1. Distribuye los ${topics.length} temas entre los ${generatedStudyDates.length} días disponibles de manera equilibrada
-2. Para cada día asignado, especifica qué temas estudiar y proporciona un resumen breve de cada tema
-3. Incluye recomendaciones de tiempo de estudio por tema
-4. Organiza el plan cronológicamente por fechas y distribuye todos los temas entre todos los días disponibles
-5. Solo devolvé el JSON
-
-FORMATO DE RESPUESTA REQUERIDO:
-Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:
-
-{
-  "title": "Plan de Estudio - [Materia] - [Evento]",
-  "summary": "Resumen general del plan de estudio",
-  "days": [
-    {
-      "date": "YYYY-MM-DD",
-      "dayNumber": 1,
-      "topics": [
-        {
-          "name": "Tema",
-          "summary": "Resumen breve",
-          "estimatedTime": "X horas"
-        }
-      ],
-      "totalTime": "X horas",
-      "recommendations": "Breve Recomendación"
-    }
-  ],
-  "finalRecommendations": "Consejos finales para el examen"
-}
-
-Genera el JSON del plan de estudio:`;
-
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text: prompt,
-          }),
-        },
-      );
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
-        throw new Error(`Error en la función Gemini: ${response.status}`);
+        throw new Error(`Error al generar plan: ${response.status}`);
       }
 
       const result = await response.json();
       let studyPlan = '';
-      if (result.raw_response) {
+      if (result.plan) {
+        studyPlan = JSON.stringify(result.plan);
+      } else if (result.raw_response) {
         studyPlan = result.raw_response;
-      } else if (typeof result === 'string') {
-        studyPlan = result;
-      } else if (result.response) {
-        studyPlan = result.response;
-      } else if (result.summary) {
-        studyPlan = result.summary;
       } else {
         studyPlan = JSON.stringify(result);
       }
 
       studyPlan = studyPlan
-        .replace(/```markdown/g, '')
-        .replace(/```/g, '')
         .replace(/```json/g, '')
         .replace(/```/g, '')
         .trim();
-
       setGeneratedStudyPlan(studyPlan);
 
       let structuredPlan = null;
       try {
-        let jsonContent = studyPlan;
-        if (studyPlan.startsWith('json\n')) {
-          jsonContent = studyPlan.substring(5).trim();
-        }
-        const cleanedPlan = jsonContent
-          .replace(/^[^{]*/, '')
-          .replace(/[^}]*$/, '');
-        const parsedPlan = JSON.parse(cleanedPlan);
-
+        const parsedPlan = JSON.parse(studyPlan);
         if (parsedPlan.days && Array.isArray(parsedPlan.days)) {
           parsedPlan.days = parsedPlan.days.map((day: StudyPlanDay) => ({
             ...day,

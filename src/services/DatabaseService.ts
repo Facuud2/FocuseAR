@@ -82,6 +82,24 @@ export interface StudyPlan {
   updatedAt: Timestamp;
 }
 
+// Interfaces para conversaciones de IA
+export interface AIConversationMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Timestamp;
+  messageType?: 'text' | 'system' | 'error';
+}
+
+export interface AIConversation {
+  id?: string;
+  userId: string;
+  title?: string;
+  messages: AIConversationMessage[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 export class DatabaseService {
   // 1. Crear o actualizar usuario cuando se autentica con Google
   static async createOrUpdateUser(user: User): Promise<UserData> {
@@ -297,6 +315,126 @@ export class DatabaseService {
       console.log('✅ Plan de estudio eliminado');
     } catch (error) {
       console.error('❌ Error al eliminar plan de estudio:', error);
+      throw error;
+    }
+  }
+
+  // 10. Crear una nueva conversación de IA
+  static async createAIConversation(
+    conversation: Omit<AIConversation, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<string> {
+    try {
+      console.log('💬 Creando conversación de IA en Firestore...');
+
+      const conversationData: AIConversation = {
+        ...conversation,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
+
+      const conversationRef = await addDoc(
+        collection(db, 'ai_conversations'),
+        conversationData,
+      );
+      console.log(
+        '✅ Conversación de IA creada exitosamente con ID:',
+        conversationRef.id,
+      );
+
+      return conversationRef.id;
+    } catch (error) {
+      console.error('❌ Error al crear conversación de IA:', error);
+      throw error;
+    }
+  }
+
+  // 11. Agregar mensaje a una conversación existente
+  static async addMessageToConversation(
+    conversationId: string,
+    message: Omit<AIConversationMessage, 'id' | 'timestamp'>,
+  ): Promise<void> {
+    try {
+      const conversationRef = doc(db, 'ai_conversations', conversationId);
+      const conversationSnap = await getDoc(conversationRef);
+
+      if (conversationSnap.exists()) {
+        const conversationData = conversationSnap.data() as AIConversation;
+        const newMessage: AIConversationMessage = {
+          ...message,
+          id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: Timestamp.now(),
+        };
+
+        const updatedMessages = [...conversationData.messages, newMessage];
+
+        await updateDoc(conversationRef, {
+          messages: updatedMessages,
+          updatedAt: Timestamp.now(),
+        });
+
+        console.log('✅ Mensaje agregado a la conversación exitosamente');
+      } else {
+        throw new Error('Conversación no encontrada');
+      }
+    } catch (error) {
+      console.error('❌ Error al agregar mensaje a la conversación:', error);
+      throw error;
+    }
+  }
+
+  // 12. Obtener conversaciones de IA de un usuario
+  static async getUserAIConversations(
+    userId: string,
+  ): Promise<AIConversation[]> {
+    try {
+      const conversationsQuery = query(
+        collection(db, 'ai_conversations'),
+        where('userId', '==', userId),
+      );
+
+      const conversationsSnap = await getDocs(conversationsQuery);
+      const conversations: AIConversation[] = [];
+
+      conversationsSnap.forEach((doc) => {
+        conversations.push({ id: doc.id, ...doc.data() } as AIConversation);
+      });
+
+      return conversations;
+    } catch (error) {
+      console.error(
+        '❌ Error al obtener conversaciones de IA del usuario:',
+        error,
+      );
+      throw error;
+    }
+  }
+
+  // 13. Eliminar conversación de IA
+  static async deleteAIConversation(conversationId: string): Promise<void> {
+    try {
+      const conversationRef = doc(db, 'ai_conversations', conversationId);
+      await deleteDoc(conversationRef);
+      console.log('✅ Conversación de IA eliminada');
+    } catch (error) {
+      console.error('❌ Error al eliminar conversación de IA:', error);
+      throw error;
+    }
+  }
+
+  // 14. Actualizar título de conversación
+  static async updateConversationTitle(
+    conversationId: string,
+    title: string,
+  ): Promise<void> {
+    try {
+      const conversationRef = doc(db, 'ai_conversations', conversationId);
+      await updateDoc(conversationRef, {
+        title,
+        updatedAt: Timestamp.now(),
+      });
+      console.log('✅ Título de conversación actualizado');
+    } catch (error) {
+      console.error('❌ Error al actualizar título de conversación:', error);
       throw error;
     }
   }

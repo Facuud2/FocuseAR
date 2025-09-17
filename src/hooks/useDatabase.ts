@@ -1,6 +1,12 @@
 import { useState, useCallback, useContext } from 'react';
+import { Timestamp } from 'firebase/firestore';
 import { DatabaseService } from '../services/DatabaseService';
-import type { Material, StudyPlan } from '../services/DatabaseService';
+import type {
+  Material,
+  StudyPlan,
+  AIConversation,
+  AIConversationMessage,
+} from '../services/DatabaseService';
 import { AuthContext } from './authContext';
 
 export const useDatabase = () => {
@@ -222,6 +228,142 @@ export const useDatabase = () => {
     }
   }, []);
 
+  // Crear conversación de IA
+  const createAIConversation = useCallback(
+    async (conversationData: {
+      title: string;
+      messages: Array<{
+        role: 'user' | 'assistant';
+        content: string;
+        messageType?: 'text' | 'system' | 'error';
+      }>;
+    }) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const conversationId = await DatabaseService.createAIConversation({
+          userId: user.uid,
+          title: conversationData.title,
+          messages: conversationData.messages.map((msg) => ({
+            ...msg,
+            id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            timestamp: Timestamp.now(),
+          })),
+        });
+
+        console.log('✅ Conversación de IA creada:', conversationId);
+        return conversationId;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al crear conversación de IA:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
+  // Agregar mensaje a conversación
+  const addMessageToConversation = useCallback(
+    async (
+      conversationId: string,
+      message: Omit<AIConversationMessage, 'id' | 'timestamp'>,
+    ) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        await DatabaseService.addMessageToConversation(conversationId, message);
+        console.log('✅ Mensaje agregado a conversación');
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al agregar mensaje:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  // Obtener conversaciones de IA del usuario
+  const getUserAIConversations = useCallback(async (): Promise<
+    AIConversation[]
+  > => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return [];
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const conversations = await DatabaseService.getUserAIConversations(
+        user.uid,
+      );
+      console.log('✅ Conversaciones de IA obtenidas:', conversations.length);
+      return conversations;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener conversaciones de IA:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Eliminar conversación de IA
+  const deleteAIConversation = useCallback(async (conversationId: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await DatabaseService.deleteAIConversation(conversationId);
+      console.log('✅ Conversación de IA eliminada');
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al eliminar conversación de IA:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Actualizar título de conversación
+  const updateConversationTitle = useCallback(
+    async (conversationId: string, title: string) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        await DatabaseService.updateConversationTitle(conversationId, title);
+        console.log('✅ Título de conversación actualizado');
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al actualizar título:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
   // Limpiar error
   const clearError = useCallback(() => {
     setError(null);
@@ -238,5 +380,11 @@ export const useDatabase = () => {
     updateTaskCompletion,
     deleteMaterialAndPlans,
     deleteStudyPlan,
+    // AI Conversation methods
+    createAIConversation,
+    addMessageToConversation,
+    getUserAIConversations,
+    deleteAIConversation,
+    updateConversationTitle,
   };
 };

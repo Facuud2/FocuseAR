@@ -10,7 +10,6 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { Menu } from 'lucide-react';
 
 import ProtectedRoute from './ProtectedRoute';
 import Auth from './components/Auth';
@@ -30,7 +29,7 @@ import Analytics from './components/Analytics';
 import { AuthProvider } from './context/AuthContext';
 
 function AppRoutes() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // El Sidebar ahora gestiona su propio estado de colapsado/expandido
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,9 +43,7 @@ function AppRoutes() {
     navigate(path);
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  // El Sidebar gestiona el colapso/expansión internamente
 
   const handleToggleDarkMode = () => {
     setIsDarkMode((prevMode) => !prevMode);
@@ -61,21 +58,11 @@ function AppRoutes() {
           <Sidebar
             activeSection={currentPath}
             onSectionChange={handleSectionChange}
-            isSidebarOpen={isSidebarOpen}
             isDarkMode={isDarkMode}
             onToggleDarkMode={handleToggleDarkMode}
-            onClose={() => {}}
           />
         )}
-        <main
-          className={`content-area ${isSidebarOpen ? '' : 'content-collapsed'}`}
-        >
-          {!isSidebarOpen && currentPath !== '/' && (
-            <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-              <Menu size={24} />
-            </button>
-          )}
-
+        <main className="content-area">
           <Toaster position="top-right" />
           <Routes>
             <Route path="/" element={<Auth />} />
