@@ -330,9 +330,7 @@ body {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: conic-gradient(from 0deg, #ff00ff, #00bfff, #00ff7f, #ffff00, #ff00ff);
     filter: blur(50px);
-    animation: rotate-rgb 25s linear infinite;
     opacity: 0.1;
     z-index: -1;
     transition: opacity 0.5s ease;
