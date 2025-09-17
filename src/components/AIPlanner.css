@@ -298,3 +298,61 @@ select:focus {
 .generated-plan-content pre {
   color: var(--text-primary); /* Asegura que el texto dentro del pre sea legible */
 }
+
+/* =============================================
+   MEDIA QUERIES PARA RESPONSIVIDAD
+   ============================================= */
+
+/* ===== TABLETS Y DISPOSITIVOS MEDIANOS (hasta 992px) ===== */
+@media (max-width: 992px) {
+  .ai-planner-container {
+    padding: 2rem;
+  }
+
+  .panel {
+    padding: 2rem;
+  }
+}
+
+/* ===== MÓVILES GRANDES (hasta 768px) ===== */
+@media (max-width: 768px) {
+  .ai-planner-container {
+    padding: 1.5rem;
+  }
+
+  .ai-planner-title {
+    font-size: 2.5rem;
+  }
+
+  .panel {
+    padding: 1.5rem;
+  }
+
+  .panel h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* ===== MÓVILES PEQUEÑOS (hasta 480px) ===== */
+@media (max-width: 480px) {
+  .ai-planner-container {
+    padding: 1rem;
+  }
+
+  .ai-planner-header {
+    margin-bottom: 3rem;
+  }
+
+  .ai-planner-title {
+    font-size: 2rem;
+  }
+
+  .ai-planner-subtitle {
+    font-size: 1rem;
+  }
+
+  .button-primary {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+}

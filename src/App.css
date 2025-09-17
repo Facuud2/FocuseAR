@@ -870,6 +870,10 @@ h2 i {
   .login-container {
     flex-direction: column;
   }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
@@ -908,6 +912,21 @@ h2 i {
   .ask-input button {
     width: 100%;
     justify-content: center;
+  }
+  
+  /* Ajuste para que el calendario quepa en pantallas muy pequeñas */
+  .calendar-grid {
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+  }
+
+  .weekday-header, .calendar-cell {
+      padding: 0.2rem;
+      font-size: 0.7rem;
+  }
+
+  .day-number {
+      font-size: 0.8rem;
   }
 }
 

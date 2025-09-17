@@ -53,3 +53,8 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+@media (320px <= width <= 420px) {
+  html {
+    width: 100%;
+  }
+}
