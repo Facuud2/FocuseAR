@@ -1,6 +1,5 @@
-// src/App.tsx
 import './App.css';
-import { useState, useEffect } from 'react'; // Importa useEffect
+import { useState, useEffect } from 'react';
 import {
   BrowserRouter,
   Routes,
@@ -27,6 +26,7 @@ import Progress from './components/Progress';
 import Analytics from './components/Analytics';
 
 import { AuthProvider } from './context/AuthContext';
+import { PlannerProvider } from './context/PlannerProvider';
 
 function AppRoutes() {
   // El Sidebar ahora gestiona su propio estado de colapsado/expandido
@@ -34,7 +34,6 @@ function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Solución: Usa useEffect para aplicar el tema al cargar la página
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
@@ -90,7 +89,11 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AuthProvider>
+        <PlannerProvider>
+          <AppRoutes />
+        </PlannerProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

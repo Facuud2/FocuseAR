@@ -12,7 +12,11 @@ import {
   deleteDoc,
   Timestamp,
 } from 'firebase/firestore';
+import type { DocumentData } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
+
+//Tipos usados
+import type { StudyPlan as StudyPlanType, Topic } from '../types/studyPlan';
 
 // Interfaces para la estructura de datos
 export interface UserData {
@@ -42,45 +46,12 @@ export interface Material {
   updatedAt: Timestamp;
 }
 
-export interface StudyPlan {
-  id?: string;
-  userId: string;
-  materialId: string;
-  generatedPlan: {
-    title: string;
-    summary?: string;
-    durationDays: number;
-    examDate?: string;
-    selectedWeekDays?: number[];
-    topics?: string[];
-    studyDates?: string[];
-    subjectColor?: string; // CORREGIDO: Campo para guardar el color de la materia
-    structuredPlan?: {
-      title: string;
-      summary: string;
-      days: Array<{
-        date: string;
-        dayNumber: number;
-        topics: Array<{
-          name: string;
-          summary: string;
-          estimatedTime: string;
-        }>;
-        totalTime: string;
-        recommendations: string;
-        completed: boolean;
-      }>;
-      finalRecommendations: string;
-    } | null;
-    dailyTasks: Array<{
-      day: number;
-      task: string;
-      completed?: boolean;
-    }>;
-  };
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
+// NOTE: We keep the original interfaces above for other services, but for
+// study plans we prefer to reuse the typed definitions from
+// `src/types/studyPlan.ts` (Topic + StudyPlan) to represent editable topics.
+
+// Alias the imported StudyPlanType to avoid name collision with older exports
+export type StudyPlan = StudyPlanType;
 
 // Interfaces para conversaciones de IA
 export interface AIConversationMessage {
@@ -101,6 +72,41 @@ export interface AIConversation {
 }
 
 export class DatabaseService {
+  // Generador de id local (evita añadir dependencia uuid)
+  private static generateId(): string {
+    return `t-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  }
+  // Ayuda: garantiza que los temas sean objetos (Topic[]). Si se encuentra la cadena heredada string[],
+  // convierte cada cadena en un tema con el ID generado y una descripción vacía.
+  private static normalizeTopics(rawTopics: unknown[] | undefined): Topic[] {
+    if (!rawTopics) return [];
+
+    return rawTopics.map((t) => {
+      // legacy string[] case
+      if (typeof t === 'string') {
+        return { id: this.generateId(), title: t } as Topic;
+      }
+
+      // object-like case: validate keys safely
+      if (t && typeof t === 'object') {
+        const obj = t as Record<string, unknown>;
+        const id = typeof obj.id === 'string' ? obj.id : this.generateId();
+        const title =
+          typeof obj.title === 'string'
+            ? obj.title
+            : typeof obj.name === 'string'
+              ? obj.name
+              : 'Tema';
+        const description =
+          typeof obj.description === 'string' ? obj.description : undefined;
+        const order = typeof obj.order === 'number' ? obj.order : undefined;
+        return { id, title, description, order } as Topic;
+      }
+
+      // fallback for unexpected types
+      return { id: this.generateId(), title: String(t) } as Topic;
+    });
+  }
   // 1. Crear o actualizar usuario cuando se autentica con Google
   static async createOrUpdateUser(user: User): Promise<UserData> {
     try {
@@ -174,8 +180,19 @@ export class DatabaseService {
     try {
       console.log('📘 Creando plan de estudio en Firestore...');
 
+      // Asegúrese de que los temas estén normalizados antes de guardarlos. El plan de estudio entrante
+      // puede contener generatedPlan.topics como string[] (heredado) o Topic[].
+      const normalizedTopics = this.normalizeTopics(
+        (studyPlan as unknown as DocumentData).generatedPlan
+          ?.topics as unknown[],
+      );
+
       const studyPlanData: StudyPlan = {
         ...studyPlan,
+        generatedPlan: {
+          ...studyPlan.generatedPlan,
+          topics: normalizedTopics,
+        },
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -218,7 +235,10 @@ export class DatabaseService {
       const materials: Material[] = [];
 
       materialsSnap.forEach((doc) => {
-        materials.push({ id: doc.id, ...doc.data() } as Material);
+        materials.push({
+          id: doc.id,
+          ...(doc.data() as DocumentData),
+        } as Material);
       });
 
       return materials;
@@ -240,7 +260,23 @@ export class DatabaseService {
       const plans: StudyPlan[] = [];
 
       plansSnap.forEach((doc) => {
-        plans.push({ id: doc.id, ...doc.data() } as StudyPlan);
+        const raw = doc.data() as DocumentData;
+
+        const normalized: StudyPlan = {
+          id: doc.id,
+          userId: raw.userId as string,
+          materialId: raw.materialId as string,
+          generatedPlan: {
+            ...(raw.generatedPlan as DocumentData),
+            topics: this.normalizeTopics(
+              (raw.generatedPlan as DocumentData)?.topics as unknown[],
+            ),
+          } as StudyPlanType['generatedPlan'],
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt,
+        };
+
+        plans.push(normalized);
       });
 
       return plans;

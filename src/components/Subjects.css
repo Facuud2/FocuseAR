@@ -258,3 +258,117 @@ select {
   color: var(--text-muted);
   font-weight: 600;
 }
+
+/* Estilos para el modal de análisis */
+.analysis-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+}
+
+.analysis-modal.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.analysis-modal-content {
+  background-color: #ffffff;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 450px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  transform: scale(0.95);
+  animation: modal-fade-in 0.3s forwards;
+}
+
+@keyframes modal-fade-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header .modal-icon {
+  font-size: 3rem;
+  color: var(--primary-color);
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.modal-status-message {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-height: 20px;
+}
+
+.progress-container {
+  width: 100%;
+  background-color: var(--border-color);
+  border-radius: 50px;
+  height: 12px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 50px;
+  background-image: linear-gradient(to right, #4285F4, #A1C4FD);
+  transition: width 0.4s ease-in-out;
+  animation: loading-pulse 1.5s infinite;
+}
+
+@keyframes loading-pulse {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(1); }
+  100% { transform: scaleX(0); }
+}
+
+.modal-progress-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+  margin-top: 0.5rem;
+}
+
+.modal-footer {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 1.5rem;
+}
