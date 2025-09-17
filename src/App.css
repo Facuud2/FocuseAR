@@ -50,13 +50,6 @@
   --shadow-lg: 0 12px 30px rgba(255, 255, 255, 0.2);
 }
 
-/* ...existing code... */
-html, body, #root {
-  height: 100%;
-  box-sizing: border-box;
-  overflow-x: hidden; /* evita scroll horizontal global */
-}
-
 /* Imágenes y medios no desbordan */
 img, video, iframe {
   max-width: 100%;
