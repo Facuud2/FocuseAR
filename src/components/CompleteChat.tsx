@@ -1,11 +1,15 @@
 import { askGeminiBot } from '../services/aiChatService';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useDatabase } from '../hooks/useDatabase';
 import { getUserMaterialsAndTopics } from '../services/chatbotService';
 import type { ChatbotMaterial } from '../services/chatbotService';
 import ChatHistory from './ChatHistory';
 import ChatInput from './ChatInput';
+import ConversationHistory from './ConversationHistory';
+import ConversationList from './ConversationList';
 import './Chatbot.css';
+import './ConversationList.css';
 
 // Tipo para los mensajes del chat completo
 interface ChatMessage {
@@ -38,7 +42,13 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
   const [selectedMaterialIdx, setSelectedMaterialIdx] = useState<number | null>(
     null,
   );
+  const [showHistory, setShowHistory] = useState(false);
+  const [showConversationList, setShowConversationList] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<
+    string | null
+  >(null);
   const { user } = useAuth();
+  const { addMessageToConversation, createAIConversation } = useDatabase();
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -74,9 +84,21 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addMessage = useCallback((message: ChatMessage) => {
-    setMessages((prev) => [...prev, message]);
-  }, []);
+  const addMessage = useCallback(
+    (message: ChatMessage) => {
+      setMessages((prev) => [...prev, message]);
+
+      // Save message to Firebase if we have an active conversation
+      if (currentConversationId && user) {
+        addMessageToConversation(currentConversationId, {
+          role: message.isUser ? 'user' : 'assistant',
+          content: message.message,
+          messageType: message.messageType || 'text',
+        });
+      }
+    },
+    [currentConversationId, user, addMessageToConversation],
+  );
 
   const handleSendMessage = useCallback(
     async (messageText: string) => {
@@ -255,23 +277,38 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
     ],
   );
 
+  const saveConversation = async () => {
+    if (!user || messages.length <= 1) {
+      console.log('No hay mensajes para guardar o usuario no autenticado');
+      return;
+    }
+
+    try {
+      const conversationId = await createAIConversation({
+        title: `Conversación - ${new Date().toLocaleDateString()}`,
+        messages: messages
+          .filter((msg) => msg.id !== 'welcome')
+          .map((msg) => ({
+            role: msg.isUser ? 'user' : 'assistant',
+            content: msg.message,
+            messageType: msg.messageType || 'text',
+          })),
+      });
+
+      if (conversationId) {
+        setCurrentConversationId(conversationId);
+        console.log('✅ Conversación guardada con ID:', conversationId);
+      }
+    } catch (error) {
+      console.error('❌ Error al guardar conversación:', error);
+    }
+  };
+
   const clearChat = () => {
-    let menu = '';
-    materials.forEach((mat, idx) => {
-      let nombre =
-        mat.materialName && mat.materialName.trim() !== ''
-          ? mat.materialName
-          : `Materia ${idx + 1}`;
-      nombre = nombre
-        .replace(/^Plan de Estudio\s*-\s*/i, '')
-        .replace(/\s*-\s*Primer Parcial$/i, '')
-        .trim();
-      menu += `${idx + 1}. ${nombre}\n`;
-    });
     setMessages([
       {
-        id: 'menu-new',
-        message: welcomeMessage + '\n' + menu,
+        id: 'welcome',
+        message: welcomeMessage,
         isUser: false,
         timestamp: new Date(),
         userName: assistantName,
@@ -282,6 +319,19 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
     setSelectedMaterialIdx(null);
     setIsTyping(false);
     setIsLoading(false);
+    setCurrentConversationId(null);
+  };
+
+  const handleSelectConversation = (conversationId: string | null) => {
+    setCurrentConversationId(conversationId);
+    setShowConversationList(false);
+    setShowHistory(conversationId !== null);
+  };
+
+  const handleNewConversation = () => {
+    clearChat();
+    setShowConversationList(false);
+    setShowHistory(false);
   };
 
   return (
@@ -290,12 +340,20 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
         <span className="chat-header-title">{title}</span>
         <div className="chat-header-actions">
           <button
-            onClick={clearChat}
+            onClick={() => setShowConversationList(!showConversationList)}
             className="chat-header-btn"
-            title="Limpiar chat"
-            aria-label="Limpiar chat"
+            title="Historial de conversaciones"
+            aria-label="Historial de conversaciones"
           >
-            🗑️
+            📋
+          </button>
+          <button
+            onClick={saveConversation}
+            className="chat-header-btn"
+            title="Guardar conversación"
+            aria-label="Guardar conversación"
+          >
+            💾
           </button>
           <button
             onClick={onClose}
@@ -308,6 +366,23 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
         </div>
       </div>
 
+      {showConversationList && (
+        <div
+          className="conversation-overlay"
+          onClick={() => setShowConversationList(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()}>
+            <ConversationList
+              onSelectConversation={handleSelectConversation}
+              selectedConversationId={currentConversationId}
+              onNewConversation={handleNewConversation}
+              onClose={() => setShowConversationList(false)}
+              className="conversation-list-modal"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="chat-main" style={{ height: height }}>
         {step !== 'materia' && (
           <div className="chat-back-btn">
@@ -316,13 +391,25 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
             </button>
           </div>
         )}
-        <ChatHistory
-          messages={messages}
-          height="100%"
-          autoScroll={true}
-          showTypingIndicator={isTyping}
-          emptyStateMessage="¡Empieza la conversación! Pregúntame sobre planificación de estudios."
-        />
+
+        {showHistory && currentConversationId ? (
+          <ConversationHistory
+            conversationId={currentConversationId}
+            height="100%"
+            autoScroll={true}
+            showTypingIndicator={isTyping}
+            emptyStateMessage="¡Empieza la conversación! Pregúntame sobre planificación de estudios."
+          />
+        ) : (
+          <ChatHistory
+            messages={messages}
+            height="100%"
+            autoScroll={true}
+            showTypingIndicator={isTyping}
+            emptyStateMessage="¡Empieza la conversación! Pregúntame sobre planificación de estudios."
+          />
+        )}
+
         <div className="chat-input-container">
           <ChatInput
             onSendMessage={handleSendMessage}

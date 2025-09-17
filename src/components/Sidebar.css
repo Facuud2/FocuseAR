@@ -1,4 +1,4 @@
-/* Sidebar.css - Versión completa y corregida para el modo colapsado */
+/* src/components/Sidebar.css */
 :root {
   --primary: #2988e0;
   --primary-light: #6366f1;
@@ -25,6 +25,37 @@
   --shadow-md: 0 4px 6px -1px rgba(255, 255, 255, 0.1), 0 2px 4px -1px rgba(255, 255, 255, 0.06);
 }
 
+.sidebar-hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 100;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.sidebar-hamburger-btn:hover {
+  background: var(--primary-dark);
+}
+
+@media (max-width: 900px) {
+  .sidebar-hamburger-btn {
+    display: block;
+  }
+  .sidebar-container {
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+}
+
 .sidebar-container {
   width: 320px;
   background: linear-gradient(180deg, var(--bg-white) 0%, var(--bg-light) 100%);
@@ -37,39 +68,34 @@
   height: 100vh;
   z-index: 40;
   border-radius: 0 18px 18px 0;
-  overflow-x: hidden; /* Oculta el overflow horizontal para la transición */
-  transition: width 0.3s ease-in-out; /* Transición para el ancho */
+  overflow-x: hidden;
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
-/* Estado colapsado del sidebar */
 .sidebar-container.collapsed {
-  width: 80px; /* Ancho reducido para solo mostrar los iconos */
-  
-  /* Esconde los elementos de texto */
-  .sidebar-logo-text,
-  .sidebar-logo-subtext,
-  .sidebar-section-title,
-  .sidebar-nav-label,
-  .dark-mode-toggle-section .toggle-label,
-  .sidebar-help-title,
-  .sidebar-help-text,
-  .sidebar-chat-button {
-      display: none;
-  }
-  
-  /* Ajusta el padding para los iconos */
-  .sidebar-nav-item {
-      justify-content: center;
-  }
+  width: 80px;
 }
+.sidebar-container.collapsed .sidebar-logo-text,
+.sidebar-container.collapsed .sidebar-logo-subtext,
+.sidebar-container.collapsed .sidebar-section-title,
+.sidebar-container.collapsed .sidebar-nav-label,
+.sidebar-container.collapsed .toggle-label,
+.sidebar-container.collapsed .sidebar-help-title,
+.sidebar-container.collapsed .sidebar-help-text,
+.sidebar-container.collapsed .sidebar-chat-button {
+  display: none;
+}
+.sidebar-container.collapsed .sidebar-nav-item {
+  justify-content: center;
+}
+
 .sidebar-logo-section {
   padding: 28px 24px;
   text-align: center;
   border-bottom: 1px solid var(--border-light);
-  transition: all 0.3s ease-in-out;
 }
 .sidebar-container.collapsed .sidebar-logo-section {
-    padding: 24px 12px;
+  padding: 24px 12px;
 }
 
 .sidebar-logo-icon {
@@ -82,7 +108,6 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease-in-out;
 }
 
 .sidebar-container.collapsed .sidebar-logo-icon {
@@ -204,54 +229,123 @@
   flex: 1;
 }
 
+/* Botón de modo oscuro con iconos de sol y luna -solo iconos */
+
 .dark-mode-toggle-section {
-  padding: 1rem 1.5rem;
+  padding: 1.5rem 0;
   border-top: 1px solid var(--border-light);
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .dark-mode-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-  background: var(--bg-light);
-  color: var(--text-dark);
-  border: 1px solid var(--border-light);
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
+  border: none;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
 }
 
 .dark-mode-btn:hover {
-  background-color: var(--border-light);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme='dark'] .dark-mode-btn {
-  background: var(--bg-white);
+  background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
+}
+
+/* Efecto de partículas en el fondo del botón */
+.dark-mode-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2px),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.4) 1px, transparent 1.5px),
+    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.4) 2px, transparent 2.5px);
+  background-size: 200% 200%;
+  opacity: 0.7;
+  animation: sparkle 3s linear infinite;
+}
+
+.dark-mode-icon {
+  color: white;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
+  z-index: 2;
+  position: relative;
+}
+
+/* Ajustes para modo colapsado */
+
+.collapsed-chat-button {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--sidebar-icon-color, #4a90e2);
+  font-size: 28px;
+}
+
+.collapsed-chat-button:hover {
+  transform: translateX(-50%) scale(1.2);
+  color: #ff9800;
+}
+
+
+.sidebar-container.collapsed .dark-mode-toggle-section {
+  padding: 1rem 0;
+}
+
+.sidebar-container.collapsed .dark-mode-btn {
+  width: 40px;
+  height: 40px;
+}
+
+
+.toggle-label {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text-dark);
-  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-label svg {
+  color: #f59e0b;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));
+}
+
+[data-theme='dark'] .toggle-label svg {
+  color: #a78bfa;
 }
 
 .sidebar-help-section {
   padding: 24px;
   border-top: 1px solid var(--border-light);
   background-color: var(--bg-light);
-  transition: all 0.3s ease-in-out;
-}
-
-.sidebar-container.collapsed .sidebar-help-section {
-  padding: 1rem;
-  
-  .sidebar-help-content {
-      display: none;
-  }
 }
 
 .sidebar-help-content {
