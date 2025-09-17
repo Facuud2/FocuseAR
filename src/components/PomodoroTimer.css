@@ -470,6 +470,7 @@ body {
   font-size: 0.9rem;
 }
 
+/* --- Responsive Design Adjustments --- */
 @media (max-width: 900px) {
   .main-content-wrapper {
     grid-template-columns: 1fr;
@@ -482,22 +483,85 @@ body {
   }
 }
 
-@media (max-width: 600px) {
-  .cottagecore-container {
-    padding: 1rem;
-    margin: 1rem;
-  }
+@media (max-width: 768px) {
   .cottagecore-header {
     flex-direction: column;
     gap: 1rem;
+    align-items: center;
   }
   .cottagecore-title {
     font-size: 2rem;
+  }
+  .user-info {
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+  .focus-points, .store-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 1rem;
+  }
+  .main-content-wrapper {
+    gap: 2rem;
+  }
+  .study-area-left {
+    padding-bottom: 5rem;
+  }
+  .avatar-section {
+    width: 120px;
+    height: 120px;
+    bottom: -1.5rem;
+  }
+  .video-window {
+    height: 300px;
+    border-width: 6px;
+  }
+  .study-area-right {
+    padding: 1.5rem;
+  }
+  .mode-selection {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .mode-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
   }
   .timer-countdown {
     font-size: 4rem;
   }
   .timer-controls {
     flex-direction: column;
+    gap: 1rem;
+  }
+  .control-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    width: 100%;
+  }
+  .store-modal {
+    width: 95%;
+    padding: 1.5rem;
+  }
+  .items-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .cottagecore-container {
+    padding: 1rem;
+    margin: 1rem;
+  }
+  .cottagecore-title {
+    font-size: 1.8rem;
+  }
+  .timer-countdown {
+    font-size: 3rem;
+  }
+  .control-btn {
+    padding: 0.6rem 1.2rem;
   }
 }
