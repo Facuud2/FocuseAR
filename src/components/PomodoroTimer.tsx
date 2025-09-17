@@ -1,7 +1,7 @@
 // src/components/PomodoroTimer.tsx
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import './../styles/PomodoroTimer.css';
+import './PomodoroTimer.css';
 import {
   Play,
   Pause,
@@ -30,9 +30,9 @@ const LONG_BREAK = 15 * 60;
 
 const videoUrls = {
   // Correct paths for videos in the public folder
-  pomodoro: '/videos/estudiar.mp4',
-  shortBreak: '/videos/descansar.mp4',
-  longBreak: '/videos/dormir.mp4',
+  pomodoro: '/public/estudiar.mp4',
+  shortBreak: '/public/descansar.mp4',
+  longBreak: '/public/dormir.mp4',
 };
 
 // Use the new StoreItem interface
@@ -250,14 +250,14 @@ const PomodoroTimer = () => {
           <div className="avatar-section">
             {/* Correct path for the base avatar */}
             <img
-              src={'/avatars/base1.png'}
+              src={'/public/base1.png'}
               alt="Avatar"
               className="avatar-image"
             />
             {avatarItems.map((item, index) => (
               <img
                 key={index}
-                src={`/assets/items/${item}.png`}
+                src={`vip.png`}
                 alt="Avatar Item"
                 className="avatar-item"
               />
