@@ -11,7 +11,7 @@
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  background-color: #000;
+  background-color: var(--bg-primary);
 }
 
 .garden-video-background {
@@ -27,7 +27,7 @@
 .garden-overlay {
   position: relative;
   z-index: 2;
-  color: #ffffff;
+  color: var(--text-color);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -38,6 +38,7 @@
   background-color: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
+  transition: var(--transition);
 }
 
 .top-controls {
@@ -55,17 +56,21 @@
   align-items: center;
   font-size: 1rem;
   font-weight: bold;
+  background-color: var(--bg-secondary);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  transition: var(--transition);
 }
 
 .points-value {
   font-size: 1.5rem;
   margin-right: 0.5rem;
-  color: #fbbc05;
+  color: var(--highlight-color);
 }
 
 .store-btn {
   background: transparent;
-  color: #ffffff;
+  color: var(--text-color);
   border: none;
   cursor: pointer;
   gap: 0.5rem;
@@ -110,6 +115,3 @@
 /* Puedes definir posiciones para cada elemento del jardín individualmente */
 .garden-item:nth-child(1) { left: 10%; width: 80px; }
 .garden-item:nth-child(2) { right: 15%; width: 100px; }
-
-/* Mantener el resto del CSS de PomodoroTimer.css aquí para los controles */
-/* (Ej. .mode-selection, .timer-countdown-video, .control-btn, etc.) */
