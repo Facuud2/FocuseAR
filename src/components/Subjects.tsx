@@ -39,7 +39,7 @@ interface AnalysisState {
 
 const Subjects: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { setExtractedTopics } = usePlanner();
+  const { extractedTopics, setExtractedTopics } = usePlanner();
   const {
     loading: dbLoading,
     getUserMaterials,
@@ -169,6 +169,7 @@ const Subjects: React.FC = () => {
           color: selectedColor,
           examDate: importantDates.length > 0 ? importantDates[0].date : '',
           importantDates: importantDates,
+          extractedTopics: extractedTopics || [],
         });
 
         if (materialId) {
@@ -191,6 +192,7 @@ const Subjects: React.FC = () => {
           setSecondPartialDate(null);
           setTpDate(null);
           setOtherDates([]);
+          setExtractedTopics([]); //Borramos los temas extraidos del contexto global para que no se filtren entre materias
           alert('Materia añadida exitosamente y guardada en Firebase!');
         }
       }
