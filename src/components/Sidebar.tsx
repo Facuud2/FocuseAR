@@ -36,7 +36,7 @@ export default function Sidebar({
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  
+
   const menuSections = [
     {
       title: 'Dashboard',
@@ -119,7 +119,7 @@ export default function Sidebar({
       >
         <Menu size={28} />
       </button>
-      
+
       <aside
         className={`sidebar-container${isCollapsed ? ' collapsed' : ''}`}
         onMouseEnter={() => setIsCollapsed(false)}
@@ -163,58 +163,61 @@ export default function Sidebar({
           ))}
         </nav>
 
- {/* Botón de modo oscuro que solo aparece cuando el sidebar está abierto */}
-       {!isCollapsed && (
-         <div className="dark-mode-toggle-section">
-          <button 
-            className="dark-mode-btn" 
-            onClick={onToggleDarkMode}
-             aria-label={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-  >
-             <div className={`dark-mode-icon-container ${isDarkMode ? 'dark-mode' : 'light-mode'}`}>
-              {isDarkMode ? (
+        {/* Botón de modo oscuro que solo aparece cuando el sidebar está abierto */}
+        {!isCollapsed && (
+          <div className="dark-mode-toggle-section">
+            <button
+              className="dark-mode-btn"
+              onClick={onToggleDarkMode}
+              aria-label={
+                isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'
+              }
+            >
+              <div
+                className={`dark-mode-icon-container ${isDarkMode ? 'dark-mode' : 'light-mode'}`}
+              >
+                {isDarkMode ? (
                   <Sun className="dark-mode-icon" size={22} />
-               ) : (
-                <Moon className="dark-mode-icon" size={22} />
-           )}
-         </div>
-        </button>
-      </div>
-     )}
+                ) : (
+                  <Moon className="dark-mode-icon" size={22} />
+                )}
+              </div>
+            </button>
+          </div>
+        )}
 
- {/* Sección de ayuda con el botón para abrir el chat */}
+        {/* Sección de ayuda con el botón para abrir el chat */}
 
-{/* Sección de ayuda con el botón para abrir el chat */}
-{!isCollapsed ? (
-  <div className="sidebar-help-section">
-    <div className="sidebar-help-content">
-      <div className="sidebar-help-header">
-        <div className="sidebar-help-icon">
-          <Bot />
-        </div>
-        <p className="sidebar-help-title">AI Assistant</p>
-      </div>
-      <p className="sidebar-help-text">Get help with your studies</p>
-      <button
-        className="sidebar-chat-button"
-        onClick={() => setIsChatOpen(true)}
-      >
-        <Bot size={16} />
-        Open Chat
-      </button>
-    </div>
-  </div>
-) : (
-  <button
-    className="collapsed-chat-button"
-    onClick={() => setIsChatOpen(true)}
-    aria-label="Chat with AI Assistant"
-  >
-    <Bot size={28} />
-  </button>
-)}
-
-</aside>
+        {/* Sección de ayuda con el botón para abrir el chat */}
+        {!isCollapsed ? (
+          <div className="sidebar-help-section">
+            <div className="sidebar-help-content">
+              <div className="sidebar-help-header">
+                <div className="sidebar-help-icon">
+                  <Bot />
+                </div>
+                <p className="sidebar-help-title">AI Assistant</p>
+              </div>
+              <p className="sidebar-help-text">Get help with your studies</p>
+              <button
+                className="sidebar-chat-button"
+                onClick={() => setIsChatOpen(true)}
+              >
+                <Bot size={16} />
+                Open Chat
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            className="collapsed-chat-button"
+            onClick={() => setIsChatOpen(true)}
+            aria-label="Chat with AI Assistant"
+          >
+            <Bot size={28} />
+          </button>
+        )}
+      </aside>
 
       {isChatOpen && (
         <div

@@ -18,10 +18,11 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.progress-container {
+.progress-containers {
   padding: 2.5rem;
   max-width: 1400px;
   margin: 0 auto;
+  height: 1120px;
 }
 
 .progress-header {
