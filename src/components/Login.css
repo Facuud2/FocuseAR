@@ -57,6 +57,7 @@ body {
   background: linear-gradient(135deg, rgba(74, 0, 107, 0.7) 0%, rgba(121, 9, 107, 0.7) 50%, rgba(200, 0, 150, 0.7) 100%);
 }
 
+
 /*
   El formulario principal: la pieza central del estilo "glass".
   Añade un borde sutil y una sombra más profunda para un efecto 3D.
@@ -64,7 +65,7 @@ body {
 .login-box {
   position: relative;
   z-index: 1;
-  background: rgba(255, 255, 255, 0.1); /* Blanco más transparente */
+  background: rgba(255, 255, 255, 0.153); /* Blanco más transparente */
   backdrop-filter: blur(20px); /* Un desenfoque más fuerte para más elegancia */
   -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
@@ -74,7 +75,7 @@ body {
   width: 90%;
   max-width: 450px; /* Un poco más ancho para un diseño más limpio */
   text-align: center;
-  color: white;
+  color: rgb(0, 0, 0);
   animation: slideIn 1s ease-out;
   margin-left: 20px;
 }
@@ -89,15 +90,32 @@ body {
   Añade una sombra para un efecto flotante.
 */
 .logo-img {
-  width: 100px;
-  height: 100px;
+  width: 200px;
+  height: 200px;
   object-fit: cover;
   border-radius: 50%; /* Hace el logo circular */
-  margin-bottom: 2rem;
+  margin-bottom: 0.1rem;
   border: 4px solid rgba(255, 255, 255, 0.5); /* Un borde de vidrio sutil */
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
   transition: transform 0.3s ease;
 }
+
+.logo-video { /* ¡Nuevo selector para el video del logo! */
+  width: 200px;
+  height: 200px;
+  object-fit: cover; /* Asegura que el video cubra el área sin distorsionarse */
+  border-radius: 50%; /* Hace el video circular */
+  margin-bottom: 2rem;
+  border: 4px solid rgba(255, 255, 255, 0.5); /* Un borde de vidrio sutil */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease;
+  background-color: black; /* Un fondo negro por si el video tarda en cargar */
+}
+
+.logo-video:hover {
+  transform: scale(1.05) rotate(5deg);
+}
+
 
 .logo-img:hover {
   transform: scale(1.05) rotate(5deg);
@@ -108,10 +126,11 @@ body {
   font-weight: 700;
   margin-bottom: 0.5rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  
 }
 
 .login-box p.subtitle {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(0, 0, 0, 0.8);
   font-size: 1rem;
   margin-bottom: 2rem;
 }
@@ -119,6 +138,7 @@ body {
 .form-group {
   margin-bottom: 1.5rem;
   position: relative;
+  
 }
 
 .input-icon {
@@ -126,24 +146,27 @@ body {
   left: 15px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.232);
   pointer-events: none;
   font-size: 1.2rem;
 }
 
 /*
   Estilos de los inputs: ahora son más transparentes y reactivos.
+  ¡CAMBIO IMPORTANTE AQUÍ!
 */
 .form-group input {
   width: 100%;
   padding: 14px 15px 14px 50px; /* Más padding para los iconos */
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Borde más visible */
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  background: rgba(255, 255, 255, 0.08); /* ¡Más transparente! */
+  color: rgba(255, 255, 255, 0.188);
   font-size: 1rem;
   transition: all 0.3s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px); /* Aplica el desenfoque directamente al input */
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .form-group input::placeholder {
@@ -151,10 +174,10 @@ body {
 }
 
 .form-group input:focus {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.15); /* Ligeramente menos transparente al enfocar */
   outline: none;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.6); /* Borde más sólido al enfocar */
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4); /* Sombra más pronunciada */
 }
 
 /*
@@ -169,7 +192,7 @@ body {
   cursor: pointer;
   margin-top: 1rem;
   background-color: #a855f7;
-  color: white;
+  color: rgba(255, 255, 255, 0.222);
   transition: background-color 0.3s ease, transform 0.2s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
@@ -191,7 +214,7 @@ body {
   cursor: pointer;
   margin-top: 1rem;
   background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: rgb(255, 255, 255);
   border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
