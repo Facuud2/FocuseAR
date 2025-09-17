@@ -1,3 +1,221 @@
+/* src/components/Login.css */
+
+/*
+  Estilos de la página y el contenedor principal.
+  Se ha añadido una fuente moderna para mejorar la estética.
+*/
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background-color: #2a005a;
+  margin-left: -100px; /* Color de fallback si el video no carga */
+}
+
+/*
+  Video de fondo: usa 'fixed' para un anclaje perfecto a la ventana.
+  El z-index ha sido ajustado para la nueva capa de fondo.
+*/
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0; /* Envía el video aún más al fondo */
+  filter: brightness(0.6) saturate(1.2);
+  animation: fadeIn 1s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/*
+  Capa de fondo con degradado: agrega una capa de color sutil sobre el video.
+*/
+.overlay-gradient {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: linear-gradient(135deg, rgba(74, 0, 107, 0.7) 0%, rgba(121, 9, 107, 0.7) 50%, rgba(200, 0, 150, 0.7) 100%);
+}
+
+/*
+  El formulario principal: la pieza central del estilo "glass".
+  Añade un borde sutil y una sombra más profunda para un efecto 3D.
+*/
+.login-box {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.1); /* Blanco más transparente */
+  backdrop-filter: blur(20px); /* Un desenfoque más fuerte para más elegancia */
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Borde más visible */
+  padding: 50px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  width: 90%;
+  max-width: 450px; /* Un poco más ancho para un diseño más limpio */
+  text-align: center;
+  color: white;
+  animation: slideIn 1s ease-out;
+  margin-left: 20px;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/*
+  El logo: ahora es un círculo perfecto.
+  Añade una sombra para un efecto flotante.
+*/
+.logo-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%; /* Hace el logo circular */
+  margin-bottom: 2rem;
+  border: 4px solid rgba(255, 255, 255, 0.5); /* Un borde de vidrio sutil */
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+  transform: scale(1.05) rotate(5deg);
+}
+
+.login-box h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.login-box p.subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  font-size: 1.2rem;
+}
+
+/*
+  Estilos de los inputs: ahora son más transparentes y reactivos.
+*/
+.form-group input {
+  width: 100%;
+  padding: 14px 15px 14px 50px; /* Más padding para los iconos */
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.form-group input:focus {
+  background: rgba(255, 255, 255, 0.25);
+  outline: none;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+/*
+  Estilos de los botones: más dinámicos y elegantes.
+*/
+.planify-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  background-color: #a855f7;
+  color: white;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.planify-btn:hover {
+  background-color: #9333ea;
+  transform: translateY(-2px);
+}
+
+.google-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.google-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.google-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+/* Ajustes para pantallas más pequeñas */
+@media (max-width: 480px) {
+  .login-box {
+    padding: 30px;
+  }
+  .login-box h2 {
+    font-size: 2rem;
+  }
+}
 .login-container .google-login-btn {
   z-index: 10;
   position: relative;

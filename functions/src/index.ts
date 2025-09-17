@@ -55,11 +55,29 @@ import crypto from 'crypto';
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 const corsHandler = cors({ origin: true });
 
+// Helper para añadir cabeceras CORS explícitas (útil para Cloud Run / Gen2)
+function addCorsHeaders(res: {
+  setHeader: (name: string, value: string) => void;
+}) {
+  // Ajusta el origen según tu entorno de producción
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
 // Función principal con CORS habilitado para desarrollo y producción
 export const geminiResponse = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
   async (req, res) => {
+    // Responder preflight OPTIONS rápidamente
+    if (req.method === 'OPTIONS') {
+      addCorsHeaders(res);
+      res.status(204).send('');
+      return;
+    }
+
     corsHandler(req, res, async () => {
+      addCorsHeaders(res);
       if (req.method !== 'POST') {
         res.status(405).json({ error: 'Método no permitido. Usa POST.' });
         return;
@@ -135,7 +153,14 @@ export const geminiResponse = onRequest(
 export const geminiResponseTest = functions.https.onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1' },
   async (req, res) => {
+    if (req.method === 'OPTIONS') {
+      addCorsHeaders(res);
+      res.status(204).send('');
+      return;
+    }
+
     corsHandler(req, res, async () => {
+      addCorsHeaders(res);
       if (req.method !== 'POST') {
         res.status(405).json({ error: 'Método no permitido. Usa POST.' });
         return;
@@ -177,7 +202,14 @@ export const geminiResponseTest = functions.https.onRequest(
 export const askGeminiBot = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
   async (req, res) => {
+    if (req.method === 'OPTIONS') {
+      addCorsHeaders(res);
+      res.status(204).send('');
+      return;
+    }
+
     corsHandler(req, res, async () => {
+      addCorsHeaders(res);
       if (req.method !== 'POST') {
         res.status(405).json({ error: 'Método no permitido. Usa POST.' });
         return;
@@ -277,6 +309,193 @@ export const askGeminiBot = onRequest(
           error instanceof Error ? error.message : 'Error interno';
         console.error('Error en askGemini:', error);
         res.status(500).json({ error: message });
+      }
+    });
+  },
+);
+
+// -----------------------------
+// Función: processPdfTopics
+// Recibe: { text: string, subjectName: string }
+// Responde: { parsed: {...} } o { raw_response: string }
+// -----------------------------
+export const processPdfTopics = onRequest(
+  { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
+  async (req, res) => {
+    if (req.method === 'OPTIONS') {
+      addCorsHeaders(res);
+      res.status(204).send('');
+      return;
+    }
+
+    corsHandler(req, res, async () => {
+      addCorsHeaders(res);
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+        return;
+      }
+
+      const { text, subjectName } = req.body || {};
+      if (!text || !subjectName) {
+        res
+          .status(400)
+          .json({ error: "Faltan campos: 'text' o 'subjectName'" });
+        return;
+      }
+
+      try {
+        const prompt = `Eres un asistente que extrae los temas principales de un programa de materia. Devuelve un JSON con la forma: {"topics":[{"id":"tema_1","name":"Tema 1","order":1}], "summary":"Resumen breve"}.\nMateria: ${subjectName}\nTexto:\n${String(text).substring(0, 8000)}`;
+        const ai = new GoogleGenAI({});
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
+        });
+
+        let textResp = response.text || '';
+        textResp = textResp
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+
+        try {
+          const parsed = JSON.parse(textResp);
+          res.json({ parsed, source: 'gemini' });
+        } catch {
+          res.json({ raw_response: textResp, source: 'gemini' });
+        }
+      } catch (error) {
+        console.error('Error en processPdfTopics:', error);
+        res.status(500).json({
+          error: error instanceof Error ? error.message : 'Error interno',
+        });
+      }
+    });
+  },
+);
+
+// -----------------------------
+// Función: generateStudyPlan
+// Recibe: { subjectName, eventName, examDate, topics: string[], studyDates: string[], weekDays?: number[] }
+// Responde: { plan: {...} } o { raw_response: string }
+// -----------------------------
+export const generateStudyPlan = onRequest(
+  { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 300 },
+  async (req, res) => {
+    if (req.method === 'OPTIONS') {
+      addCorsHeaders(res);
+      res.status(204).send('');
+      return;
+    }
+
+    corsHandler(req, res, async () => {
+      addCorsHeaders(res);
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+        return;
+      }
+
+      const { subjectName, eventName, examDate, topics, studyDates, weekDays } =
+        req.body || {};
+      if (
+        !subjectName ||
+        !topics ||
+        !Array.isArray(topics) ||
+        !studyDates ||
+        !Array.isArray(studyDates)
+      ) {
+        res.status(400).json({
+          error: "Campos requeridos: 'subjectName', 'topics[]', 'studyDates[]'",
+        });
+        return;
+      }
+
+      try {
+        const weekDayNames = [
+          'domingo',
+          'lunes',
+          'martes',
+          'miércoles',
+          'jueves',
+          'viernes',
+          'sábado',
+        ];
+        const prompt = `Eres un asistente especializado en crear planes de estudio personalizados.
+
+DATOS:
+- Materia: ${subjectName}
+- Evento: ${eventName || 'No especificado'}
+- Fecha del examen: ${examDate || 'No especificada'}
+- Días disponibles (${studyDates.length}): ${studyDates.join(', ')}
+- Días de la semana: ${weekDays && Array.isArray(weekDays) ? weekDays.map((d: number) => weekDayNames[d]).join(', ') : 'No especificado'}
+
+TEMAS:
+${topics.map((t: string, i: number) => `${i + 1}. ${t}`).join('\n')}
+
+INSTRUCCIONES (optimiza, usa días y permite descansos):
+1) Distribuye TODOS los temas entre las fechas disponibles, intentando usar la mayor cantidad de días posible. Si existen la capacidad de dias suficientes para los temas, podes dejar dias libres en según creas conveniente (estos se deberán dejar sin marcar la fecha y no se deberán incluir en el objeto).
+2) No incluyas días con solo recomendaciones en el array 'days' - si un día no tiene topics asignados, omítelo.
+3) Optimiza la carga diaria: prioriza distribuir sesiones cortas para reducir fatiga y equilibrar el tiempo entre días.
+4) Para cada día, devuelve un objeto con:
+  - date: 'YYYY-MM-DD'
+  - dayNumber: número (1 = primer día del plan)
+  - topics: lista de objetos { name, summary, estimatedTime } donde:
+     - summary: máximo 1 frase, máximo 20 palabras
+     - estimatedTime: tiempo estimado EN HORAS (puede ser decimal con 1 cifra, p.ej. 1.5) — NO en minutos
+  - totalTime: suma de estimatedTime del día (EN HORAS, decimal posible)
+  - recommendations: texto breve, máximo 3 frases
+  - completed: false
+4) Además incluye:
+  - title: título corto del plan
+  - summary: resumen general (1-2 frases)
+  - finalRecommendations: recomendaciones finales (máx. 3 frases)
+
+RESTRICCIONES CLARAS:
+- Resumen por topic: 1 frase, <=20 palabras.
+- Recommendations: máximo 3 frases.
+- estimatedTime y totalTime deben expresarse en HORAS (no en minutos).
+- Maximiza el uso de los días disponibles y minimiza la carga por día cuando sea posible.
+
+SALIDA:
+- Devuelve SOLO un JSON válido con ESTA ESTRUCTURA EXACTA:
+{"title":"...","summary":"...","days":[{"date":"YYYY-MM-DD","dayNumber":1,"topics":[{"name":"","summary":"","estimatedTime":1.5}],"totalTime":2.0,"recommendations":"","completed":false}],"finalRecommendations":"..."}
+
+- No agregues texto fuera del JSON, ni explicaciones, ni etiquetas de código ni listas adicionales.
+
+Genera el JSON ahora.`;
+
+        const ai = new GoogleGenAI({});
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
+        });
+
+        let textResp = response.text || '';
+        textResp = textResp
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+
+        try {
+          const parsed = JSON.parse(textResp);
+          res.json({ plan: parsed, source: 'gemini' });
+        } catch {
+          res.json({ raw_response: textResp, source: 'gemini' });
+        }
+      } catch (error) {
+        console.error('Error en generateStudyPlan:', error);
+        res.status(500).json({
+          error: error instanceof Error ? error.message : 'Error interno',
+        });
       }
     });
   },
