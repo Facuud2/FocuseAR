@@ -10,7 +10,15 @@ import {
   Download,
   Sun,
   Moon,
+  X,
 } from 'lucide-react';
+
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
+// SOLUCIÓN: Usar jsdelivr para asegurar que la versión del worker coincida automáticamente.
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface Document {
   id: number;
@@ -19,6 +27,7 @@ interface Document {
   subject: string;
   uploadProgress: number;
   uploadStatus: 'pending' | 'uploading' | 'completed' | 'failed';
+  url: string;
 }
 
 const initialDocuments: Document[] = [
@@ -29,6 +38,7 @@ const initialDocuments: Document[] = [
     subject: 'Matemáticas',
     uploadProgress: 100,
     uploadStatus: 'completed',
+    url: 'https://cdn.syncfusion.com/content/pdf/pdf-succinctly.pdf',
   },
   {
     id: 2,
@@ -37,6 +47,7 @@ const initialDocuments: Document[] = [
     subject: 'Historia',
     uploadProgress: 100,
     uploadStatus: 'completed',
+    url: '',
   },
   {
     id: 3,
@@ -45,6 +56,7 @@ const initialDocuments: Document[] = [
     subject: 'Química',
     uploadProgress: 100,
     uploadStatus: 'completed',
+    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
   },
   {
     id: 4,
@@ -53,10 +65,10 @@ const initialDocuments: Document[] = [
     subject: 'Física',
     uploadProgress: 100,
     uploadStatus: 'completed',
+    url: 'https://scholar.harvard.edu/files/tiziana_s/files/sample.pdf',
   },
 ];
 
-// Placeholder para FileUpload, ya que el componente original no está disponible
 const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -88,6 +100,7 @@ const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
         style={{ display: 'none' }}
         ref={fileInputRef}
         onChange={handleFileSelect}
+        accept=".pdf"
       />
       <div className="upload-content">
         <Upload size={36} />
@@ -97,7 +110,6 @@ const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
   );
 };
 
-// Nuevo componente de subida de archivos
 const FileUploadDemo = ({
   onFilesUploaded,
 }: {
@@ -121,6 +133,11 @@ const Documents: React.FC = () => {
   const [documents, setDocuments] = useState(initialDocuments);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+    null,
+  );
+  const [numPages, setNumPages] = useState<number | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-mode' : '';
@@ -138,6 +155,7 @@ const Documents: React.FC = () => {
       subject: 'Sin asignar',
       uploadProgress: 0,
       uploadStatus: 'pending',
+      url: URL.createObjectURL(file),
     }));
 
     setDocuments((prevDocs) => [...prevDocs, ...newDocs]);
@@ -166,12 +184,51 @@ const Documents: React.FC = () => {
   }, []);
 
   const handleDelete = (id: number) => {
+    const docToDelete = documents.find((doc) => doc.id === id);
+    if (docToDelete && docToDelete.url.startsWith('blob:')) {
+      URL.revokeObjectURL(docToDelete.url);
+    }
     setDocuments(documents.filter((doc) => doc.id !== id));
+    if (selectedDocument && selectedDocument.id === id) {
+      setSelectedDocument(null);
+    }
+  };
+
+  const handleOpenViewer = (doc: Document) => {
+    if (doc.name.toLowerCase().endsWith('.pdf') && doc.url) {
+      setSelectedDocument(doc);
+      setPageNumber(1);
+    }
   };
 
   const filteredDocuments = documents.filter((doc) =>
     doc.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    setNumPages(numPages);
+  }
+
+  const goToPrevPage = () => {
+    setPageNumber((prevPage) => Math.max(prevPage - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setPageNumber((prevPage) =>
+      numPages ? Math.min(prevPage + 1, numPages) : prevPage,
+    );
+  };
+
+  const handleDownload = (doc: Document) => {
+    if (doc.url) {
+      const link = document.createElement('a');
+      link.href = doc.url;
+      link.download = doc.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   return (
     <div className="documents-container">
@@ -307,7 +364,20 @@ const Documents: React.FC = () => {
                   <div className="document-actions">
                     {doc.uploadStatus === 'completed' && (
                       <>
-                        <button className="download-btn">
+                        {doc.url && doc.name.toLowerCase().endsWith('.pdf') && (
+                          <button
+                            onClick={() => handleOpenViewer(doc)}
+                            className="view-btn"
+                          >
+                            <FileText size={18}>
+                              <title>Ver</title>
+                            </FileText>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDownload(doc)}
+                          className="download-btn"
+                        >
                           <Download size={18}>
                             <title>Descargar</title>
                           </Download>
@@ -355,6 +425,46 @@ const Documents: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {selectedDocument && (
+        <div className="pdf-viewer-modal-backdrop">
+          <div className="pdf-viewer-modal-content">
+            <header className="pdf-viewer-header">
+              <h3>{selectedDocument.name}</h3>
+              <button
+                className="close-modal-btn"
+                onClick={() => setSelectedDocument(null)}
+              >
+                <X size={24} />
+              </button>
+            </header>
+            <div className="pdf-viewer-body">
+              <Document
+                file={selectedDocument.url}
+                onLoadSuccess={onDocumentLoadSuccess}
+              >
+                <Page pageNumber={pageNumber} />
+              </Document>
+            </div>
+            <footer className="pdf-viewer-footer">
+              <div className="page-nav">
+                <button onClick={goToPrevPage} disabled={pageNumber <= 1}>
+                  Página anterior
+                </button>
+                <span className="page-info">
+                  Página {pageNumber} de {numPages || '--'}
+                </span>
+                <button
+                  onClick={goToNextPage}
+                  disabled={numPages ? pageNumber >= numPages : true}
+                >
+                  Página siguiente
+                </button>
+              </div>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
