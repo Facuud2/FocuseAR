@@ -1,0 +1,145 @@
+import React, { useState, useEffect, useContext } from 'react';
+import { useDatabase } from '../hooks/useDatabase';
+import { AuthContext } from '../hooks/authContext';
+import { Link } from 'react-router-dom';
+import { Timestamp } from 'firebase/firestore';
+import './Quizzes.css'; // For individual quiz card styles
+import './QuizzesDashboard.css'; // For dashboard specific styles
+
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+interface Quiz {
+  id?: string;
+  questions: QuizQuestion[];
+  subjectName: string;
+  materialId: string;
+  userId: string;
+  createdAt: Timestamp;
+}
+
+const Quizzes: React.FC = () => {
+  const { user } = useContext(AuthContext);
+  const { getQuizzes } = useDatabase();
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+
+  useEffect(() => {
+    const loadQuizzes = async () => {
+      if (!user) return;
+      setLoading(true);
+      try {
+        const userQuizzes = await getQuizzes();
+        setQuizzes(userQuizzes);
+      } catch (error) {
+        console.error('Error loading quizzes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadQuizzes();
+  }, [user, getQuizzes]);
+
+  const filteredQuizzes = quizzes
+    .filter(() => {
+      if (filter === 'all') return true;
+      // Add more filter logic here (e.g., by type, by subject)
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'newest') {
+        return (
+          new Date(b.createdAt.toDate()).getTime() -
+          new Date(a.createdAt.toDate()).getTime()
+        );
+      }
+      if (sortBy === 'oldest') {
+        return (
+          new Date(a.createdAt.toDate()).getTime() -
+          new Date(b.createdAt.toDate()).getTime()
+        );
+      }
+      if (sortBy === 'subject') {
+        return a.subjectName.localeCompare(b.subjectName);
+      }
+      return 0;
+    });
+
+  return (
+    <div className="quizzes-dashboard-container">
+      <header className="quizzes-dashboard-header">
+        <h2>Mis Quizzes y Flashcards</h2>
+        <div className="header-actions">
+          <Link to="/create-quiz" className="create-quiz-btn">
+            + Crear Nuevo
+          </Link>
+        </div>
+      </header>
+
+      <div className="quizzes-controls">
+        <div className="filter-options">
+          <label htmlFor="filter">Filtrar por:</label>
+          <select
+            id="filter"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="all">Todos</option>
+            {/* Add more filter options dynamically based on quiz types/subjects */}
+          </select>
+        </div>
+        <div className="sort-options">
+          <label htmlFor="sortBy">Ordenar por:</label>
+          <select
+            id="sortBy"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="newest">Más Recientes</option>
+            <option value="oldest">Más Antiguos</option>
+            <option value="subject">Materia</option>
+            {/* Add more sort options */}
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="loading-indicator">
+          <div className="spinner"></div>
+          <p>Cargando tus materiales de estudio...</p>
+        </div>
+      ) : filteredQuizzes.length === 0 ? (
+        <div className="empty-state">
+          <i className="fas fa-box-open"></i>
+          <p>No tienes quizzes o flashcards generados aún.</p>
+          <p>¡Crea uno para empezar a estudiar!</p>
+        </div>
+      ) : (
+        <div className="quizzes-grid">
+          {filteredQuizzes.map((quizItem) => (
+            <div key={quizItem.id} className="quiz-card">
+              <h3>{quizItem.subjectName}</h3>
+              <p>{quizItem.questions.length} preguntas</p>
+              <p className="quiz-type">Tipo: Quiz</p>{' '}
+              {/* Placeholder for quiz type */}
+              <p className="quiz-date">
+                Creado:{' '}
+                {new Date(quizItem.createdAt.toDate()).toLocaleDateString()}
+              </p>
+              <Link to={`/quiz/${quizItem.id}`} className="play-quiz-btn">
+                Jugar
+              </Link>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Quizzes;

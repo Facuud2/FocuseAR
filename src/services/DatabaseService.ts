@@ -102,6 +102,22 @@ export interface AIConversation {
   updatedAt: Timestamp;
 }
 
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+export interface Quiz {
+  id?: string;
+  questions: QuizQuestion[];
+  subjectName: string;
+  materialId: string;
+  userId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 export class DatabaseService {
   // 1. Crear o actualizar usuario cuando se autentica con Google
   static async createOrUpdateUser(user: User): Promise<UserData> {
@@ -439,6 +455,45 @@ export class DatabaseService {
       console.log('✅ Título de conversación actualizado');
     } catch (error) {
       console.error('❌ Error al actualizar título de conversación:', error);
+      throw error;
+    }
+  }
+
+  // 15. Get all quizzes for a user
+  static async getQuizzes(userId: string): Promise<Quiz[]> {
+    try {
+      const quizzesQuery = query(
+        collection(db, 'quizzes'),
+        where('userId', '==', userId),
+      );
+
+      const quizzesSnap = await getDocs(quizzesQuery);
+      const quizzes: Quiz[] = [];
+
+      quizzesSnap.forEach((doc) => {
+        quizzes.push({ id: doc.id, ...doc.data() } as Quiz);
+      });
+
+      return quizzes;
+    } catch (error) {
+      console.error('❌ Error al obtener los quizzes del usuario:', error);
+      throw error;
+    }
+  }
+
+  // 16. Get a single quiz by its ID
+  static async getQuiz(quizId: string): Promise<Quiz | null> {
+    try {
+      const quizRef = doc(db, 'quizzes', quizId);
+      const quizSnap = await getDoc(quizRef);
+
+      if (quizSnap.exists()) {
+        return { id: quizSnap.id, ...quizSnap.data() } as Quiz;
+      }
+      return null;
+      return null;
+    } catch (error) {
+      console.error('❌ Error al obtener el quiz:', error);
       throw error;
     }
   }

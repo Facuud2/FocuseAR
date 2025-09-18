@@ -11,6 +11,7 @@ import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { usePlanner } from '../context/PlannerContext.tsx';
+import { useNavigate } from 'react-router-dom';
 
 interface Pdf {
   id: number;
@@ -46,6 +47,7 @@ const Subjects: React.FC = () => {
     createMaterial,
     deleteMaterialAndPlans,
   } = useDatabase();
+  const navigate = useNavigate();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectName, setSubjectName] = useState('');
@@ -69,6 +71,28 @@ const Subjects: React.FC = () => {
 
   const [analysisSuccess, setAnalysisSuccess] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  const handleGenerateQuiz = async (subject: Subject) => {
+    if (!user) return;
+    try {
+      const response = await fetch(
+        'http://localhost:5001/focusear-copy/us-central1/generateQuizFromMaterial',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ materialId: subject.id, userId: user.uid }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error('Failed to generate quiz');
+      }
+      navigate('/quizzes');
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const updateAnalysisStatus = (status: Partial<AnalysisState>) => {
     setAnalysisStatus((prev) => ({ ...prev, ...status }));
@@ -748,6 +772,27 @@ const Subjects: React.FC = () => {
                           {subject.pdfs.length}/5
                         </span>
                       </div>
+                      <button
+                        onClick={() => handleGenerateQuiz(subject)}
+                        style={{
+                          backgroundColor: '#3b82f6',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 10px',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          fontWeight: '500',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          marginTop: '8px',
+                          transition: 'background-color 0.2s',
+                        }}
+                      >
+                        <i className="fas fa-question-circle"></i>
+                        Generar Quiz
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

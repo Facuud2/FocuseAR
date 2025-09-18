@@ -1,0 +1,120 @@
+.quiz-player-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--card-bg); /* Use CSS variable */
+  border-radius: 12px;
+  box-shadow: 0 6px 20px var(--shadow); /* Use CSS variable */
+  color: var(--text-color); /* Use CSS variable */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.quiz-player-container h2 {
+  font-size: 2.2em;
+  margin-bottom: 20px;
+  color: var(--heading-color); /* Use CSS variable */
+  text-align: center;
+}
+
+.question-container {
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color); /* Use CSS variable */
+  border-radius: 8px;
+  padding: 20px;
+  background-color: var(--bg-color); /* Use CSS variable */
+}
+
+.question-container h3 {
+  font-size: 1.6em;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--text-color); /* Use CSS variable */
+}
+
+.options-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-button {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--border-color); /* Use CSS variable */
+  border-radius: 5px;
+  background-color: var(--button-secondary-bg); /* Use CSS variable */
+  color: var(--text-color); /* Use CSS variable */
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.option-button:hover {
+  background-color: var(--button-secondary-hover); /* Use CSS variable */
+}
+
+.option-button.correct {
+  background-color: var(--accent-color); /* Use CSS variable */
+  color: white;
+  border-color: var(--accent-color); /* Use CSS variable */
+}
+
+.option-button.incorrect {
+  background-color: #dc3545; /* Keep red for incorrect */
+  color: white;
+  border-color: #dc3545;
+}
+
+.answer-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: var(--card-bg); /* Use CSS variable */
+  border: 1px solid var(--accent-color); /* Use CSS variable */
+  border-radius: 8px;
+  text-align: center;
+}
+
+.answer-container p {
+  margin: 0 0 10px 0;
+  color: var(--text-color); /* Use CSS variable */
+}
+
+.answer-container button {
+  background-color: var(--button-primary-bg); /* Use CSS variable */
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s;
+}
+
+.answer-container button:hover {
+  background-color: var(--button-primary-hover); /* Use CSS variable */
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .quiz-player-container {
+    padding: 15px;
+  }
+
+  .quiz-player-container h2 {
+    font-size: 1.8em;
+  }
+
+  .question-container h3 {
+    font-size: 1.3em;
+  }
+
+  .option-button {
+    padding: 10px;
+    font-size: 0.9em;
+  }
+
+  .answer-container button {
+    padding: 8px 15px;
+    font-size: 0.9em;
+  }
+}

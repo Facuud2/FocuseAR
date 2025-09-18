@@ -1,0 +1,76 @@
+.quizzes-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: var(--bg-color); /* Use CSS variable */
+  color: var(--text-color); /* Use CSS variable */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.quizzes-container h2 {
+  font-size: 2em;
+  margin-bottom: 20px;
+  color: var(--heading-color); /* Use CSS variable */
+}
+
+.quizzes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.quiz-card {
+  background-color: var(--card-bg); /* Use CSS variable */
+  border-radius: 8px;
+  box-shadow: 0 2px 4px var(--shadow); /* Use CSS variable */
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease-in-out;
+  border: 1px solid var(--border-color); /* Use CSS variable */
+}
+
+.quiz-card:hover {
+  transform: translateY(-5px);
+}
+
+.quiz-card h3 {
+  font-size: 1.5em;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: var(--heading-color); /* Use CSS variable */
+}
+
+.quiz-card p {
+  color: var(--text-color); /* Use CSS variable */
+  font-size: 0.9em;
+  margin-bottom: 15px;
+}
+
+.quiz-card a {
+  display: inline-block;
+  background-color: var(--button-primary-bg); /* Use CSS variable */
+  color: white;
+  padding: 8px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.quiz-card a:hover {
+  background-color: var(--button-primary-hover); /* Use CSS variable */
+}
+
+.empty-state {
+  text-align: center;
+  padding: 50px;
+  color: var(--text-color); /* Use CSS variable */
+}
+
+.empty-state i {
+  font-size: 3em;
+  margin-bottom: 20px;
+  color: var(--accent-color); /* Use CSS variable */
+}
