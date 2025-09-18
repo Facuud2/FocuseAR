@@ -13,24 +13,19 @@ import {
   X,
 } from 'lucide-react';
 
-import { Document, Page, pdfjs } from 'react-pdf';
-import 'react-pdf/dist/Page/AnnotationLayer.css';
-import 'react-pdf/dist/Page/TextLayer.css';
-
-// SOLUCIÓN: Usar jsdelivr para asegurar que la versión del worker coincida automáticamente.
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-
-interface Document {
+interface DocumentType {
   id: number;
   name: string;
   size: string;
   subject: string;
   uploadProgress: number;
   uploadStatus: 'pending' | 'uploading' | 'completed' | 'failed';
-  url: string;
 }
 
-const initialDocuments: Document[] = [
+// SIMULACIÓN de la base de datos para almacenar archivos
+const database = new Map<number, ArrayBuffer>();
+
+const initialDocuments: DocumentType[] = [
   {
     id: 1,
     name: 'Clase-1-Matematicas.pdf',
@@ -38,7 +33,6 @@ const initialDocuments: Document[] = [
     subject: 'Matemáticas',
     uploadProgress: 100,
     uploadStatus: 'completed',
-    url: 'https://cdn.syncfusion.com/content/pdf/pdf-succinctly.pdf',
   },
   {
     id: 2,
@@ -47,7 +41,6 @@ const initialDocuments: Document[] = [
     subject: 'Historia',
     uploadProgress: 100,
     uploadStatus: 'completed',
-    url: '',
   },
   {
     id: 3,
@@ -56,7 +49,6 @@ const initialDocuments: Document[] = [
     subject: 'Química',
     uploadProgress: 100,
     uploadStatus: 'completed',
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
   },
   {
     id: 4,
@@ -65,7 +57,6 @@ const initialDocuments: Document[] = [
     subject: 'Física',
     uploadProgress: 100,
     uploadStatus: 'completed',
-    url: 'https://scholar.harvard.edu/files/tiziana_s/files/sample.pdf',
   },
 ];
 
@@ -133,11 +124,10 @@ const Documents: React.FC = () => {
   const [documents, setDocuments] = useState(initialDocuments);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
+  const [selectedDocument, setSelectedDocument] = useState<DocumentType | null>(
     null,
   );
-  const [numPages, setNumPages] = useState<number | null>(null);
-  const [pageNumber, setPageNumber] = useState(1);
+  const [viewableUrl, setViewableUrl] = useState<string | null>(null);
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-mode' : '';
@@ -148,56 +138,79 @@ const Documents: React.FC = () => {
   };
 
   const uploadFiles = useCallback((files: File[]) => {
-    const newDocs: Document[] = files.map((file) => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-      subject: 'Sin asignar',
-      uploadProgress: 0,
-      uploadStatus: 'pending',
-      url: URL.createObjectURL(file),
-    }));
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          const newDoc: DocumentType = {
+            id: Date.now() + Math.random(),
+            name: file.name,
+            size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+            subject: 'Sin asignar',
+            uploadProgress: 0,
+            uploadStatus: 'pending',
+          };
 
-    setDocuments((prevDocs) => [...prevDocs, ...newDocs]);
+          database.set(newDoc.id, e.target.result as ArrayBuffer);
 
-    newDocs.forEach((doc) => {
-      const interval = setInterval(() => {
-        setDocuments((prevDocs) =>
-          prevDocs.map((d) => {
-            if (d.id === doc.id) {
-              const newProgress = d.uploadProgress + 10;
-              if (newProgress >= 100) {
-                clearInterval(interval);
-                return { ...d, uploadProgress: 100, uploadStatus: 'completed' };
-              }
-              return {
-                ...d,
-                uploadProgress: newProgress,
-                uploadStatus: 'uploading',
-              };
-            }
-            return d;
-          }),
-        );
-      }, 200);
+          setDocuments((prevDocs) => [...prevDocs, newDoc]);
+
+          const interval = setInterval(() => {
+            setDocuments((prevDocs) =>
+              prevDocs.map((d) => {
+                if (d.id === newDoc.id) {
+                  const newProgress = d.uploadProgress + 10;
+                  if (newProgress >= 100) {
+                    clearInterval(interval);
+                    return {
+                      ...d,
+                      uploadProgress: 100,
+                      uploadStatus: 'completed',
+                    };
+                  }
+                  return {
+                    ...d,
+                    uploadProgress: newProgress,
+                    uploadStatus: 'uploading',
+                  };
+                }
+                return d;
+              }),
+            );
+          }, 200);
+        }
+      };
+      reader.readAsArrayBuffer(file);
     });
   }, []);
 
   const handleDelete = (id: number) => {
-    const docToDelete = documents.find((doc) => doc.id === id);
-    if (docToDelete && docToDelete.url.startsWith('blob:')) {
-      URL.revokeObjectURL(docToDelete.url);
-    }
+    database.delete(id);
     setDocuments(documents.filter((doc) => doc.id !== id));
     if (selectedDocument && selectedDocument.id === id) {
       setSelectedDocument(null);
+      setViewableUrl(null);
     }
   };
 
-  const handleOpenViewer = (doc: Document) => {
-    if (doc.name.toLowerCase().endsWith('.pdf') && doc.url) {
-      setSelectedDocument(doc);
-      setPageNumber(1);
+  const handleOpenViewer = (doc: DocumentType) => {
+    if (doc.name.toLowerCase().endsWith('.pdf')) {
+      const storedData = database.get(doc.id);
+      if (storedData) {
+        const blob = new Blob([storedData], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        setSelectedDocument(doc);
+        setViewableUrl(url);
+      } else {
+        // Para documentos de ejemplo, usar un PDF de prueba
+        const initialDoc = initialDocuments.find((d) => d.id === doc.id);
+        if (initialDoc) {
+          setSelectedDocument(doc);
+          setViewableUrl(
+            'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
+          );
+        }
+      }
     }
   };
 
@@ -205,29 +218,35 @@ const Documents: React.FC = () => {
     doc.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages);
-  }
-
-  const goToPrevPage = () => {
-    setPageNumber((prevPage) => Math.max(prevPage - 1, 1));
-  };
-
-  const goToNextPage = () => {
-    setPageNumber((prevPage) =>
-      numPages ? Math.min(prevPage + 1, numPages) : prevPage,
-    );
-  };
-
-  const handleDownload = (doc: Document) => {
-    if (doc.url) {
+  const handleDownload = (doc: DocumentType) => {
+    const storedData = database.get(doc.id);
+    if (storedData) {
+      const blob = new Blob([storedData], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = doc.url;
+      link.href = url;
       link.download = doc.name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      const initialDoc = initialDocuments.find((d) => d.id === doc.id);
+      if (initialDoc) {
+        window.open(
+          'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
+          '_blank',
+        );
+      }
     }
+  };
+
+  const closeViewer = () => {
+    if (viewableUrl && viewableUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(viewableUrl);
+    }
+    setSelectedDocument(null);
+    setViewableUrl(null);
   };
 
   return (
@@ -259,7 +278,6 @@ const Documents: React.FC = () => {
             <Folder className="panel-icon" />
             Documentos Subidos
           </h2>
-          {/* Componente de búsqueda de Uiverse */}
           <div className="search-container">
             <div id="poda">
               <div className="glow"></div>
@@ -364,31 +382,28 @@ const Documents: React.FC = () => {
                   <div className="document-actions">
                     {doc.uploadStatus === 'completed' && (
                       <>
-                        {doc.url && doc.name.toLowerCase().endsWith('.pdf') && (
+                        {doc.name.toLowerCase().endsWith('.pdf') && (
                           <button
                             onClick={() => handleOpenViewer(doc)}
                             className="view-btn"
+                            title="Ver PDF"
                           >
-                            <FileText size={18}>
-                              <title>Ver</title>
-                            </FileText>
+                            <FileText size={18} />
                           </button>
                         )}
                         <button
                           onClick={() => handleDownload(doc)}
                           className="download-btn"
+                          title="Descargar"
                         >
-                          <Download size={18}>
-                            <title>Descargar</title>
-                          </Download>
+                          <Download size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(doc.id)}
                           className="delete-btn"
+                          title="Eliminar"
                         >
-                          <Trash2 size={18}>
-                            <title>Eliminar</title>
-                          </Trash2>
+                          <Trash2 size={18} />
                         </button>
                       </>
                     )}
@@ -399,17 +414,13 @@ const Documents: React.FC = () => {
                       <CheckCircle
                         size={20}
                         className="status-icon completed-icon"
-                      >
-                        <title>Carga Completa</title>
-                      </CheckCircle>
+                      />
                     )}
                     {doc.uploadStatus === 'failed' && (
                       <AlertCircle
                         size={20}
                         className="status-icon failed-icon"
-                      >
-                        <title>Error en la Carga</title>
-                      </AlertCircle>
+                      />
                     )}
                   </div>
                 </div>
@@ -426,42 +437,24 @@ const Documents: React.FC = () => {
         </div>
       </div>
 
-      {selectedDocument && (
+      {selectedDocument && viewableUrl && (
         <div className="pdf-viewer-modal-backdrop">
           <div className="pdf-viewer-modal-content">
             <header className="pdf-viewer-header">
               <h3>{selectedDocument.name}</h3>
-              <button
-                className="close-modal-btn"
-                onClick={() => setSelectedDocument(null)}
-              >
+              <button className="close-modal-btn" onClick={closeViewer}>
                 <X size={24} />
               </button>
             </header>
             <div className="pdf-viewer-body">
-              <Document
-                file={selectedDocument.url}
-                onLoadSuccess={onDocumentLoadSuccess}
-              >
-                <Page pageNumber={pageNumber} />
-              </Document>
+              <iframe
+                src={viewableUrl}
+                width="100%"
+                height="700px"
+                style={{ border: 'none', borderRadius: '8px' }}
+                title="PDF Viewer"
+              />
             </div>
-            <footer className="pdf-viewer-footer">
-              <div className="page-nav">
-                <button onClick={goToPrevPage} disabled={pageNumber <= 1}>
-                  Página anterior
-                </button>
-                <span className="page-info">
-                  Página {pageNumber} de {numPages || '--'}
-                </span>
-                <button
-                  onClick={goToNextPage}
-                  disabled={numPages ? pageNumber >= numPages : true}
-                >
-                  Página siguiente
-                </button>
-              </div>
-            </footer>
           </div>
         </div>
       )}
