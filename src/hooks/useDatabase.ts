@@ -7,6 +7,7 @@ import type {
   AIConversation,
   AIConversationMessage,
 } from '../services/DatabaseService';
+import type { Topic } from '../types/studyPlan';
 import { AuthContext } from './authContext';
 
 export const useDatabase = () => {
@@ -68,7 +69,7 @@ export const useDatabase = () => {
         durationDays: number;
         examDate?: string;
         selectedWeekDays?: number[];
-        topics?: string[];
+        topics?: Topic[];
         studyDates?: string[];
         subjectColor?: string; // CORREGIDO: Campo para el color de la materia
         structuredPlan?: {

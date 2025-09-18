@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import NotesAndChecklist from './NotesAndChecklist';
 import './Dashboard.css';
 import { Settings } from 'lucide-react';
+import type { Topic } from '../types/studyPlan';
 
 export type StudyPlanDay = {
   date: string;
@@ -25,7 +26,7 @@ interface StudyPlanData {
   subjectName: string;
   eventName: string;
   examDate: string;
-  topics: string[];
+  topics: Topic[];
   studyDays: string[];
   content: string;
   structuredPlan: {
@@ -83,7 +84,9 @@ const Dashboard: React.FC = () => {
             topics: plan.generatedPlan?.topics || [],
             studyDays: plan.generatedPlan?.studyDates || [],
             content: JSON.stringify(plan.generatedPlan?.structuredPlan || {}),
-            structuredPlan: plan.generatedPlan?.structuredPlan || null,
+            structuredPlan:
+              (plan.generatedPlan
+                ?.structuredPlan as StudyPlanData['structuredPlan']) || null,
             progress: 0,
             createdAt:
               plan.createdAt?.toDate?.()?.toISOString() ||

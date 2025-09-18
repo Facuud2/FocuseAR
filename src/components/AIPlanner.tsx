@@ -4,8 +4,9 @@ import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
 import { type StudyPlanDay } from './Dashboard';
 import { usePlanner } from '../context/PlannerContext';
+import type { Topic } from '../types/studyPlan';
 
-interface Topic {
+interface TopicLocal {
   id: string;
   name: string;
 }
@@ -34,7 +35,7 @@ interface StudyPlan {
   subjectName: string;
   eventName: string;
   examDate: string;
-  topics: string[];
+  topics: Topic[];
   studyDays: string[];
   content: string;
   structuredPlan:
@@ -74,7 +75,7 @@ const AIPlanner = () => {
     string | number | null
   >(null);
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<TopicLocal[]>([]);
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [nextPlanId, setNextPlanId] = useState(1);
@@ -349,7 +350,7 @@ Genera el JSON del plan de estudio:`;
             durationDays: generatedStudyDates.length,
             examDate: examDate,
             selectedWeekDays: selectedWeekDays,
-            topics: topics.map((t) => t.name),
+            topics: topics.map((t) => ({ id: t.id, title: t.name })),
             studyDates: generatedStudyDates,
             structuredPlan: structuredPlan as
               | {
@@ -398,7 +399,7 @@ Genera el JSON del plan de estudio:`;
           .replace(/-/g, ' ')
           .replace(/\b\w/g, (l) => l.toUpperCase()),
         examDate: examDate || '',
-        topics: topics.map((t) => t.name),
+        topics: topics.map((t) => ({ id: t.id, title: t.name })),
         studyDays: generatedStudyDates,
         content: studyPlan,
         structuredPlan: structuredPlan,
