@@ -233,57 +233,121 @@ body {
 }
 
 @media (max-width: 480px) {
-    .logo-container { flex-direction: column; gap: 0.5rem; }
-    .logo-title { font-size: 1.5rem; }
-    .user-info { gap: 0.5rem; }
-    .user-avatar { width: 40px; height: 40px; }
-    .panel { padding: 1rem; }
-    .panel-title { font-size: 0.5rem; }
-    .calendar-title { font-size: 1.5rem; }
-    .calendar-nav-btn { width: 40px; height: 40px; font-size: 1.2rem; }
+  header {
+    flex-direction: column; /* Ensure header stacks vertically */
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
 
-    /* Ajustes específicos para el calendario */
-    .calendar-panel {
-      padding: 1rem;
-    }
-    
-    .calendar-grid {
-      gap: 5px; /* Reduce el espacio entre los días */
-    }
-    
-    .calendar-header {
-      margin-bottom: 1rem;
-    }
+  .dashboard-container {
+    padding: 0.5rem; /* Reduced padding for very small screens */
+    gap: 0.5rem; /* Reduced gap */
+  }
 
-    .calendar-title {
-      font-size: 1.5rem !important;
-    }
+  .logo-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .logo-circle {
+    width: 60px; /* Reduced size for mobile */
+    height: 60px; /* Reduced size for mobile */
+  }
+  .logo-title {
+    font-size: 1.5rem; /* Adjusted for smaller screens */
+  }
+  .user-info {
+    gap: 0.5rem;
+  }
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .user-name {
+    font-size: 0.9rem;
+    max-width: 100px;
+  }
+  .settings-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
 
-    .calendar-nav-btn {
-      width: 35px;
-      height: 35px;
-      font-size: 1rem;
-    }
+  .panel {
+    padding: 0.8rem; /* Reduced padding for panels */
+    width: calc(100% - 1rem); /* Account for dashboard-container padding */
+    margin: 0 auto; /* Center the panel */
+  }
+  .panel-title {
+    font-size: 1.2rem;
+  }
+  .panel-title-container {
+    margin-bottom: 0.8rem;
+  }
 
-    .calendar-cell {
-      min-height: 60px; /* Reduce la altura mínima de las celdas */
-      padding: 0.25rem; /* Reduce el padding interno */
-    }
-    
-    .day-number {
-      font-size: 1rem; /* Asegura que el número del día quepa */
-    }
+  /* Ajustes específicos para el calendario */
+  .calendar-panel {
+    padding: 0.8rem;
+  }
 
-    .day-dots-container {
-      bottom: 0.5rem;
-      left: 0.5rem;
-      gap: 2px;
-    }
-    
-    .day-dot {
-      width: 6px;
-      height: 6px;
-    }
+  .calendar-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+  .calendar-title {
+    font-size: 1.5rem;
+  }
+  .calendar-nav-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
+
+  .calendar-grid {
+    gap: 2px; /* Further reduce space between days */
+  }
+
+  .weekday-header {
+    font-size: 0.7rem;
+    padding: 0.2rem 0;
+  }
+
+  .calendar-cell {
+    min-height: 45px; /* Further reduce height */
+    padding: 0.1rem; /* Further reduce padding */
+  }
+
+  .day-number {
+    font-size: 0.8rem;
+  }
+
+  .day-dots-container {
+    bottom: 0.1rem;
+    left: 0.1rem;
+    gap: 1px;
+  }
+
+  .day-dot {
+    width: 4px;
+    height: 4px;
+  }
+
+  /* Activity panel adjustments */
+  .recent-plans {
+    padding-left: 0;
+  }
+  .recent-plan-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  .plan-details h4 {
+    font-size: 0.9rem;
+  }
+  .plan-details p {
+    font-size: 0.8rem;
+  }
 }
 
 /* Resto de estilos del dashboard */

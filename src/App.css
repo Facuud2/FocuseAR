@@ -877,6 +877,64 @@ h2 i {
 }
 
 @media (max-width: 480px) {
+  .container {
+    padding: 0;
+  }
+
+  .logo-icon {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .logo-icon i {
+    font-size: 20px;
+  }
+
+  .logo-text h1 {
+    font-size: 1.5em;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .panel h2 {
+    font-size: 1.2rem;
+  }
+  
+  .form-group input,
+  .form-group select {
+    font-size: 0.9rem;
+  }
+  
+  .ask-input {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .ask-input button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* Ajuste para que el calendario quepa en pantallas muy pequeñas */
+  .calendar-grid {
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+  }
+
+  .weekday-header, .calendar-cell {
+      padding: 0.2rem;
+      font-size: 0.7rem;
+  }
+
+  .day-number {
+      font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
   .logo-icon {
     width: 45px;
     height: 45px;
