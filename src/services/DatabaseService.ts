@@ -13,6 +13,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
+import type { ExtractedTopic } from './PDFProcessor';
 
 // Interfaces para la estructura de datos
 export interface UserData {
@@ -31,6 +32,7 @@ export interface Material {
   subjectName: string; // CORREGIDO: Campo agregado para preservar el nombre de materia ingresado por el usuario
   examDate?: string; // CORREGIDO: Campo para guardar la fecha del examen
   color?: string; // CORREGIDO: Campo para guardar el color de la materia
+  extractedTopics?: ExtractedTopic[]; // CORREGIDO: Temas extraídos del PDF asociados a la materia
   importantDates?: Array<{
     name: string;
     date: string;
@@ -150,6 +152,8 @@ export class DatabaseService {
 
       const materialData: Material = {
         ...material,
+        // preserve extractedTopics if provided
+        extractedTopics: material.extractedTopics || [],
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };

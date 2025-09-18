@@ -1,6 +1,7 @@
 // src/components/AccountSettings.tsx
 
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import './AccountSettings.css';
 
 // Mueve la definición del estado inicial fuera del componente.
@@ -70,6 +71,7 @@ const AccountSettings = () => {
   const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
   const [showBenefitsModal, setShowBenefitsModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const { logout, user } = useAuth();
 
   const handleAvailabilityChange = (day: string) => {
     setAvailability((prev) => ({ ...prev, [day]: !prev[day] }));
@@ -97,6 +99,26 @@ const AccountSettings = () => {
       case 'profile':
         return (
           <>
+            {/* Botón de cerrar sesión arriba de la sección de perfil */}
+            <div className="settings-section">
+              <button
+                className="logout-btn"
+                style={{
+                  marginBottom: '1rem',
+                  background: '#2E86C1',
+                  color: '#fff',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                onClick={logout}
+                disabled={!user}
+              >
+                Cerrar sesión
+              </button>
+            </div>
             <div className="settings-section">
               <h3 className="settings-section-title">Información del Perfil</h3>
               <p className="settings-section-subtitle">

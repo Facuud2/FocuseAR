@@ -12,6 +12,8 @@
   align-items: center;
   z-index: 100;
   backdrop-filter: blur(10px);
+  /* Added overflow control to prevent modal content from stretching overlay */
+  overflow-y: auto;
 }
 
 .store-modal {
@@ -25,6 +27,9 @@
   border: 4px solid var(--border-color);
   box-shadow: var(--shadow-lg);
   transition: var(--transition);
+  /* Added max-height and overflow to keep modal content contained */
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .close-btn {
@@ -35,6 +40,8 @@
   border: none;
   color: var(--text-color);
   cursor: pointer;
+  /* Added z-index to ensure the button is always on top */
+  z-index: 10;
 }
 
 .store-title {
@@ -104,4 +111,20 @@
 .buy-btn:disabled {
   background: #6b7280;
   cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .store-modal {
+    padding: 1rem;
+  }
+  .items-list {
+    grid-template-columns: 1fr;
+  }
+  .item-card {
+    padding: 1rem;
+  }
+  .buy-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
 }

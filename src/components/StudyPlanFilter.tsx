@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import './StudyPlanFilter.css'; // Asegúrate de tener este archivo CSS
+import './StudyPlanFilter.css'; // Asegúrate de tener este archivo CSSs
 
 interface StudyPlanDay {
   date: string;
