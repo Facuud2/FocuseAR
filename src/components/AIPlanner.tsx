@@ -4,7 +4,7 @@ import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
 import { type StudyPlanDay } from './Dashboard';
 import { usePlanner } from '../context/PlannerContext';
-import type { Topic } from '../types/studyPlan';
+import { type Topic } from '../types/studyPlan';
 
 interface TopicLocal {
   id: string;
