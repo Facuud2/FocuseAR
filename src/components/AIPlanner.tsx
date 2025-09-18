@@ -4,11 +4,13 @@ import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
 import { type StudyPlanDay } from './Dashboard';
 import { usePlanner } from '../context/PlannerContext';
-import type { Topic } from '../types/studyPlan';
+import { Topic } from '../types/studyPlan';
 
 interface TopicLocal {
   id: string;
   name: string;
+  description?: string;
+  order?: number;
 }
 
 interface Pdf {
@@ -16,6 +18,7 @@ interface Pdf {
   name: string;
   size: string;
 }
+
 
 interface Subject {
   id: string | number;
@@ -28,6 +31,7 @@ interface Subject {
     date: string;
     type: 'exam' | 'tp' | 'other';
   }[];
+  extractedTopics?: Topic[];
 }
 
 interface StudyPlan {
@@ -65,7 +69,6 @@ interface StudyPlan {
 
 const AIPlanner = () => {
   const { user } = useContext(AuthContext);
-  const { extractedTopics } = usePlanner();
 
   const [topicCounter, setTopicCounter] = useState(1);
   const [generatingPlan, setGeneratingPlan] = useState(false);
@@ -80,6 +83,12 @@ const AIPlanner = () => {
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [nextPlanId, setNextPlanId] = useState(1);
 
+  // currently selected subject object for convenience
+  const selectedSubject = subjects.find(
+    (s) => s.id === selectedSubjectForPlanning,
+  );
+  const subjectTopics: Topic[] = selectedSubject?.extractedTopics ?? [];
+
   const {
     getUserStudyPlans,
     createStudyPlan,
@@ -92,24 +101,36 @@ const AIPlanner = () => {
       if (!user) return;
       try {
         const materials = await getUserMaterials();
+        interface MaterialPartial {
+          id?: string;
+          subjectName?: string;
+          fileName?: string;
+          examDate?: string;
+          color?: string;
+          importantDates?: Subject['importantDates'];
+          extractedTopics?: Topic[];
+        }
+
         const convertedSubjects: Subject[] = materials.map(
-          (material, index) => {
+          (materialRaw: unknown, index) => {
+            const material = materialRaw as MaterialPartial;
             const subjectId = material.id || `subject-${Date.now()}-${index}`;
             return {
               id: subjectId,
               name:
                 material.subjectName ||
-                material.fileName.replace(/\.(pdf|docx|doc)$/i, ''),
+                (material.fileName || '').replace(/\.(pdf|docx|doc)$/i, ''),
               examDate: material.examDate || '',
               color: material.color || '#4285F4',
               pdfs: [
                 {
                   id: 1,
-                  name: material.fileName,
+                  name: material.fileName || 'unknown',
                   size: '0 MB',
                 },
               ],
               importantDates: material.importantDates || [],
+              extractedTopics: material.extractedTopics || [],
             };
           },
         );
@@ -577,58 +598,62 @@ Genera el JSON del plan de estudio:`;
                 </div>
                 {selectedEvent && (
                   <div>
-                    {extractedTopics.length > 0 && (
+                    {subjectTopics.length > 0 && (
                       <div className="form-group">
                         <h4 className="label-heading">
                           🤖 Temas extraídos por IA del PDF (
-                          {extractedTopics.length} temas encontrados):
+                          {subjectTopics.length} temas encontrados):
                         </h4>
                         <div className="topic-list-container">
-                          {extractedTopics.map((extractedTopic, index) => {
-                            const isAlreadyAdded = topics.some(
-                              (t) =>
-                                t.name.toLowerCase() ===
-                                extractedTopic.name.toLowerCase(),
-                            );
-                            return (
-                              <div
-                                key={`planning-topic-${extractedTopic.id || index}`}
-                                className={`topic-item ${isAlreadyAdded ? 'added' : ''}`}
-                                onClick={() => {
-                                  if (!isAlreadyAdded) {
-                                    const newTopic = {
-                                      id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
-                                      name: extractedTopic.name,
-                                    };
-                                    setTopics([...topics, newTopic]);
-                                    setTopicCounter((prev) => prev + 1);
-                                  }
-                                }}
-                              >
-                                <div>
-                                  <span className="topic-name">
-                                    {index + 1}. {extractedTopic.name}
-                                  </span>
-                                  {extractedTopic.description && (
-                                    <div className="topic-description">
-                                      {extractedTopic.description}
-                                    </div>
-                                  )}
-                                </div>
-                                <button
-                                  className={`topic-add-btn ${isAlreadyAdded ? 'added' : ''}`}
-                                  disabled={isAlreadyAdded}
+                          {subjectTopics.map(
+                            (extractedTopic: Topic, index: number) => {
+                              const isAlreadyAdded = topics.some(
+                                (t) =>
+                                  t.name.toLowerCase() ===
+                                  extractedTopic.name.toLowerCase(),
+                              );
+                              return (
+                                <div
+                                  key={`planning-topic-${extractedTopic.id || index}`}
+                                  className={`topic-item ${isAlreadyAdded ? 'added' : ''}`}
+                                  onClick={() => {
+                                    if (!isAlreadyAdded) {
+                                      const newTopic = {
+                                        id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
+                                        name: extractedTopic.name,
+                                      };
+                                      setTopics([...topics, newTopic]);
+                                      setTopicCounter((prev) => prev + 1);
+                                    }
+                                  }}
                                 >
-                                  {isAlreadyAdded ? '✓ Agregado' : '+ Agregar'}
-                                </button>
-                              </div>
-                            );
-                          })}
+                                  <div>
+                                    <span className="topic-name">
+                                      {index + 1}. {extractedTopic.name}
+                                    </span>
+                                    {extractedTopic.description && (
+                                      <div className="topic-description">
+                                        {extractedTopic.description}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <button
+                                    className={`topic-add-btn ${isAlreadyAdded ? 'added' : ''}`}
+                                    disabled={isAlreadyAdded}
+                                  >
+                                    {isAlreadyAdded
+                                      ? '✓ Agregado'
+                                      : '+ Agregar'}
+                                  </button>
+                                </div>
+                              );
+                            },
+                          )}
                         </div>
                         <button
                           onClick={() => {
-                            const newTopics = extractedTopics
-                              .filter((extractedTopic) => {
+                            const newTopics = subjectTopics
+                              .filter((extractedTopic: Topic) => {
                                 const isAlreadyAdded = topics.some(
                                   (t) =>
                                     t.name.toLowerCase() ===
@@ -636,7 +661,7 @@ Genera el JSON del plan de estudio:`;
                                 );
                                 return !isAlreadyAdded;
                               })
-                              .map((extractedTopic, index) => ({
+                              .map((extractedTopic: Topic, index: number) => ({
                                 id: `topic-${selectedSubjectForPlanning}-${topicCounter + index}`,
                                 name: extractedTopic.name,
                               }));
