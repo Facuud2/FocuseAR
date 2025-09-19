@@ -65,6 +65,7 @@ function addCorsHeaders(res: {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
+/* ELIMINAR MÁS ADELANTE
 // Función principal con CORS habilitado para desarrollo y producción
 export const geminiResponse = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
@@ -148,7 +149,7 @@ export const geminiResponse = onRequest(
     });
   },
 );
-
+*/
 // Función de prueba mantenida para compatibilidad
 export const geminiResponseTest = functions.https.onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1' },
@@ -198,7 +199,12 @@ export const geminiResponseTest = functions.https.onRequest(
   },
 );
 
-// Nueva función: Consulta a Gemini sobre una materia y tema específico
+// -----------------------------
+// Función: Preguntas sobre materias de estudio
+// Recibe: { userId, material, topic, question }
+// Responde: { answer: string, source: 'cache'|'gemini', cachedAt?: string } o { error: string }
+// -----------------------------
+
 export const askGeminiBot = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
   async (req, res) => {
@@ -315,7 +321,7 @@ export const askGeminiBot = onRequest(
 );
 
 // -----------------------------
-// Función: processPdfTopics
+// Función: Procesar PDF y extraer temas
 // Recibe: { text: string, subjectName: string }
 // Responde: { parsed: {...} } o { raw_response: string }
 // -----------------------------
@@ -379,7 +385,7 @@ export const processPdfTopics = onRequest(
 );
 
 // -----------------------------
-// Función: generateStudyPlan
+// Función: Generar Plan de estudios
 // Recibe: { subjectName, eventName, examDate, topics: string[], studyDates: string[], weekDays?: number[] }
 // Responde: { plan: {...} } o { raw_response: string }
 // -----------------------------
