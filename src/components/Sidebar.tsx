@@ -121,7 +121,7 @@ export default function Sidebar({
       </button>
 
       <aside
-        className={`sidebar-container${isCollapsed ? ' collapsed' : ''}`}
+        className={`sidebar-container ${isCollapsed ? 'collapsed' : 'expanded'}`}
         onMouseEnter={() => setIsCollapsed(false)}
         onMouseLeave={() => setIsCollapsed(true)}
       >
@@ -163,7 +163,7 @@ export default function Sidebar({
           ))}
         </nav>
 
-        {/* Botón de modo oscuro que solo aparece cuando el sidebar está abierto */}
+        {/* Botón de modo oscuro */}
         {!isCollapsed && (
           <div className="dark-mode-toggle-section">
             <button
@@ -186,9 +186,7 @@ export default function Sidebar({
           </div>
         )}
 
-        {/* Sección de ayuda con el botón para abrir el chat */}
-
-        {/* Sección de ayuda con el botón para abrir el chat */}
+        {/* Sección de ayuda con chat */}
         {!isCollapsed ? (
           <div className="sidebar-help-section">
             <div className="sidebar-help-content">
@@ -240,7 +238,12 @@ export default function Sidebar({
         </div>
       )}
 
-      <Outlet />
+      {/* MAIN CONTENT: se mueve según estado del sidebar */}
+      <main
+        className={`main-content ${isCollapsed ? 'collapsed' : 'expanded'}`}
+      >
+        <Outlet />
+      </main>
     </>
   );
 }

@@ -86,11 +86,10 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   background: linear-gradient(135deg, #19baff 0%, #0e065c 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   transition: background var(--transition), color var(--transition);
 }
+
+
 
 [data-theme='dark'] body {
   background: linear-gradient(135deg, #1A202C 0%, #2D3748 100%);
