@@ -85,7 +85,6 @@ const Progress = () => {
       if (user) {
         const plans = await getUserStudyPlans();
         if (plans) {
-          console.log('Fetched Study Plans:', plans); // <-- Añade esto para depurar
           setStudyPlans(plans);
         }
       }
