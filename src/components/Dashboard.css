@@ -113,7 +113,7 @@ body {
 .dashboard-container {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 2rem;
+  gap:1rem;
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
@@ -389,8 +389,8 @@ body {
 }
 
 .panel-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 600;
   color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -506,8 +506,8 @@ header {
 }
 
 .calendar-title {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 600;
   color: var(--text-primary);
   text-transform: uppercase;
   letter-spacing: 2px;
