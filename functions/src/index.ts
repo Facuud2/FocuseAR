@@ -500,3 +500,142 @@ Genera el JSON ahora.`;
     });
   },
 );
+
+// -----------------------------
+// Función: generateQuizFromMaterial
+// Recibe: { materialId: string, userId: string }
+// Responde: { success: true, quizId: string } o { error: string }
+// -----------------------------
+export const generateQuizFromMaterial = onRequest(
+  { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 180 },
+  async (req, res) => {
+    // Reutilizamos tu manejador de CORS
+    corsHandler(req, res, async () => {
+      addCorsHeaders(res); // Y tus cabeceras personalizadas
+
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+        return;
+      }
+
+      try {
+        // 1. Validar los datos de entrada del frontend
+        const { materialId, userId } = req.body;
+        if (!materialId || !userId) {
+          console.error('Faltan materialId o userId en la solicitud');
+          res.status(400).json({ error: 'Faltan materialId o userId.' });
+          return;
+        }
+
+        console.log(
+          `Iniciando generación de quiz para material: ${materialId}`,
+        );
+
+        // 2. Obtener el documento de la materia desde Firestore usando tu 'db' importada
+        const materialRef = db.collection('materials').doc(materialId);
+        const materialDoc = await materialRef.get();
+
+        if (!materialDoc.exists) {
+          console.error(`Material con ID ${materialId} no encontrado.`);
+          res.status(404).json({ error: 'Material no encontrado.' });
+          return;
+        }
+
+        const materialData = materialDoc.data();
+        const topics = materialData?.extractedTopics;
+
+        if (!topics || !Array.isArray(topics) || topics.length === 0) {
+          console.error(`El material ${materialId} no tiene temas extraídos.`);
+          res.status(400).json({
+            error: 'El material no contiene temas para generar un quiz.',
+          });
+          return;
+        }
+
+        // Definir la interfaz para los temas
+        interface Topic {
+          id?: string;
+          name: string;
+          // Agrega otras propiedades si son necesarias
+        }
+
+        // 3. Crear el prompt para la IA (Gemini)
+        const topicList = topics.map((t: Topic) => `- ${t.name}`).join('\n');
+        const prompt = `
+          Eres un asistente experto en crear evaluaciones educativas.
+          Basado en la siguiente lista de temas de la materia "${
+            materialData?.subjectName || 'una materia'
+          }", genera un quiz de 5 preguntas de opción múltiple.
+
+          Temas:
+          ${topicList}
+
+          INSTRUCCIONES:
+          - Cada pregunta debe tener 4 opciones de respuesta (A, B, C, D).
+          - Solo una opción debe ser la correcta.
+          - Las preguntas deben ser claras, relevantes y desafiantes a nivel universitario.
+          - Devuelve la respuesta ÚNICAMENTE en formato JSON válido, sin texto adicional, explicaciones ni markdown.
+
+          FORMATO JSON REQUERIDO:
+          {
+            "title": "Quiz de ${materialData?.subjectName || 'la Materia'}",
+            "questions": [
+              {
+                "questionText": "Texto de la pregunta 1...",
+                "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
+                "correctAnswerIndex": 2
+              },
+              {
+                "questionText": "Texto de la pregunta 2...",
+                "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
+                "correctAnswerIndex": 0
+              }
+            ]
+          }
+        `;
+
+        console.log('Enviando prompt a Gemini para generar quiz...');
+
+        // 4. Llamar a la API de Gemini usando tu instancia de GoogleGenAI
+        const ai = new GoogleGenAI({}); // Ya tienes la API Key como secreto
+        const response = await ai.models.generateContent({
+          model: 'gemini-1.5-flash', // Usamos flash para velocidad
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        });
+
+        const responseText = response.text;
+        if (!responseText) {
+          throw new Error('La respuesta de la IA para el quiz estaba vacía.');
+        }
+
+        // 5. Limpiar y parsear la respuesta JSON de la IA
+        const cleanedJson = responseText
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+        const quizData = JSON.parse(cleanedJson);
+
+        // 6. Guardar el nuevo quiz en una colección "quizzes" en Firestore
+        const quizRef = db.collection('quizzes').doc(); // Genera un ID automático
+        await quizRef.set({
+          ...quizData,
+          materialId: materialId,
+          userId: userId,
+          createdAt: new Date().toISOString(),
+        });
+
+        console.log(`Quiz guardado exitosamente con ID: ${quizRef.id}`);
+
+        // 7. Enviar una respuesta de éxito al frontend
+        res.status(200).json({ success: true, quizId: quizRef.id });
+      } catch (error) {
+        console.error('Error inesperado en generateQuizFromMaterial:', error);
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Error interno del servidor.';
+        res.status(500).json({ error: message });
+      }
+    });
+  },
+);

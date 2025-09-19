@@ -491,7 +491,6 @@ export class DatabaseService {
         return { id: quizSnap.id, ...quizSnap.data() } as Quiz;
       }
       return null;
-      return null;
     } catch (error) {
       console.error('❌ Error al obtener el quiz:', error);
       throw error;

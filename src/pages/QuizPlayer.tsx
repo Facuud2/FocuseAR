@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
+import { Timestamp } from 'firebase/firestore';
 import './QuizPlayer.css';
 
 interface QuizQuestion {
@@ -11,11 +12,13 @@ interface QuizQuestion {
 }
 
 interface Quiz {
+  id?: string;
   questions: QuizQuestion[];
   subjectName: string;
   materialId: string;
   userId: string;
-  createdAt: string;
+  createdAt: string | Timestamp | Date;
+  updatedAt?: Timestamp;
 }
 
 const QuizPlayer: React.FC = () => {
@@ -29,12 +32,82 @@ const QuizPlayer: React.FC = () => {
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
+  // Helper function to convert Firestore timestamp to string
+  const formatDate = (date: string | Timestamp | Date | undefined): string => {
+    if (!date) return new Date().toISOString();
+    if (date instanceof Date) {
+      return date.toISOString();
+    }
+    if (typeof date === 'object' && 'toDate' in date) {
+      return date.toDate().toISOString();
+    }
+    return date as string;
+  };
+
+  // Type predicate to check if data is a valid Quiz
+  const isValidQuiz = (data: unknown): data is Quiz => {
+    // Check if data is an object and not null
+    if (!data || typeof data !== 'object') return false;
+
+    // Type assertion with proper type checking
+    const hasQuestions =
+      'questions' in data &&
+      Array.isArray((data as { questions: unknown }).questions);
+    const hasSubjectName =
+      'subjectName' in data &&
+      typeof (data as { subjectName: unknown }).subjectName === 'string';
+    const hasMaterialId =
+      'materialId' in data &&
+      typeof (data as { materialId: unknown }).materialId === 'string';
+    const hasUserId =
+      'userId' in data &&
+      typeof (data as { userId: unknown }).userId === 'string';
+
+    // Check createdAt field (can be string, Date, or Timestamp)
+    const hasValidCreatedAt =
+      'createdAt' in data &&
+      (typeof (data as { createdAt: unknown }).createdAt === 'string' ||
+        (data as { createdAt: unknown }).createdAt instanceof Date ||
+        (typeof (data as { createdAt: unknown }).createdAt === 'object' &&
+          (data as { createdAt: object }).createdAt !== null &&
+          'toDate' in (data as { createdAt: { toDate?: unknown } }).createdAt));
+
+    return (
+      hasQuestions &&
+      hasSubjectName &&
+      hasMaterialId &&
+      hasUserId &&
+      hasValidCreatedAt
+    );
+  };
+
   useEffect(() => {
     const loadQuiz = async () => {
       if (!user || !quizId) return;
       try {
         const quizData = await getQuiz(quizId);
-        setQuiz(quizData);
+
+        if (!quizData) {
+          throw new Error('No se pudo cargar el quiz');
+        }
+
+        // Ensure we have all required fields
+        if (!isValidQuiz(quizData)) {
+          throw new Error('Datos del quiz inválidos');
+        }
+
+        // Create a properly typed quiz object
+        const formattedQuiz: Quiz = {
+          ...quizData,
+          questions: quizData.questions || [],
+          subjectName: quizData.subjectName || 'Sin título',
+          materialId: quizData.materialId || '',
+          userId: quizData.userId || '',
+          createdAt: formatDate(quizData.createdAt),
+          id: quizData.id,
+        };
+
+        setQuiz(formattedQuiz);
       } catch (error) {
         console.error('Error loading quiz:', error);
       } finally {

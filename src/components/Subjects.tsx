@@ -76,7 +76,7 @@ const Subjects: React.FC = () => {
     if (!user) return;
     try {
       const response = await fetch(
-        'http://localhost:5001/focusear-copy/us-central1/generateQuizFromMaterial',
+        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateQuizFromMaterial',
         {
           method: 'POST',
           headers: {

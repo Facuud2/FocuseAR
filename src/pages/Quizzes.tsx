@@ -45,6 +45,64 @@ const Quizzes: React.FC = () => {
     loadQuizzes();
   }, [user, getQuizzes]);
 
+  // Define a type for Firestore Timestamp-like objects
+  interface FirestoreTimestamp {
+    toDate: () => Date;
+    seconds?: number;
+    nanoseconds?: number;
+  }
+
+  // Helper function to safely convert to Date with better error handling
+  const toDate = (date: unknown): Date => {
+    try {
+      // If it's already a Date, return it
+      if (date instanceof Date) return date;
+
+      // If it's a Firebase Timestamp or similar object with toDate method
+      if (
+        date &&
+        typeof date === 'object' &&
+        'toDate' in date &&
+        typeof (date as FirestoreTimestamp).toDate === 'function'
+      ) {
+        return (date as FirestoreTimestamp).toDate();
+      }
+
+      // If it's a string, try to parse it
+      if (typeof date === 'string') {
+        const parsed = new Date(date);
+        if (!isNaN(parsed.getTime())) return parsed;
+      }
+
+      // If it's a number, assume it's a timestamp
+      if (typeof date === 'number') {
+        return new Date(date);
+      }
+
+      // If it's an object with seconds (Firestore timestamp format)
+      if (
+        date &&
+        typeof date === 'object' &&
+        'seconds' in date &&
+        typeof (date as FirestoreTimestamp).seconds === 'number'
+      ) {
+        return new Date((date as FirestoreTimestamp).seconds! * 1000);
+      }
+
+      console.warn(
+        'Could not parse date, using current date as fallback:',
+        date,
+      );
+      return new Date(); // Fallback to current date
+    } catch (error) {
+      console.error(
+        'Error parsing date, using current date as fallback:',
+        error,
+      );
+      return new Date(); // Fallback to current date
+    }
+  };
+
   const filteredQuizzes = quizzes
     .filter(() => {
       if (filter === 'all') return true;
@@ -53,16 +111,10 @@ const Quizzes: React.FC = () => {
     })
     .sort((a, b) => {
       if (sortBy === 'newest') {
-        return (
-          new Date(b.createdAt.toDate()).getTime() -
-          new Date(a.createdAt.toDate()).getTime()
-        );
+        return toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime();
       }
       if (sortBy === 'oldest') {
-        return (
-          new Date(a.createdAt.toDate()).getTime() -
-          new Date(b.createdAt.toDate()).getTime()
-        );
+        return toDate(a.createdAt).getTime() - toDate(b.createdAt).getTime();
       }
       if (sortBy === 'subject') {
         return a.subjectName.localeCompare(b.subjectName);
@@ -128,8 +180,7 @@ const Quizzes: React.FC = () => {
               <p className="quiz-type">Tipo: Quiz</p>{' '}
               {/* Placeholder for quiz type */}
               <p className="quiz-date">
-                Creado:{' '}
-                {new Date(quizItem.createdAt.toDate()).toLocaleDateString()}
+                Creado: {toDate(quizItem.createdAt).toLocaleDateString()}
               </p>
               <Link to={`/quiz/${quizItem.id}`} className="play-quiz-btn">
                 Jugar
