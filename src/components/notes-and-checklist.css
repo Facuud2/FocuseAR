@@ -12,10 +12,7 @@
   flex-direction: column;
 }
 
-.notes-panel:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-4px);
-}
+
 
 .notes-panel .panel-title {
   margin: 0 0 1.5rem 0;
@@ -100,11 +97,7 @@
   transition: var(--transition);
 }
 
-.add-note-btn:hover {
-  background: #1a73e8;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
-}
+
 
 .notes-list {
   display: flex;
@@ -154,10 +147,6 @@
   color: var(--text-muted);
 }
 
-.note-check-btn:hover {
-  color: var(--secondary-color);
-}
-
 .note-item.completed .note-check-btn {
   color: var(--secondary-color);
 }
@@ -166,9 +155,7 @@
   color: var(--text-muted);
 }
 
-.note-delete-btn:hover {
-  color: var(--danger-color);
-}
+
 
 .note-text {
   flex-grow: 1;

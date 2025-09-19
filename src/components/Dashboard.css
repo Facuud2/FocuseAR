@@ -97,7 +97,6 @@ body {
   border: 2px solid var(--surface-alt-color);
   transition: var(--transition-ease);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--secondary-neon-color); }
 
 .rgb-text {
   background: conic-gradient(
@@ -377,10 +376,7 @@ body {
   transition: opacity 0.5s ease;
 }
 
-.panel:hover::before {
-  opacity: 0.3;
-  animation-play-state: paused;
-}
+
 
 .panel-title-container {
   display: flex;
@@ -521,12 +517,7 @@ header {
   transition: var(--transition-ease);
 }
 
-.calendar-nav-btn:hover {
-  background: var(--primary-neon-color);
-  color: var(--text-inverted);
-  border-color: var(--primary-neon-color);
-  transform: scale(1.1);
-}
+
 
 .calendar-grid {
   display: grid;
@@ -556,11 +547,7 @@ header {
   position: relative;
 }
 
-.calendar-cell:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-3px);
-  border-color: var(--primary-neon-color);
-}
+
 
 .calendar-cell.today {
   border: 2px solid var(--secondary-neon-color);
@@ -605,12 +592,7 @@ header {
   box-shadow: var(--shadow-sm);
 }
 
-.stats-panel .stat-item:hover {
-  transform: translateY(-5px);
-  background: var(--primary-neon-color);
-  color: var(--text-inverted);
-  box-shadow: 0 0 20px rgba(0, 191, 255, 0.4);
-}
+
 
 .stat-circle {
   width: 100px;
@@ -627,10 +609,7 @@ header {
   transition: var(--transition-ease);
 }
 
-.stats-panel .stat-item:hover .stat-circle {
-  border-color: var(--text-inverted);
-  color: var(--text-inverted);
-}
+
 
 .stat-text {
   font-size: 0.9rem;
@@ -638,9 +617,7 @@ header {
   text-align: center;
 }
 
-.stats-panel .stat-item:hover .stat-text {
-  color: var(--text-inverted);
-}
+
 
 .line-chart-panel {
   min-height: 250px;
@@ -677,9 +654,6 @@ header {
   r: 5;
   transition: var(--transition-ease);
 }
-.line-chart-point:hover {
-  r: 8;
-}
 
 .bar-chart-panel {
   min-height: 250px;
@@ -714,10 +688,6 @@ header {
   flex: 1;
 }
 
-.bar-item:hover {
-  transform: scaleY(1.1);
-  box-shadow: 0 0 20px rgba(0, 191, 255, 0.8);
-}
 
 
 .notes-panel {
@@ -734,10 +704,7 @@ header {
   width: 100%;
   margin-top: 0;
 }
-.notes-panel:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-5px);
-}
+
 .notes-panel .panel-title {
   margin: 0 0 1.5rem 0;
   color: var(--text-primary);
@@ -779,11 +746,7 @@ header {
   cursor: pointer;
   transition: var(--transition-ease);
 }
-.notes-type-selector .type-btn:hover {
-    background: var(--primary-neon-color);
-    color: var(--text-inverted);
-    box-shadow: 0 0 10px rgba(0, 191, 255, 0.4);
-}
+
 .notes-type-selector .type-btn.active {
   background: var(--primary-neon-color);
   color: var(--text-inverted);
@@ -819,11 +782,7 @@ header {
   cursor: pointer;
   transition: var(--transition-ease);
 }
-.add-note-btn:hover {
-  background: var(--secondary-neon-color);
-  transform: translateY(-3px);
-  box-shadow: 0 0 15px rgba(0, 250, 154, 0.6);
-}
+
 .notes-list {
   display: flex;
   flex-direction: column;
@@ -848,11 +807,7 @@ header {
   border-radius: var(--radius-md);
   transition: var(--transition-ease);
 }
-.note-item:hover {
-    transform: translateX(5px);
-    border-color: var(--primary-neon-color);
-    box-shadow: var(--shadow-sm);
-}
+
 .note-item.completed {
     opacity: 0.7;
 }
@@ -875,9 +830,7 @@ header {
 .note-check-btn {
   color: var(--text-muted);
 }
-.note-check-btn:hover {
-  color: var(--secondary-neon-color);
-}
+
 .note-item.completed .note-check-btn {
   color: var(--secondary-neon-color);
 }
@@ -885,10 +838,7 @@ header {
   color: var(--text-muted);
   margin-left: auto;
 }
-.note-delete-btn:hover {
-  color: var(--danger-color);
-  transform: scale(1.1) rotate(5deg);
-}
+
 .note-text {
   flex-grow: 1;
   font-size: 1rem;
@@ -975,11 +925,7 @@ header {
   border: 1px solid var(--border-color);
 }
 
-.event-item:hover {
-    transform: scale(1.02);
-    border-color: var(--primary-neon-color);
-    box-shadow: var(--shadow-sm);
-}
+
 
 .event-date {
   font-size: 1.5rem;
@@ -1321,11 +1267,6 @@ header {
   transition: var(--transition-ease);
 }
 
-.nav-link:hover {
-  background-color: var(--surface-alt-color);
-  color: var(--text-primary);
-  transform: translateX(5px);
-}
 
 .nav-link.active {
   background-color: var(--primary-neon-color);

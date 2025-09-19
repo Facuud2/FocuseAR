@@ -40,9 +40,7 @@
   cursor: pointer;
   transition: background 0.2s;
 }
-.sidebar-hamburger-btn:hover {
-  background: var(--primary-dark);
-}
+
 
 @media (max-width: 900px) {
   .sidebar-hamburger-btn {
@@ -196,11 +194,7 @@
   text-align: left;
 }
 
-.sidebar-nav-item:hover {
-  background-color: #e0f2fe;
-  color: #0369a1;
-  transform: translateX(4px);
-}
+
 
 .sidebar-nav-item.active {
   background: var(--gradient-primary);
@@ -264,10 +258,6 @@
   overflow: hidden;
 }
 
-.dark-mode-btn:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-}
 
 [data-theme='dark'] .dark-mode-btn {
   background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
@@ -317,10 +307,6 @@
   font-size: 28px;
 }
 
-.collapsed-chat-button:hover {
-  transform: translateX(-50%) scale(1.2);
-  color: #ff9800;
-}
 
 
 .sidebar-container.collapsed .dark-mode-toggle-section {
@@ -418,9 +404,7 @@
   gap: 8px;
 }
 
-.sidebar-chat-button:hover {
-  background-color: #ede9fe;
-}
+
 
 .sidebar-nav::-webkit-scrollbar {
   width: 4px;

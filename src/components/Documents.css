@@ -108,13 +108,8 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.theme-toggle-btn:hover {
-  background-color: var(--color-primary-light);
-}
 
-body.dark-mode .theme-toggle-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
+
 
 .documents-main-content {
   display: grid;
@@ -132,9 +127,6 @@ body.dark-mode .theme-toggle-btn:hover {
   transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
 }
 
-.panel:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-}
 
 .panel-title {
   font-size: 1.25rem;
@@ -267,9 +259,7 @@ body.dark-mode .file-upload-wrapper {
   opacity: 0.8;
   transition: all 2s;
 }
-#main:hover > #pink-mask {
-  opacity: 0;
-}
+
 .white {
   max-height: 63px;
   max-width: 307px;
@@ -354,30 +344,7 @@ body.dark-mode .file-upload-wrapper {
   );
   transition: all 2s;
 }
-#poda:hover > .darkBorderBg::before {
-  transform: translate(-50%, -50%) rotate(262deg);
-}
-#poda:hover > .glow::before {
-  transform: translate(-50%, -50%) rotate(240deg);
-}
-#poda:hover > .white::before {
-  transform: translate(-50%, -50%) rotate(263deg);
-}
-#poda:hover > .border::before {
-  transform: translate(-50%, -50%) rotate(250deg);
-}
-#poda:hover > .darkBorderBg::before {
-  transform: translate(-50%, -50%) rotate(-98deg);
-}
-#poda:hover > .glow::before {
-  transform: translate(-50%, -50%) rotate(-120deg);
-}
-#poda:hover > .white::before {
-  transform: translate(-50%, -50%) rotate(-97deg);
-}
-#poda:hover > .border::before {
-  transform: translate(-50%, -50%) rotate(-110deg);
-}
+
 #poda:focus-within > .darkBorderBg::before {
   transform: translate(-50%, -50%) rotate(442deg);
   transition: all 4s;
@@ -515,10 +482,7 @@ body.dark-mode .file-upload-wrapper {
   border: 1px solid var(--color-border);
   box-shadow: 0 2px 5px var(--color-shadow);
 }
-.document-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 8px var(--color-shadow);
-}
+
 .document-icon-wrapper {
   background: var(--color-primary);
   border-radius: var(--border-radius-sm);
@@ -566,14 +530,8 @@ body.dark-mode .file-upload-wrapper {
   padding: var(--spacing-sm);
   border-radius: 50%;
 }
-.delete-btn:hover {
-  color: var(--color-danger);
-  background-color: rgba(226, 92, 92, 0.1);
-}
-.download-btn:hover {
-  color: var(--color-primary);
-  background-color: var(--color-primary-light);
-}
+
+
 .status-icon {
   flex-shrink: 0;
   padding: var(--spacing-sm);

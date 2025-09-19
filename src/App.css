@@ -161,10 +161,7 @@ header {
   color: var(--text-light);
 }
 
-.logo-icon:hover {
-  transform: scale(1.05) rotate(10deg);
-  box-shadow: var(--shadow-md);
-}
+
 
 .logo-text h1 {
   font-family: 'Montserrat', sans-serif;
@@ -209,10 +206,6 @@ header {
   transition: var(--transition);
 }
 
-.user-info:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
 
 .user-avatar {
   width: 48px;
@@ -255,10 +248,7 @@ header {
   border: 1px solid var(--border-color);
 }
 
-.panel:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
+
 
 h2 {
   color: var(--primary-color);
@@ -360,10 +350,6 @@ h2 i {
   transition: var(--transition);
 }
 
-.subject-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
 
 .subject-header {
   display: flex;
@@ -496,10 +482,6 @@ h2 i {
   transition: var(--transition);
 }
 
-.upload-area:hover {
-  border-color: var(--primary-color);
-  background-color: var(--background-light);
-}
 
 .upload-area input {
   display: none;
@@ -539,9 +521,7 @@ h2 i {
   transition: var(--transition);
 }
 
-.remove-pdf-btn:hover {
-  color: var(--danger-color);
-}
+
 
 /* ===== BOTÓN DE PLANIFICACIÓN ===== */
 .planify-btn {
@@ -563,11 +543,7 @@ h2 i {
   box-shadow: var(--shadow-sm);
 }
 
-.planify-btn:hover {
-  background-color: #1a73e8;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
+
 
 .planify-btn:disabled {
   opacity: 0.6;
@@ -601,10 +577,7 @@ h2 i {
   font-weight: bold;
 }
 
-.nav-btn:hover {
-  background-color: #1a73e8;
-  transform: scale(1.1);
-}
+
 
 .calendar-grid {
   display: grid;
@@ -630,11 +603,7 @@ h2 i {
   transition: var(--transition);
 }
 
-.calendar-cell:hover {
-  background-color: var(--background-light);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
-}
+
 
 .day-number {
   font-weight: bold;
@@ -712,10 +681,7 @@ h2 i {
   transition: var(--transition);
 }
 
-.ask-input button:hover {
-  background-color: #1a73e8;
-  transform: translateY(-1px);
-}
+
 
 /* ===== LAYOUTS ESPECÍFICOS ===== */
 .login-container {
@@ -826,9 +792,7 @@ h2 i {
   width: 100%;
 }
 
-.login-box .planify-btn:hover {
-  background-color: #186ad6;
-}
+
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {
@@ -1014,9 +978,7 @@ h2 i {
   animation: fadeInUp 0.6s ease-out;
 }
 
-.logo-icon:hover {
-  animation: pulse 1s infinite;
-}
+
 
 /* --- FIX LAYOUT: force sidebar flush-left and main full width --- */
 html, body, #root, .app-container {

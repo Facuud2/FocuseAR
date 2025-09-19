@@ -46,11 +46,6 @@
   transition: all 0.2s ease;
 }
 
-.new-conversation-btn:hover,
-.close-conversation-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-}
 
 .conversation-list-content {
   flex: 1;
@@ -117,11 +112,6 @@
   transition: all 0.2s ease;
 }
 
-.start-conversation-btn:hover {
-  background: #45a049;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-}
 
 /* Items de conversación */
 .conversation-items {
@@ -142,10 +132,7 @@
   margin-bottom: 4px;
 }
 
-.conversation-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateX(2px);
-}
+
 
 .conversation-item.selected {
   background: rgba(76, 175, 80, 0.2);
@@ -191,9 +178,7 @@
   transition: opacity 0.2s ease;
 }
 
-.conversation-item:hover .conversation-item-actions {
-  opacity: 1;
-}
+
 
 .conversation-action-btn {
   background: rgba(255, 255, 255, 0.1);
@@ -206,10 +191,6 @@
   transition: all 0.2s ease;
 }
 
-.conversation-action-btn:hover {
-  background: rgba(220, 53, 69, 0.2);
-  color: #ff6b6b;
-}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -245,6 +226,4 @@
   border-radius: 3px;
 }
 
-.conversation-list-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
+

@@ -110,10 +110,7 @@ body {
   border: 1px solid rgba(0, 123, 255, 0.4); /* Borde sutil */
 }
 
-.profile-hero-panel:hover {
-  transform: translateY(-8px) scale(1.005);
-  box-shadow: 0 20px 40px rgba(0, 123, 255, 0.3); /* Sombra más brillante */
-}
+
 
 /* NUEVO! Efecto de fondo generativo (placeholder visual) */
 .hero-background-effect {
@@ -158,10 +155,7 @@ body {
   transition: var(--transition);
   animation: avatar-glow 4s infinite ease-in-out alternate;
 }
-.user-avatar-frame:hover {
-  transform: rotate(5deg) scale(1.05);
-  box-shadow: 0 0 0 5px var(--accent-magenta), 0 0 30px var(--accent-magenta), inset 0 0 15px rgba(255,255,255,0.3);
-}
+
 
 @keyframes avatar-glow {
   0% { box-shadow: 0 0 0 5px var(--accent-cyan), 0 0 20px var(--accent-cyan); }
@@ -226,11 +220,6 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.study-streak.glow-effect:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(255, 255, 0, 0.6); /* Brillo amarillo */
-}
 
 .streak-icon {
   color: var(--accent-gold); /* Icono dorado */
@@ -286,11 +275,6 @@ body {
   opacity: 0.8;
   border: 1px solid var(--accent-cyan);
 }
-.progress-bar:hover {
-  opacity: 1;
-  transform: scaleY(1.1);
-  box-shadow: 0 0 15px var(--accent-cyan);
-}
 
 .graph-label {
   font-size: 0.85rem;
@@ -312,10 +296,7 @@ body {
   flex-direction: column;
 }
 
-.stats-panel:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
+
 
 .panel-title {
   font-size: 1.8rem; /* Más grande */
@@ -357,14 +338,7 @@ body {
   gap: 0.8rem;
 }
 
-.stat-card-neumorphic:hover {
-  transform: translateY(-5px); /* Pequeño levantamiento */
-  box-shadow:
-    12px 12px 25px rgba(0, 0, 0, 0.4),
-    -12px -12px 25px rgba(60, 60, 60, 0.15),
-    inset 3px 3px 8px rgba(0, 0, 0, 0.15),
-    inset -3px -3px 8px rgba(60, 60, 60, 0.08);
-}
+
 
 .stat-card-full {
   grid-column: span 2;
@@ -517,12 +491,6 @@ body {
   position: relative;
   z-index: 1; /* Para que el contenido esté sobre el brillo */
 }
-.settings-access-link:hover .settings-access-panel {
-  transform: translateY(-4px);
-  background: var(--background-color);
-  border-color: var(--primary-color);
-  box-shadow: 0 0 20px rgba(0, 123, 255, 0.3);
-}
 
 /* NUEVO! Efecto de brillo al pasar el ratón */
 .button-glare-effect {
@@ -538,11 +506,7 @@ body {
   pointer-events: none;
   z-index: 0;
 }
-.settings-access-link:hover .button-glare-effect {
-  top: -50%;
-  left: -50%;
-  opacity: 1;
-}
+
 
 
 .settings-content {
@@ -563,11 +527,7 @@ body {
   justify-content: center;
 }
 
-.settings-access-link:hover .settings-icon-wrapper {
-  color: var(--primary-color);
-  transform: rotate(30deg) scale(1.1);
-  box-shadow: 0 0 15px rgba(0, 123, 255, 0.7);
-}
+
 
 .settings-text h3 {
   font-size: 1.5rem;
@@ -588,10 +548,7 @@ body {
   flex-shrink: 0;
 }
 
-.settings-access-link:hover .settings-action-arrow {
-  color: var(--primary-color);
-  transform: translateX(10px);
-}
+
 
 
 /* Responsive */

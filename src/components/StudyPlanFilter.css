@@ -64,10 +64,6 @@
   font-weight: 400;
 }
 
-.filter-btn:hover:not(:disabled) {
-  border-color: #ccc;
-}
-
 .filter-btn.active {
   border-color: #333;
   background: #333;
@@ -146,9 +142,6 @@
   background: white;
 }
 
-.subject-checkbox:hover {
-  border-color: #ccc;
-}
 
 .subject-checkbox.selected {
   border-color: #333;

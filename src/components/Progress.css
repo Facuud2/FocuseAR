@@ -160,10 +160,6 @@
   text-align: center;
 }
 
-.metric-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
-}
 
 .metric-value {
   font-size: 2rem;

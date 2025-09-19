@@ -35,10 +35,6 @@
   flex-direction: column;
 }
 
-.panel:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
 
 .panel h2 {
   margin: 0 0 1rem 0;
@@ -172,10 +168,7 @@ select {
   height: 100%;
 }
 
-.subject-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
+
 
 .subject-header {
   display: flex;

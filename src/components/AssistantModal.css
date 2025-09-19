@@ -48,10 +48,6 @@
     transition: var(--transition-ease);
 }
 
-.modal-close-btn:hover {
-    color: var(--danger-color);
-    transform: rotate(90deg);
-}
 
 .modal-title {
     font-size: 1.8rem;
@@ -169,11 +165,7 @@
     transition: var(--transition-ease);
 }
 
-.chat-input-form button:hover {
-    background: var(--secondary-neon-color);
-    transform: translateY(-3px);
-    box-shadow: 0 0 15px rgba(0, 250, 154, 0.6);
-}
+
 
 .chat-input-form button:disabled {
     background: var(--surface-alt-color);
@@ -194,12 +186,7 @@
     cursor: pointer;
     transition: var(--transition-ease);
 }
-
-.start-chat-btn:hover {
-    background: var(--secondary-neon-color);
-    transform: translateY(-3px);
-    box-shadow: 0 0 15px rgba(0, 250, 154, 0.6);
-}
+ 
 
 @media (max-width: 768px) {
     .modal-content {

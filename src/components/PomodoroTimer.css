@@ -93,14 +93,6 @@ body {
   transition: transform 0.2s ease;
 }
 
-.add-points-btn:hover {
-  transform: scale(1.2);
-}
-
-.focus-points:hover, .store-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
 
 .main-content-wrapper {
   display: grid;
@@ -219,10 +211,7 @@ body {
   box-shadow: 0 3px 6px rgba(0,0,0,0.2);
   transform: translateY(-2px);
 }
-.mode-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-}
+
 
 .timer-display {
   margin-bottom: 2rem;
@@ -262,10 +251,7 @@ body {
 .control-btn.reset {
   background-color: var(--accent-red);
 }
-.control-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-}
+
 
 .cycle-info {
   margin-top: 2rem;
