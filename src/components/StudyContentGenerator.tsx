@@ -54,21 +54,19 @@ const StudyContentGenerator: React.FC<StudyContentGeneratorProps> = ({
     setError(null);
 
     try {
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateStudyContent',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            topic,
-            subject,
-            level,
-            contentType: 'complete',
-          }),
+      const endpoint = import.meta.env.VITE_GENERATE_STUDY_CONTENT_ENDPOINT;
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          topic,
+          subject,
+          level,
+          contentType: 'complete',
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);

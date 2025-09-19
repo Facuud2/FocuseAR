@@ -44,13 +44,13 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-import * as functions from 'firebase-functions';
+//import * as functions from 'firebase-functions';
 import cors from 'cors';
 import { onRequest } from 'firebase-functions/https';
 import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenAI } from '@google/genai';
-import { db } from './firebaseAdmin';
-import crypto from 'crypto';
+//import { db } from './firebaseAdmin';
+//import crypto from 'crypto';
 
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 const corsHandler = cors({ origin: true });
@@ -65,6 +65,7 @@ function addCorsHeaders(res: {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
+/*
 // Función principal con CORS habilitado para desarrollo y producción
 export const geminiResponse = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
@@ -197,6 +198,8 @@ export const geminiResponseTest = functions.https.onRequest(
     });
   },
 );
+
+
 
 // Nueva función: Consulta a Gemini sobre una materia y tema específico
 export const askGeminiBot = onRequest(
@@ -501,6 +504,8 @@ Genera el JSON ahora.`;
   },
 );
 
+*/
+
 // -----------------------------
 // Función: generateStudyContent
 // Recibe: { topic: string, subject: string, level?: string, contentType?: string }
@@ -543,12 +548,14 @@ INSTRUCCIONES:
 4. Mantén un enfoque pedagógico claro
 
 CONTENIDO A GENERAR:
-1. **Resumen**: Explicación concisa del tema (150-250 palabras)
-2. **Conceptos Clave**: 5-7 conceptos fundamentales con definiciones breves
-3. **Flashcards**: 8-10 pares pregunta/respuesta para memorización
-4. **Preguntas de Práctica**: 4-5 preguntas de aplicación con respuestas
-5. **Conexiones**: Relación con otros temas de la materia
-6. **Consejos de Estudio**: Recomendaciones específicas para dominar este tema
+1. Resumen: Explicación concisa del tema (150-250 palabras)
+2. Conceptos Clave: 5-7 conceptos fundamentales con definiciones breves
+3. Flashcards: 8-10 pares pregunta/respuesta para memorización
+4. Preguntas de Práctica: 4-5 preguntas de aplicación con respuestas
+5. Conexiones: Relación con otros temas de la materia
+6. Consejos de Estudio: Recomendaciones específicas para dominar este tema
+7. No tiene que tener contenido con formato markdown, títulos, ni listas largas.
+8. practiceQuestions no debe tener más de 60 palabras por respuesta.
 
 FORMATO DE SALIDA:
 Devuelve SOLO un JSON válido con esta estructura exacta:
