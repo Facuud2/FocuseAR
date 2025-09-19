@@ -64,11 +64,12 @@
   flex-direction: column;
   box-shadow: var(--shadow-md);
   position: fixed;
+  flex-shrink: 0;
   left: 0;
   top: 0;
   height: 100vh;
   height: 100%;
-  z-index: 40;
+  z-index: 100;
   border-radius: 0 18px 18px 0;
   overflow-x: hidden;
   transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
