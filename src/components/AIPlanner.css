@@ -27,13 +27,21 @@ body {
 
 .ai-planner-container {
   padding: 3rem;
-  max-width: 1200px;
+  max-width: 1500px;  
   margin: 0 auto;
 }
 
 .ai-planner-header {
+  background: var(--surface-color);   /* igual que un panel */
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem 2rem;
+  margin-bottom: 3rem;
   text-align: center;
-  margin-bottom: 4rem;
+  max-width: 1500px;  /* 👈 asegura mismo ancho */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ai-planner-title {

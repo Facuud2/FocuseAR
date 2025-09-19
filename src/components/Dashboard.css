@@ -404,26 +404,34 @@ body {
 }
 
 header {
+  grid-column: 1 / -1;          /* ocupa todo el ancho del grid */
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  padding: 1.2rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 1.5rem;
   width: 100%;
-  margin-bottom: 2rem;
 }
 
 .logo-container {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .logo-circle {
-  width: 100px;
-  height: 100px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
-  border: 2px solid var(--primary-neon-color);
-  box-shadow: 0 0 15px var(--primary-neon-color);
-  transition: var(--transition-ease);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 15px rgba(0, 200, 255, 0.6);
 }
 
 .logo-circle img {
@@ -442,7 +450,7 @@ header {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .user-name {
@@ -456,13 +464,12 @@ header {
 }
 
 .user-avatar {
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
-  border: 3px solid var(--primary-neon-color);
   object-fit: cover;
-  box-shadow: 0 0 10px var(--primary-neon-color);
-  transition: var(--transition-ease);
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
 }
 
 .user-avatar:hover {
