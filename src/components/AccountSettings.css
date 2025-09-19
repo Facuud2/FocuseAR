@@ -126,7 +126,7 @@ body.settings-page {
   color: white;
 }
 
-/* --- Planes de Membresía (AJUSTADO) --- */
+/* --- Estilos de Membresía (AJUSTADOS Y MEJORADOS) --- */
 .membership-plans-container {
   display: grid;
   grid-template-columns: 1fr;
@@ -135,34 +135,171 @@ body.settings-page {
 }
 
 .plan-card {
-  padding: 1.5rem; /* Padding más compacto en los planes */
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  background: var(--background-color);
+  border: 2px solid var(--border-color);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto hover */
+.plan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--primary-color);
+}
+
+/* Plan Destacado */
+.featured-plan {
+  background: #f3f9ff; /* Un color de fondo ligeramente diferente */
+  border-color: var(--primary-color);
+  box-shadow: 0 6px 15px rgba(66, 133, 244, 0.2);
+}
+
+.featured-plan:after {
+  content: 'Más Popular';
+  position: absolute;
+  top: 15px;
+  right: -30px;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 5px 30px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  transform: rotate(45deg);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .plan-card h4 {
-  font-size: 1.1rem; /* Fuente más pequeña */
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
 .plan-price {
-  font-size: 1.6rem; /* Fuente más pequeña */
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-weight: 800;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
 }
 
-/* --- Modal y Checkout --- */
+.plan-description {
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  min-height: 40px; /* Asegura un espacio constante */
+}
+
+.plan-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.plan-btn:hover {
+  background: #1a73e8;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Estilos para la ventana modal y el fondo (AGREGADOS) --- */
+.checkout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
 .checkout-modal {
   width: 90%;
   max-width: 450px;
+  background: var(--surface-color);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.payment--options {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
+.checkout-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
 }
 
-.split {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.checkout-close:hover {
+  color: var(--danger-color);
+}
+
+.benefits-content h3 {
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.benefits-content p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.benefits-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.benefits-content li {
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+  position: relative;
+  padding-left: 25px;
+}
+
+.benefits-content li::before {
+  content: '✓';
+  color: var(--secondary-color);
+  font-weight: 800;
+  position: absolute;
+  left: 0;
+}
+
+/* Animaciones para el modal */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 /* --- Media Query para Escritorio (mínimo de 768px) --- */
