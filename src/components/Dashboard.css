@@ -117,6 +117,7 @@ body {
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
+  max-width: 1400px; /* 👈 agregado */
 }
 
 .grid-span-2 { grid-column: span 2; }
@@ -354,7 +355,7 @@ body {
 .panel {
   background-color: var(--surface-color);
   border-radius: var(--radius-lg);
-  padding: 2.5rem;
+  padding: 1.5rem; /* 👈 reducido (antes 2.5rem) */
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   position: relative;
