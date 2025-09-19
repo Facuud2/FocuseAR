@@ -14,7 +14,7 @@ import ProtectedRoute from './ProtectedRoute';
 import PublicOnlyRoute from './PublicOnlyRoute';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
-import PDFSummaryTest from './components/PDFSummaryTest';
+//import PDFSummaryTest from './components/PDFSummaryTest'; ELIMINAR MÁS ADELANTE
 import Sidebar from './components/Sidebar';
 import AccountSettings from './components/AccountSettings';
 import StudySchedule from './components/StudySchedule';
@@ -81,7 +81,7 @@ function AppRoutes() {
               <Route path="/settings" element={<AccountSettings />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/analytics" element={<Analytics />} />
-              <Route path="/pdf-summary-test" element={<PDFSummaryTest />} />
+              {/* <Route path="/pdf-summary-test" element={<PDFSummaryTest />} /> ELIMINAR MÁS ADELANTE */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Routes>
