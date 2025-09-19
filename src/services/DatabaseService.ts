@@ -184,7 +184,10 @@ export class DatabaseService {
         updatedAt: Timestamp.now(),
       };
 
-      const planRef = await addDoc(collection(db, 'studyPlans'), studyPlanData);
+      const planRef = await addDoc(
+        collection(db, 'study_plans'),
+        studyPlanData,
+      );
       console.log('✅ Plan de estudio creado exitosamente con ID:', planRef.id);
 
       return planRef.id;
@@ -236,7 +239,7 @@ export class DatabaseService {
   static async getUserStudyPlans(userId: string): Promise<StudyPlan[]> {
     try {
       const plansQuery = query(
-        collection(db, 'studyPlans'),
+        collection(db, 'study_plans'),
         where('userId', '==', userId),
       );
 
@@ -291,7 +294,7 @@ export class DatabaseService {
     try {
       // Eliminar planes de estudio asociados
       const plansQuery = query(
-        collection(db, 'studyPlans'),
+        collection(db, 'study_plans'),
         where('materialId', '==', materialId),
       );
 
@@ -439,6 +442,67 @@ export class DatabaseService {
       console.log('✅ Título de conversación actualizado');
     } catch (error) {
       console.error('❌ Error al actualizar título de conversación:', error);
+      throw error;
+    }
+  }
+
+  // 15. Actualizar plan de estudio
+  static async updateStudyPlan(
+    planId: string,
+    updatedPlan: Partial<StudyPlan>,
+  ): Promise<void> {
+    try {
+      const planRef = doc(db, 'study_plans', planId);
+
+      // Primero obtenemos el documento actual
+      const currentDoc = await getDoc(planRef);
+      if (!currentDoc.exists()) {
+        throw new Error(`Plan de estudio ${planId} no existe`);
+      }
+
+      const currentData = currentDoc.data();
+
+      // Hacemos un merge profundo de los datos
+      const mergedData = {
+        ...currentData,
+        ...updatedPlan,
+        updatedAt: Timestamp.now(),
+      };
+
+      // Si estamos actualizando generatedPlan, hacemos merge profundo
+      if (updatedPlan.generatedPlan) {
+        mergedData.generatedPlan = {
+          ...currentData.generatedPlan,
+          ...updatedPlan.generatedPlan,
+        };
+
+        // Merge profundo para structuredPlan si existe
+        if (
+          updatedPlan.generatedPlan.structuredPlan &&
+          mergedData.generatedPlan
+        ) {
+          mergedData.generatedPlan.structuredPlan = {
+            ...currentData.generatedPlan?.structuredPlan,
+            ...updatedPlan.generatedPlan.structuredPlan,
+          };
+        }
+
+        // Merge profundo para dailyTasks si existe
+        if (updatedPlan.generatedPlan.dailyTasks && mergedData.generatedPlan) {
+          mergedData.generatedPlan.dailyTasks =
+            updatedPlan.generatedPlan.dailyTasks;
+        }
+      }
+
+      console.log(
+        '🔄 [DatabaseService] Guardando datos actualizados:',
+        JSON.stringify(mergedData, null, 2),
+      );
+
+      await setDoc(planRef, mergedData);
+      console.log('✅ Plan de estudio actualizado');
+    } catch (error) {
+      console.error('❌ Error al actualizar plan de estudio:', error);
       throw error;
     }
   }

@@ -41,6 +41,83 @@
   font-weight: 500;
 }
 
+.topic-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.start-topic-btn, .generate-content-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.start-topic-btn {
+  background-color: var(--accent-green);
+  color: white;
+  width: 100%;
+}
+
+.start-topic-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.start-topic-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generate-content-btn {
+  background-color: var(--accent-blue);
+  color: white;
+  padding: 0.5rem;
+  min-width: 40px;
+  justify-content: center;
+}
+
+.generate-content-btn:hover {
+  background-color: var(--highlight-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.completed-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: var(--accent-green);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
 .study-area-loading {
   display: flex;
   flex-direction: column;
@@ -235,36 +312,34 @@
 }
 
 .topic-card {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-primary);
   border: 2px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.75rem;
-  cursor: pointer;
+  border-radius: 12px;
+  padding: 1rem;
   transition: var(--transition);
   position: relative;
 }
 
 .topic-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   border-color: var(--highlight-color);
+  transform: translateY(-2px);
 }
 
 .topic-card.selected {
   border-color: var(--accent-green);
-  background-color: rgba(129, 199, 132, 0.1);
+  background-color: rgba(76, 175, 80, 0.1);
 }
 
 .topic-card.completed {
   opacity: 0.7;
-  background-color: rgba(129, 199, 132, 0.2);
+  border-color: var(--accent-green);
 }
 
 .topic-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
 .topic-card .topic-name {

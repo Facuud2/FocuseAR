@@ -91,6 +91,7 @@ const AIPlanner = () => {
     createStudyPlan,
     deleteStudyPlan,
     getUserMaterials,
+    updateStudyPlan,
   } = useDatabase();
 
   useEffect(() => {
@@ -446,7 +447,11 @@ Genera el JSON del plan de estudio:`;
     );
   };
 
-  const toggleDayCompletion = (planId: string | number, dayIndex: number) => {
+  const toggleDayCompletion = async (
+    planId: string | number,
+    dayIndex: number,
+  ) => {
+    // Actualizar estado local primero
     setStudyPlans((prevPlans) =>
       prevPlans.map((plan) => {
         if (plan.id === planId && plan.structuredPlan) {
@@ -471,6 +476,58 @@ Genera el JSON del plan de estudio:`;
         return plan;
       }),
     );
+
+    // Guardar cambios en Firebase para sincronización bidireccional
+    try {
+      const firebasePlans = await getUserStudyPlans();
+      const firebasePlan = firebasePlans.find((plan) => {
+        const planIdStr = String(plan.id);
+        const localIdStr = String(planId);
+        return planIdStr === localIdStr;
+      });
+
+      if (firebasePlan && firebasePlan.id) {
+        const currentPlan = studyPlans.find((p) => p.id === planId);
+        if (currentPlan?.structuredPlan) {
+          const updatedDays = currentPlan.structuredPlan.days.map(
+            (day, index) =>
+              index === dayIndex ? { ...day, completed: !day.completed } : day,
+          );
+
+          // También actualizar dailyTasks para sincronización completa
+          const updatedDailyTasks =
+            firebasePlan.generatedPlan?.dailyTasks?.map((task, taskIndex) => {
+              if (taskIndex === dayIndex) {
+                return { ...task, completed: !task.completed };
+              }
+              return task;
+            }) || [];
+
+          const updateData = {
+            generatedPlan: {
+              ...firebasePlan.generatedPlan,
+              structuredPlan: {
+                title: firebasePlan.generatedPlan?.structuredPlan?.title || '',
+                summary:
+                  firebasePlan.generatedPlan?.structuredPlan?.summary || '',
+                finalRecommendations:
+                  firebasePlan.generatedPlan?.structuredPlan
+                    ?.finalRecommendations || '',
+                ...firebasePlan.generatedPlan?.structuredPlan,
+                days: updatedDays,
+              },
+              dailyTasks: updatedDailyTasks,
+            },
+          };
+
+          console.log('🔄 [AIPlanner] Sincronizando cambios con Firebase...');
+          await updateStudyPlan(firebasePlan.id, updateData);
+          console.log('✅ [AIPlanner] Cambios sincronizados con Firebase');
+        }
+      }
+    } catch (error) {
+      console.error('❌ [AIPlanner] Error al sincronizar con Firebase:', error);
+    }
   };
 
   const deletePlan = async (planId: string | number) => {

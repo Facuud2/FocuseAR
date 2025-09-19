@@ -22,7 +22,7 @@ export const getUserMaterialsAndTopics = async (
   userId: string,
 ): Promise<ChatbotMaterial[]> => {
   // 1. Obtener todos los planes de estudio del usuario
-  const studyPlansSnap = await getDocs(collection(db, 'studyPlans'));
+  const studyPlansSnap = await getDocs(collection(db, 'study_plans'));
   const studyPlans = studyPlansSnap.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
     .filter((plan) => (plan as StudyPlan).userId === userId) as StudyPlan[];

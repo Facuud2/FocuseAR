@@ -3,6 +3,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { BookOpen, Clock, Target, Brain, Play, Pause } from 'lucide-react';
+import StudyContentGenerator from './StudyContentGenerator';
+import StudyMaterialViewer from './StudyMaterialViewer';
 import './StudyArea.css';
 
 interface StudyTopic {
@@ -21,6 +23,33 @@ interface StudyPlan {
   subjectColor?: string;
 }
 
+interface StudyContent {
+  topic: string;
+  subject: string;
+  level: string;
+  summary: string;
+  keyConcepts: Array<{
+    concept: string;
+    definition: string;
+  }>;
+  flashcards: Array<{
+    question: string;
+    answer: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+  }>;
+  practiceQuestions: Array<{
+    question: string;
+    answer: string;
+    type: 'application' | 'analysis' | 'synthesis';
+  }>;
+  connections: Array<{
+    relatedTopic: string;
+    relationship: string;
+  }>;
+  studyTips: string[];
+  estimatedStudyTime: string;
+}
+
 interface StudyAreaProps {
   isTimerActive: boolean;
   currentMode: 'pomodoro' | 'short-break' | 'long-break';
@@ -33,49 +62,338 @@ const StudyArea: React.FC<StudyAreaProps> = ({
   onStartStudySession,
 }) => {
   const { user } = useContext(AuthContext);
-  const { getUserStudyPlans } = useDatabase();
+  const { getUserStudyPlans, updateStudyPlan } = useDatabase();
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<StudyPlan | null>(null);
   const [selectedTopic, setSelectedTopic] = useState<StudyTopic | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showContentGenerator, setShowContentGenerator] = useState(false);
+  const [showMaterialViewer, setShowMaterialViewer] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState<StudyContent | null>(
+    null,
+  );
+  const [topicForGeneration, setTopicForGeneration] =
+    useState<StudyTopic | null>(null);
+  const loadStudyPlans = async () => {
+    if (!user) return;
 
-  useEffect(() => {
-    const loadStudyPlans = async () => {
-      if (!user) return;
+    console.log('🔄 [StudyArea] Cargando planes de estudio desde Firebase...');
 
-      try {
-        const plans = await getUserStudyPlans();
-        const convertedPlans: StudyPlan[] = plans.map((plan) => ({
-          id: plan.id || `plan-${Date.now()}`,
-          subjectName: plan.generatedPlan?.title || 'Plan de Estudio',
-          examDate: plan.generatedPlan?.examDate || '',
-          subjectColor: plan.generatedPlan?.subjectColor || '#4285F4',
-          topics:
-            plan.generatedPlan?.topics?.map((topic: string, index: number) => ({
+    try {
+      const plans = await getUserStudyPlans();
+      console.log(
+        '📊 [StudyArea] Planes obtenidos de Firebase:',
+        plans.length,
+        'planes',
+      );
+      console.log(
+        '🔍 [StudyArea] Datos completos de Firebase:',
+        JSON.stringify(plans, null, 2),
+      );
+      const convertedPlans: StudyPlan[] = plans.map((plan) => ({
+        id: plan.id || `plan-${Date.now()}`,
+        subjectName: plan.generatedPlan?.title || 'Plan de Estudio',
+        examDate: plan.generatedPlan?.examDate || '',
+        subjectColor: plan.generatedPlan?.subjectColor || '#4285F4',
+        topics:
+          plan.generatedPlan?.topics?.map((topic: string, index: number) => {
+            // Buscar el estado de completado en dailyTasks o structuredPlan
+            let isCompleted = false;
+
+            // Verificar en dailyTasks si existe
+            if (plan.generatedPlan?.dailyTasks) {
+              const taskForTopic = plan.generatedPlan.dailyTasks.find((task) =>
+                task.task.toLowerCase().includes(topic.toLowerCase()),
+              );
+              if (taskForTopic) {
+                isCompleted = taskForTopic.completed || false;
+                console.log(
+                  `✅ [StudyArea] Tema "${topic}" encontrado en dailyTasks - Completado: ${isCompleted}`,
+                );
+              }
+            }
+
+            // Verificar en structuredPlan si existe
+            if (plan.generatedPlan?.structuredPlan?.days) {
+              for (const day of plan.generatedPlan.structuredPlan.days) {
+                const topicInDay = day.topics.find((t) =>
+                  t.name.toLowerCase().includes(topic.toLowerCase()),
+                );
+                if (topicInDay) {
+                  // Verificar si el topic específico está completado o si el día completo está completado
+                  isCompleted =
+                    (topicInDay as { completed?: boolean }).completed ||
+                    day.completed ||
+                    false;
+                  console.log(
+                    `✅ [StudyArea] Tema "${topic}" encontrado en structuredPlan día ${day.dayNumber} - Completado: ${isCompleted}`,
+                  );
+                  break;
+                }
+              }
+            }
+
+            return {
               id: `topic-${index}`,
               name: topic,
               estimatedTime: '25 min',
-              completed: false,
-            })) || [],
-        }));
+              completed: isCompleted,
+            };
+          }) || [],
+      }));
 
-        setStudyPlans(convertedPlans);
-        if (convertedPlans.length > 0) {
-          setSelectedPlan(convertedPlans[0]);
-        }
-      } catch (error) {
-        console.error('Error cargando planes de estudio:', error);
-      } finally {
-        setLoading(false);
+      setStudyPlans(convertedPlans);
+      console.log(
+        '📋 [StudyArea] Planes convertidos y guardados en estado local:',
+        convertedPlans.length,
+      );
+
+      if (convertedPlans.length > 0) {
+        setSelectedPlan(convertedPlans[0]);
+        console.log(
+          '🎯 [StudyArea] Plan seleccionado:',
+          convertedPlans[0].subjectName,
+        );
+        console.log(
+          '📝 [StudyArea] Temas en el plan:',
+          convertedPlans[0].topics.map(
+            (t) => `${t.name} (${t.completed ? 'Completado' : 'Pendiente'})`,
+          ),
+        );
       }
-    };
+    } catch (error) {
+      console.error('Error cargando planes de estudio:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadStudyPlans();
-  }, [user, getUserStudyPlans]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Escuchar cambios cada 10 segundos para sincronización bidireccional
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(() => {
+      console.log('🔄 [StudyArea] Verificando actualizaciones de Firebase...');
+      loadStudyPlans();
+    }, 10000); // Verificar cada 10 segundos
+
+    return () => clearInterval(interval);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTopicSelect = (topic: StudyTopic) => {
     setSelectedTopic(topic);
-    onStartStudySession(topic);
+    setTopicForGeneration(topic);
+
+    // Mostrar modal de selección de dificultad en lugar de generar automáticamente
+    setShowContentGenerator(true);
+  };
+
+  const handleContentGenerated = (content: StudyContent) => {
+    setGeneratedContent(content);
+    setShowContentGenerator(false);
+    setShowMaterialViewer(true);
+    // Iniciar el timer cuando se genere contenido desde el modal manual
+    if (topicForGeneration) {
+      onStartStudySession(topicForGeneration);
+    }
+  };
+
+  const handleCloseGenerator = () => {
+    setShowContentGenerator(false);
+    setTopicForGeneration(null);
+  };
+
+  const handleCloseMaterialViewer = () => {
+    setShowMaterialViewer(false);
+    setGeneratedContent(null);
+
+    // Marcar el tema como completado
+    if (selectedTopic && selectedPlan) {
+      const updatedTopics = selectedPlan.topics.map((topic) =>
+        topic.id === selectedTopic.id ? { ...topic, completed: true } : topic,
+      );
+
+      const updatedPlan = { ...selectedPlan, topics: updatedTopics };
+      setSelectedPlan(updatedPlan);
+
+      // Actualizar la lista de planes
+      setStudyPlans((plans) =>
+        plans.map((plan) => (plan.id === selectedPlan.id ? updatedPlan : plan)),
+      );
+    }
+  };
+
+  const handleRegenerateContent = () => {
+    setShowMaterialViewer(false);
+    setShowContentGenerator(true);
+  };
+
+  const handleCompleteTopicInPlan = async (
+    planId: string,
+    topicName: string,
+  ) => {
+    console.log('🚀 [StudyArea] Iniciando marcado como completado:', {
+      planId,
+      topicName,
+    });
+
+    // Actualizar el estado local del tema como completado
+    setStudyPlans((prevPlans) =>
+      prevPlans.map((plan) => {
+        if (plan.id === planId) {
+          const updatedTopics = plan.topics.map((topic) =>
+            topic.name === topicName ? { ...topic, completed: true } : topic,
+          );
+          return { ...plan, topics: updatedTopics };
+        }
+        return plan;
+      }),
+    );
+
+    // También actualizar selectedTopic si es el tema actual
+    if (selectedTopic && selectedTopic.name === topicName) {
+      setSelectedTopic({ ...selectedTopic, completed: true });
+    }
+
+    // Persistir cambios en Firebase
+    try {
+      console.log('💾 [StudyArea] Iniciando actualización en Firebase...');
+
+      // Obtener el plan completo desde Firebase para actualizarlo correctamente
+      const plans = await getUserStudyPlans();
+      const planToUpdate = plans.find((plan) => plan.id === planId);
+
+      console.log(
+        '🔍 [StudyArea] Plan encontrado para actualizar:',
+        planToUpdate ? 'Sí' : 'No',
+      );
+      console.log('🆔 [StudyArea] ID del plan a actualizar:', planId);
+      console.log('📋 [StudyArea] Plan completo:', planToUpdate);
+      console.log(
+        '📊 [StudyArea] Todos los planes disponibles:',
+        plans.map((p) => ({ id: p.id, title: p.generatedPlan?.title })),
+      );
+
+      if (!planToUpdate) {
+        console.log(
+          '❌ [StudyArea] Plan no encontrado en Firebase. Posibles causas:',
+        );
+        console.log('   - El documento fue eliminado');
+        console.log('   - El ID no coincide con ningún documento existente');
+        console.log('   - Problema de sincronización entre local y Firebase');
+        return;
+      }
+
+      // Actualizar dailyTasks si existe
+      if (planToUpdate.generatedPlan?.dailyTasks) {
+        console.log('📝 [StudyArea] Actualizando dailyTasks...');
+
+        const updatedDailyTasks = planToUpdate.generatedPlan.dailyTasks.map(
+          (task) => {
+            if (task.task.toLowerCase().includes(topicName.toLowerCase())) {
+              console.log(
+                `✅ [StudyArea] Tarea encontrada en dailyTasks: "${task.task}" - Marcando como completada`,
+              );
+              return { ...task, completed: true };
+            }
+            return task;
+          },
+        );
+
+        const updateData = {
+          generatedPlan: {
+            ...planToUpdate.generatedPlan,
+            dailyTasks: updatedDailyTasks,
+          },
+        };
+
+        console.log(
+          '🔄 [StudyArea] Enviando actualización a Firebase (dailyTasks)...',
+        );
+        await updateStudyPlan(planId, updateData);
+        console.log(
+          '✅ [StudyArea] Tema marcado como completado en dailyTasks de Firebase',
+        );
+      }
+
+      // Actualizar structuredPlan si existe
+      if (planToUpdate.generatedPlan?.structuredPlan?.days) {
+        console.log('📅 [StudyArea] Actualizando structuredPlan...');
+
+        const updatedDays = planToUpdate.generatedPlan.structuredPlan.days.map(
+          (day) => {
+            const hasTopicInDay = day.topics.some((t) =>
+              t.name.toLowerCase().includes(topicName.toLowerCase()),
+            );
+            if (hasTopicInDay) {
+              console.log(
+                `✅ [StudyArea] Día encontrado con el tema: Día ${day.dayNumber} - Marcando tema como completado`,
+              );
+              // Marcar el topic específico como completado
+              const updatedTopics = day.topics.map((topic) => {
+                if (
+                  topic.name.toLowerCase().includes(topicName.toLowerCase())
+                ) {
+                  return { ...topic, completed: true };
+                }
+                return topic;
+              });
+
+              // Verificar si todos los topics del día están completados
+              const allTopicsCompleted = updatedTopics.every(
+                (topic) => (topic as { completed?: boolean }).completed,
+              );
+
+              return {
+                ...day,
+                topics: updatedTopics,
+                completed: allTopicsCompleted,
+              };
+            }
+            return day;
+          },
+        );
+
+        const updateData = {
+          generatedPlan: {
+            ...planToUpdate.generatedPlan,
+            structuredPlan: {
+              ...planToUpdate.generatedPlan.structuredPlan,
+              days: updatedDays,
+            },
+          },
+        };
+
+        console.log(
+          '🔄 [StudyArea] Enviando actualización a Firebase (structuredPlan)...',
+        );
+        console.log(
+          '📊 [StudyArea] Datos que se van a guardar:',
+          JSON.stringify(updateData, null, 2),
+        );
+        await updateStudyPlan(planId, updateData);
+        console.log(
+          '✅ [StudyArea] Tema marcado como completado en structuredPlan de Firebase',
+        );
+      }
+    } catch (error) {
+      console.error(
+        '❌ [StudyArea] Error al actualizar tema en Firebase:',
+        error,
+      );
+      console.error('📊 [StudyArea] Detalles del error:', {
+        planId,
+        topicName,
+        errorMessage: (error as Error).message,
+        errorStack: (error as Error).stack,
+      });
+    }
+
+    console.log('🏁 [StudyArea] Proceso de marcado como completado finalizado');
   };
 
   const getNextTopic = () => {
@@ -190,7 +508,6 @@ const StudyArea: React.FC<StudyAreaProps> = ({
                     <div
                       key={topic.id}
                       className={`topic-card ${topic.completed ? 'completed' : ''} ${selectedTopic?.id === topic.id ? 'selected' : ''}`}
-                      onClick={() => !isTimerActive && handleTopicSelect(topic)}
                     >
                       <div className="topic-header">
                         <span className="topic-name">{topic.name}</span>
@@ -198,6 +515,27 @@ const StudyArea: React.FC<StudyAreaProps> = ({
                           <Clock size={12} />
                           {topic.estimatedTime}
                         </span>
+                      </div>
+                      <div className="topic-actions">
+                        <button
+                          className="start-topic-btn"
+                          onClick={() =>
+                            !isTimerActive && handleTopicSelect(topic)
+                          }
+                          disabled={isTimerActive}
+                        >
+                          {isTimerActive && selectedTopic?.id === topic.id ? (
+                            <>
+                              <Pause size={14} />
+                              En progreso
+                            </>
+                          ) : (
+                            <>
+                              <Play size={14} />
+                              Empezar
+                            </>
+                          )}
+                        </button>
                       </div>
                       {topic.completed && (
                         <div className="completed-badge">✓ Completado</div>
@@ -227,6 +565,27 @@ const StudyArea: React.FC<StudyAreaProps> = ({
             </>
           )}
         </>
+      )}
+
+      {/* Modales para generación y visualización de contenido */}
+      {showContentGenerator && topicForGeneration && selectedPlan && (
+        <StudyContentGenerator
+          topic={topicForGeneration.name}
+          subject={selectedPlan.subjectName}
+          onContentGenerated={handleContentGenerated}
+          onClose={handleCloseGenerator}
+        />
+      )}
+
+      {showMaterialViewer && generatedContent && (
+        <StudyMaterialViewer
+          content={generatedContent}
+          onClose={handleCloseMaterialViewer}
+          onGenerateNew={handleRegenerateContent}
+          onCompleteTopicInPlan={handleCompleteTopicInPlan}
+          currentPlanId={selectedPlan?.id}
+          currentTopicName={selectedTopic?.name}
+        />
       )}
     </div>
   );

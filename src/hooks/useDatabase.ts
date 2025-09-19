@@ -155,7 +155,7 @@ export const useDatabase = () => {
   }, [user]);
 
   // Obtener planes de estudio del usuario
-  const getUserStudyPlans = useCallback(async (): Promise<StudyPlan[]> => {
+  const getUserStudyPlans = useCallback(async () => {
     if (!user) {
       setError('Usuario no autenticado');
       return [];
@@ -166,18 +166,42 @@ export const useDatabase = () => {
 
     try {
       const plans = await DatabaseService.getUserStudyPlans(user.uid);
-      console.log('✅ Planes de estudio obtenidos:', plans.length);
       return plans;
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Error desconocido';
+        err instanceof Error ? err.message : 'Error al obtener planes';
       setError(errorMessage);
-      console.error('❌ Error al obtener planes de estudio:', err);
       return [];
     } finally {
       setLoading(false);
     }
   }, [user]);
+
+  // Actualizar plan de estudio
+  const updateStudyPlan = useCallback(
+    async (planId: string, updatedPlan: Partial<StudyPlan>) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return false;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        await DatabaseService.updateStudyPlan(planId, updatedPlan);
+        return true;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error al actualizar plan';
+        setError(errorMessage);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
 
   // Actualizar tarea completada
   const updateTaskCompletion = useCallback(
@@ -383,6 +407,7 @@ export const useDatabase = () => {
     clearError,
     createMaterial,
     createStudyPlan,
+    updateStudyPlan,
     getUserMaterials,
     getUserStudyPlans,
     updateTaskCompletion,

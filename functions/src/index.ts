@@ -60,7 +60,7 @@ function addCorsHeaders(res: {
   setHeader: (name: string, value: string) => void;
 }) {
   // Ajusta el origen según tu entorno de producción
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
@@ -493,6 +493,121 @@ Genera el JSON ahora.`;
         }
       } catch (error) {
         console.error('Error en generateStudyPlan:', error);
+        res.status(500).json({
+          error: error instanceof Error ? error.message : 'Error interno',
+        });
+      }
+    });
+  },
+);
+
+// -----------------------------
+// Función: generateStudyContent
+// Recibe: { topic: string, subject: string, level?: string, contentType?: string }
+// Responde: { content: {...} } o { raw_response: string }
+// -----------------------------
+export const generateStudyContent = onRequest(
+  { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 180 },
+  async (req, res) => {
+    // Responder preflight OPTIONS rápidamente
+    if (req.method === 'OPTIONS') {
+      addCorsHeaders(res);
+      res.status(204).send('');
+      return;
+    }
+
+    corsHandler(req, res, async () => {
+      addCorsHeaders(res);
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+        return;
+      }
+
+      const { topic, subject, level = 'universitario' } = req.body || {};
+      if (!topic || !subject) {
+        res.status(400).json({
+          error: "Campos requeridos: 'topic' y 'subject'",
+        });
+        return;
+      }
+
+      try {
+        const prompt = `Eres un profesor experto en ${subject}. 
+Genera contenido educativo completo para el tema: "${topic}"
+Nivel educativo: ${level}
+
+INSTRUCCIONES:
+1. Crea contenido estructurado y educativo de alta calidad
+2. Adapta el lenguaje al nivel ${level}
+3. Incluye ejemplos prácticos cuando sea relevante
+4. Mantén un enfoque pedagógico claro
+
+CONTENIDO A GENERAR:
+1. **Resumen**: Explicación concisa del tema (150-250 palabras)
+2. **Conceptos Clave**: 5-7 conceptos fundamentales con definiciones breves
+3. **Flashcards**: 8-10 pares pregunta/respuesta para memorización
+4. **Preguntas de Práctica**: 4-5 preguntas de aplicación con respuestas
+5. **Conexiones**: Relación con otros temas de la materia
+6. **Consejos de Estudio**: Recomendaciones específicas para dominar este tema
+
+FORMATO DE SALIDA:
+Devuelve SOLO un JSON válido con esta estructura exacta:
+{
+  "topic": "${topic}",
+  "subject": "${subject}",
+  "level": "${level}",
+  "summary": "...",
+  "keyConcepts": [
+    {"concept": "...", "definition": "..."}
+  ],
+  "flashcards": [
+    {"question": "...", "answer": "...", "difficulty": "easy|medium|hard"}
+  ],
+  "practiceQuestions": [
+    {"question": "...", "answer": "...", "type": "application|analysis|synthesis"}
+  ],
+  "connections": [
+    {"relatedTopic": "...", "relationship": "..."}
+  ],
+  "studyTips": [
+    "..."
+  ],
+  "estimatedStudyTime": "X horas"
+}
+
+No agregues texto fuera del JSON, ni explicaciones adicionales, ni etiquetas de código.
+
+Genera el contenido educativo ahora:`;
+
+        const ai = new GoogleGenAI({});
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
+        });
+
+        let textResp = response.text || '';
+        textResp = textResp
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+
+        try {
+          const parsed = JSON.parse(textResp);
+          res.json({ content: parsed, source: 'gemini' });
+        } catch (parseError) {
+          console.log(
+            'Error parsing JSON, returning raw response:',
+            parseError,
+          );
+          res.json({ raw_response: textResp, source: 'gemini' });
+        }
+      } catch (error) {
+        console.error('Error en generateStudyContent:', error);
         res.status(500).json({
           error: error instanceof Error ? error.message : 'Error interno',
         });
