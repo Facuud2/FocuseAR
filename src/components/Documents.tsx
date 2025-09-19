@@ -34,30 +34,6 @@ const initialDocuments: DocumentType[] = [
     uploadProgress: 100,
     uploadStatus: 'completed',
   },
-  {
-    id: 2,
-    name: 'Resumen-Historia.docx',
-    size: '800 KB',
-    subject: 'Historia',
-    uploadProgress: 100,
-    uploadStatus: 'completed',
-  },
-  {
-    id: 3,
-    name: 'Quimica-Organica.pdf',
-    size: '5.1 MB',
-    subject: 'Química',
-    uploadProgress: 100,
-    uploadStatus: 'completed',
-  },
-  {
-    id: 4,
-    name: 'Introduccion-Fisica.pdf',
-    size: '1.2 MB',
-    subject: 'Física',
-    uploadProgress: 100,
-    uploadStatus: 'completed',
-  },
 ];
 
 const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
@@ -66,6 +42,7 @@ const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     onChange(files);
+    e.target.value = '';
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -446,14 +423,21 @@ const Documents: React.FC = () => {
                 <X size={24} />
               </button>
             </header>
-            <div className="pdf-viewer-body">
-              <iframe
-                src={viewableUrl}
+            <div
+              className="pdf-viewer-body"
+              style={{ width: '100%', height: '100%' }}
+            >
+              <object
+                data={viewableUrl}
+                type="application/pdf"
                 width="100%"
-                height="700px"
-                style={{ border: 'none', borderRadius: '8px' }}
-                title="PDF Viewer"
-              />
+                height="100%"
+              >
+                <p>
+                  Alternative text - include a link{' '}
+                  <a href={viewableUrl}>to the PDF!</a>
+                </p>
+              </object>
             </div>
           </div>
         </div>
