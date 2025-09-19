@@ -2,15 +2,15 @@
 
 /* Variables de diseño unificadas */
 :root {
-  /* Variables del modo claro */
-  --bg-color-light: #f5f7fa;
-  --panel-bg-light: #ffffff;
-  --text-color-light: #333333;
-  --input-bg-light: #f5f7fa;
-  --input-text-light: #333333;
-  --input-placeholder-light: #666666;
-  --input-border-light: #e0e0e0;
-  --panel-border-light: #e0e0e0;
+  --background-main: #f4f4f4;
+  --surface-panel: #ffffff;
+  --color-text-primary: #000000;
+  --color-border: #e0e0e0;
+
+  --input-bg-color: #ffffff;
+  --input-text-color: #000000;
+  --input-border-color: #cccccc;
+  --input-placeholder-color: #666666;
 
   /* Variables del modo oscuro */
   --bg-color-dark: #121212;
@@ -51,22 +51,22 @@
 }
 
 body.dark-mode {
-  --background-main: var(--bg-color-dark);
-  --surface-panel: var(--panel-bg-dark);
-  --color-text-primary: var(--text-color-dark);
-  --color-text-secondary: #999999;
-  --color-border: var(--panel-border-dark);
-  --input-bg-color: var(--input-bg-dark);
-  --input-text-color: var(--input-text-dark);
-  --input-placeholder-color: var(--input-placeholder-dark);
-  --input-border-color: var(--input-border-dark);
+  --background-main: #121212;
+  --surface-panel: #1e1e1e;
+  --color-text-primary: #ffffff;
+  --color-border: #444444;
+
+  --input-bg-color: #1e1e1e;
+  --input-text-color: #ffffff;
+  --input-border-color: #555555;
+  --input-placeholder-color: #aaaaaa;
 }
 
+/* Fondo general */
 body {
   background-color: var(--background-main);
-  font-family: var(--font-family-body);
   color: var(--color-text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .documents-container {
@@ -109,8 +109,6 @@ body {
 }
 
 
-
-
 .documents-main-content {
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -142,23 +140,12 @@ body {
   color: var(--color-primary);
 }
 
-/* New File Upload Styles */
+/* Panel de subida */
 .file-upload-wrapper {
-  width: 100%;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-  min-height: 384px; /* 24rem */
-  border-width: 1px;
-  border-style: dashed;
-  background-color: var(--panel-bg-light);
-  border-color: #e0e0e0;
-  border-radius: 0.5rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  transition: all 0.3s ease;
+  background-color: var(--surface-panel);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+  border-radius: 8px;
 }
 
 body.dark-mode .file-upload-wrapper {
