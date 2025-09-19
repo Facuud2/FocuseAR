@@ -12,6 +12,7 @@
   align-items: stretch; /* HACE QUE AMBAS COLUMNAS TENGAN LA MISMA ALTURA */
   width: 100%;
   box-sizing: border-box;
+  padding-left: 2rem; 
 }
 
 .subjects-left-column,
@@ -466,4 +467,11 @@ select {
   .modal-header h3 {
     font-size: 1.3rem;
   }
+  
+  @media (max-width: 768px) {
+  .subjects-container {
+    padding-left: 0; /* en móvil que ocupe todo el ancho */
+  }
+}
+
 }
