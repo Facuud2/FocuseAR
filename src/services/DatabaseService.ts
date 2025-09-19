@@ -48,6 +48,7 @@ export interface StudyPlan {
   id?: string;
   userId: string;
   materialId: string;
+  subjectName?: string; // Added subjectName to StudyPlan interface
   generatedPlan: {
     title: string;
     summary?: string;
@@ -243,9 +244,17 @@ export class DatabaseService {
       const plansSnap = await getDocs(plansQuery);
       const plans: StudyPlan[] = [];
 
-      plansSnap.forEach((doc) => {
-        plans.push({ id: doc.id, ...doc.data() } as StudyPlan);
-      });
+      for (const doc of plansSnap.docs) {
+        const plan = { id: doc.id, ...doc.data() } as StudyPlan;
+        // Fetch associated material to get subjectName
+        if (plan.materialId) {
+          const material = await this.getMaterialById(plan.materialId);
+          if (material) {
+            plan.subjectName = material.subjectName; // Add subjectName to study plan
+          }
+        }
+        plans.push(plan);
+      }
 
       return plans;
     } catch (error) {
@@ -253,6 +262,22 @@ export class DatabaseService {
         '❌ Error al obtener planes de estudio del usuario:',
         error,
       );
+      throw error;
+    }
+  }
+
+  // 6.1. Obtener material por ID
+  static async getMaterialById(materialId: string): Promise<Material | null> {
+    try {
+      const materialRef = doc(db, 'materials', materialId);
+      const materialSnap = await getDoc(materialRef);
+
+      if (materialSnap.exists()) {
+        return { id: materialSnap.id, ...materialSnap.data() } as Material;
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Error al obtener material por ID:', error);
       throw error;
     }
   }
