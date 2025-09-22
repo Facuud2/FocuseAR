@@ -46,7 +46,31 @@
 
 import * as functions from 'firebase-functions';
 import cors from 'cors';
-import { onRequest } from 'firebase-functions/https';
+import { onDocumentDeleted } from 'firebase-functions/v2/firestore';
+import { onRequest } from 'firebase-functions/v2/https'; // Import onRequest
+
+import { storage } from 'firebase-admin';
+
+export const onMaterialDeleted = onDocumentDeleted(
+  'materials/{materialId}',
+  (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      console.log('No data associated with the event');
+      return;
+    }
+    const data = snapshot.data();
+    const storagePath = data.storagePath;
+
+    if (storagePath) {
+      const bucket = storage().bucket();
+      const file = bucket.file(storagePath);
+      return file.delete();
+    }
+
+    return null;
+  },
+);
 import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenAI } from '@google/genai';
 import { db } from './firebaseAdmin';
@@ -151,7 +175,7 @@ export const geminiResponse = onRequest(
 );
 */
 // Función de prueba mantenida para compatibilidad
-export const geminiResponseTest = functions.https.onRequest(
+export const geminiResponseTest = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1' },
   async (req, res) => {
     if (req.method === 'OPTIONS') {
@@ -268,9 +292,9 @@ export const askGeminiBot = onRequest(
           return str
             .toLowerCase()
             .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '') // quitar tildes
-            .replace(/[^a-z0-9áéíóúüñ\s]/gi, '') // quitar signos
-            .replace(/\s+/g, ' ') // espacios múltiples a uno
+            .replace(/[̀-ͤ]/g, '') // quitar tildes
+            .replace(/[^a-z0-9áéíóúüñ\000-~]/gi, '') // quitar signos
+            .replace(/ +/g, ' ')
             .trim();
         }
         const normalizedQuestion = normalize(question);
@@ -295,9 +319,9 @@ export const askGeminiBot = onRequest(
         }
         // Si no hay caché, llamar a Gemini
         const prompt = `Responde de forma breve, clara y sencilla, como si explicaras a un estudiante universitario. No uses formato Markdown, títulos, ni listas largas. Limítate a 3-4 frases simples. Si no sabes la respuesta, dilo de forma amable.
-        Materia: ${material}
-        Tema: ${topic}
-        Pregunta: ${question}`;
+Materia: ${material}
+Tema: ${topic}
+Pregunta: ${question}`;
         const response = await callGeminiWithRetry(prompt, 3, 1000);
         // Guardar en caché
         await cacheRef.set({
@@ -440,7 +464,12 @@ DATOS:
 - Días de la semana: ${weekDays && Array.isArray(weekDays) ? weekDays.map((d: number) => weekDayNames[d]).join(', ') : 'No especificado'}
 
 TEMAS:
-${topics.map((t: string, i: number) => `${i + 1}. ${t}`).join('\n')}
+${topics
+  .map((t: string, i: number) => `${i + 1}. ${t}`)
+  .join(
+    ' \
+',
+  )}
 
 INSTRUCCIONES (optimiza, usa días y permite descansos):
 1) Distribuye TODOS los temas entre las fechas disponibles, intentando usar la mayor cantidad de días posible. Si existen la capacidad de dias suficientes para los temas, podes dejar dias libres en según creas conveniente (estos se deberán dejar sin marcar la fecha y no se deberán incluir en el objeto).
@@ -506,3 +535,130 @@ Genera el JSON ahora.`;
     });
   },
 );
+
+// -----------------------------
+// Folder management functions
+// -----------------------------
+
+// Converted createFolder from onCall to onRequest
+export const createFolder = onRequest(
+  { region: 'us-central1' }, // No secrets needed for this function
+  async (req, res) => {
+    // Handle CORS preflight requests
+    if (req.method === 'OPTIONS') {
+      addCorsHeaders(res);
+      res.status(204).send('');
+      return;
+    }
+
+    corsHandler(req, res, async () => {
+      addCorsHeaders(res); // Add CORS headers for actual requests
+
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
+        return;
+      }
+
+      // Ensure the request body is parsed as JSON
+      const { name, path } = req.body || {};
+      const userId = req.body.userId; // Assuming userId is passed in the body for onRequest
+
+      if (!userId) {
+        res.status(401).json({ error: 'Unauthorized: User ID not provided.' });
+        return;
+      }
+
+      if (!name || !path) {
+        res
+          .status(400)
+          .json({ error: 'Missing arguments: "name" and "path".' });
+        return;
+      }
+
+      try {
+        const folder = {
+          name,
+          path,
+          userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        const docRef = await db.collection('folders').add(folder);
+        res.status(200).json({ id: docRef.id, success: true }); // Send success response
+      } catch (error) {
+        console.error('Error creating folder:', error);
+        res
+          .status(500)
+          .json({ error: 'Internal Server Error: Error creating folder.' });
+      }
+    });
+  },
+);
+
+export const renameFolder = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'The function must be called while authenticated.',
+    );
+  }
+
+  const { folderId, newName } = data;
+
+  if (!folderId || !newName) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'The function must be called with arguments "folderId" and "newName".',
+    );
+  }
+
+  try {
+    const folderRef = db.collection('folders').doc(folderId);
+    await folderRef.update({ name: newName, updatedAt: new Date() });
+    return { success: true };
+  } catch (error) {
+    console.error('Error renaming folder:', error);
+    throw new functions.https.HttpsError('internal', 'Error renaming folder.');
+  }
+});
+
+export const deleteFolder = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      'unauthenticated',
+      'The function must be called while authenticated.',
+    );
+  }
+
+  const { folderId, path } = data;
+
+  if (!folderId || !path) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'The function must be called with arguments "folderId" and "path".',
+    );
+  }
+
+  const parentPath = path.split('/').slice(0, -2).join('/') + '/';
+
+  try {
+    // Move materials to parent folder
+    const materialsSnapshot = await db
+      .collection('materials')
+      .where('path', '==', path)
+      .get();
+    const batch = db.batch();
+    materialsSnapshot.docs.forEach((doc) => {
+      batch.update(doc.ref, { path: parentPath });
+    });
+    await batch.commit();
+
+    // Delete folder
+    await db.collection('folders').doc(folderId).delete();
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error deleting folder:', error);
+    throw new functions.https.HttpsError('internal', 'Error deleting folder.');
+  }
+});
