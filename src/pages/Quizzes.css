@@ -2,7 +2,11 @@
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  background-color: var(--bg-color); /* Use CSS variable */
+  background-color: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
+  backdrop-filter: blur(10px); /* Glass effect */
+  border-radius: 15px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Modern shadow */
+  border: 1px solid rgba(255, 255, 255, 0.18); /* Subtle border */
   color: var(--text-color); /* Use CSS variable */
   transition: background-color 0.3s ease, color 0.3s ease;
 }
@@ -20,15 +24,16 @@
 }
 
 .quiz-card {
-  background-color: var(--card-bg); /* Use CSS variable */
-  border-radius: 8px;
-  box-shadow: 0 2px 4px var(--shadow); /* Use CSS variable */
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+  backdrop-filter: blur(5px); /* Subtle glass effect */
+  border-radius: 12px;
+  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.27); /* Modern shadow */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border */
   padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: transform 0.2s ease-in-out;
-  border: 1px solid var(--border-color); /* Use CSS variable */
 }
 
 .quiz-card:hover {
@@ -50,17 +55,19 @@
 
 .quiz-card a {
   display: inline-block;
-  background-color: var(--button-primary-bg); /* Use CSS variable */
-  color: white;
+  background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+  color: #333;
   padding: 8px 15px;
-  border-radius: 5px;
+  border-radius: 8px;
   text-decoration: none;
   font-weight: bold;
-  transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .quiz-card a:hover {
-  background-color: var(--button-primary-hover); /* Use CSS variable */
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 8px rgba(31, 38, 135, 0.2);
 }
 
 .empty-state {

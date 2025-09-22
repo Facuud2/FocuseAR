@@ -2,9 +2,11 @@
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
-  background-color: var(--card-bg); /* Use CSS variable */
-  border-radius: 12px;
-  box-shadow: 0 6px 20px var(--shadow); /* Use CSS variable */
+  background-color: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
+  backdrop-filter: blur(10px); /* Glass effect */
+  border-radius: 15px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Modern shadow */
+  border: 1px solid rgba(255, 255, 255, 0.18); /* Subtle border */
   color: var(--text-color); /* Use CSS variable */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -18,11 +20,14 @@
 
 .question-container {
   margin-bottom: 20px;
-  border: 1px solid var(--border-color); /* Use CSS variable */
-  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+  backdrop-filter: blur(5px); /* Subtle glass effect */
+  border-radius: 12px;
   padding: 20px;
-  background-color: var(--bg-color); /* Use CSS variable */
+  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.27); /* Modern shadow */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border */
 }
+
 
 .question-container h3 {
   font-size: 1.6em;
@@ -40,17 +45,18 @@
 .option-button {
   width: 100%;
   padding: 12px 15px;
-  border: 1px solid var(--border-color); /* Use CSS variable */
-  border-radius: 5px;
-  background-color: var(--button-secondary-bg); /* Use CSS variable */
-  color: var(--text-color); /* Use CSS variable */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #333;
   font-size: 1em;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
 .option-button:hover {
-  background-color: var(--button-secondary-hover); /* Use CSS variable */
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 8px rgba(31, 38, 135, 0.2);
 }
 
 .option-button.correct {
@@ -68,9 +74,11 @@
 .answer-container {
   margin-top: 20px;
   padding: 15px;
-  background-color: var(--card-bg); /* Use CSS variable */
-  border: 1px solid var(--accent-color); /* Use CSS variable */
-  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+  backdrop-filter: blur(5px); /* Subtle glass effect */
+  border-radius: 12px;
+  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.27); /* Modern shadow */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border */
   text-align: center;
 }
 

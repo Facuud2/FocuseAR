@@ -12,12 +12,14 @@
 }
 
 .quiz-modal {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
+  backdrop-filter: blur(10px); /* Glass effect */
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 15px; /* Softer corners */
   width: 80%;
   max-width: 600px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Modern shadow */
+  border: 1px solid rgba(255, 255, 255, 0.18); /* Subtle border */
 }
 
 .quiz-modal h2 {
@@ -36,15 +38,17 @@
 
 .option-button {
   padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #f0f0f0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  color: #333;
 }
 
 .option-button:hover {
-  background-color: #e0e0e0;
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 8px rgba(31, 38, 135, 0.2);
 }
 
 .option-button.correct {
@@ -67,8 +71,15 @@
 .close-button {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  background-color: #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.2);
   cursor: pointer;
+  color: #333;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 8px rgba(31, 38, 135, 0.2);
 }

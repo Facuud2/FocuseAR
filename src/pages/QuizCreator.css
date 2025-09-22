@@ -2,9 +2,11 @@
   padding: 20px;
   max-width: 800px;
   margin: 0 auto;
-  background-color: var(--bg-color); /* Use CSS variable */
-  border-radius: 12px;
-  box-shadow: 0 6px 20px var(--shadow); /* Use CSS variable */
+  background-color: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
+  backdrop-filter: blur(10px); /* Glass effect */
+  border-radius: 15px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37); /* Modern shadow */
+  border: 1px solid rgba(255, 255, 255, 0.18); /* Subtle border */
   color: var(--text-color); /* Use CSS variable */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -18,11 +20,13 @@
 }
 
 .quiz-creator-step {
-  background-color: var(--card-bg); /* Use CSS variable */
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+  backdrop-filter: blur(5px); /* Subtle glass effect */
   padding: 30px;
-  border-radius: 10px;
+  border-radius: 12px;
   margin-bottom: 20px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.27); /* Modern shadow */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border */
 }
 
 .quiz-creator-step h3 {

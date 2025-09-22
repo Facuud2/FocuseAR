@@ -86,9 +86,17 @@ const Subjects: React.FC = () => {
         },
       );
       if (!response.ok) {
-        throw new Error('Failed to generate quiz');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate quiz');
       }
-      navigate('/quizzes');
+      const responseData = await response.json();
+      if (responseData.success && responseData.quizId) {
+        navigate(`/quizzes/${responseData.quizId}`);
+      } else {
+        throw new Error(
+          'Failed to generate quiz: Invalid response from server.',
+        );
+      }
     } catch (error) {
       console.error(error);
     }

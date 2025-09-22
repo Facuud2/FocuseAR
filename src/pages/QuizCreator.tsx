@@ -84,7 +84,7 @@ const QuizCreator: React.FC = () => {
 
       // Call the Cloud Function to generate the quiz
       const response = await fetch(
-        'http://127.0.0.1:5001/proyecto-final-universitario/us-central1/generateQuizFromMaterial',
+        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateQuizFromMaterial', // Changed to deployed cloud function URL
         {
           method: 'POST',
           headers: {
@@ -93,8 +93,7 @@ const QuizCreator: React.FC = () => {
           body: JSON.stringify({
             materialId: materialId,
             userId: user.uid,
-            quizType: quizType,
-            text: extractedText, // Pass the extracted text to the Cloud Function
+            // Removed quizType and text as the cloud function does not use them directly for quiz generation
           }),
         },
       );
