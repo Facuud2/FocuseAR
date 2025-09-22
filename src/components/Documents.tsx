@@ -12,7 +12,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { storage } from '../firebase';
 import type { Folder as FolderType } from '../types/folder';
-import { getFolders } from '../services/folders'; // Corrected import path for getFolders
+import { getFolders, createFolder } from '../services/folders'; // Corrected import path for getFolders
 import {
   getUserMaterials,
   saveMaterialMetadata,
@@ -218,7 +218,7 @@ const DropTargetFolder = ({
       ref={drop}
       className="document-card"
       style={{ backgroundColor: isOver ? '#f0f0f0' : 'transparent' }}
-      onDoubleClick={() => onNavigate(`${folder.path}${folder.name}/`)}
+      onClick={() => onNavigate(`${folder.path}${folder.name}/`)}
       onContextMenu={(e) => onContextMenu(e, folder, 'folder')}
     >
       <div className="document-icon-wrapper">
@@ -285,8 +285,12 @@ const Documents: React.FC = () => {
 
   const handleCreateFolder = async (folderName: string) => {
     if (folderName && user) {
-      const createFolderFn = httpsCallable(functions, 'createFolder');
-      await createFolderFn({ name: folderName, path: currentPath });
+      // Use the local service function instead of Firebase Cloud Function
+      await createFolder({
+        name: folderName,
+        path: currentPath,
+        userId: user.uid,
+      });
       loadContent();
     }
   };

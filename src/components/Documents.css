@@ -1,4 +1,4 @@
-/* General Container */
+/* General Container*/
 .documents-container {
   display: flex;
   flex-direction: column;
@@ -9,7 +9,7 @@
   transition: background-color var(--transition), color var(--transition);
 }
 
-/* Header */
+/* Header*/
 .documents-header {
   display: flex;
   justify-content: space-between;
@@ -38,7 +38,7 @@
   color: var(--text-secondary); /* Use theme variable */
 }
 
-/* Main Content Area */
+/* Main Content Area*/
 .documents-main-content {
   display: grid;
   grid-template-columns: 1fr 2fr; /* Adjust column ratio */
@@ -46,7 +46,7 @@
   flex-grow: 1;
 }
 
-/* Panels */
+/* Panels*/
 .panel {
   background: var(--surface-color); /* Use theme variable */
   border: 1px solid var(--border-color); /* Use theme variable */
@@ -82,7 +82,7 @@
   color: var(--primary-color);
 }
 
-/* File Upload Demo */
+/* File Upload Demo*/
 .new-file-upload {
   border: 2px dashed var(--border-color);
   border-radius: var(--radius-md);
@@ -110,7 +110,7 @@
   color: var(--primary-color);
 }
 
-/* Documents List Panel */
+/* Documents List Panel*/
 .documents-list-panel {
   display: flex;
   flex-direction: column;
@@ -142,7 +142,7 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Breadcrumbs */
+/* Breadcrumbs*/
 .documents-list-panel > div:nth-child(2) {
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -153,7 +153,7 @@
   margin-right: 0.5rem;
 }
 
-/* Search Bar */
+/* Search Bar*/
 .search-container {
   margin-bottom: 1.5rem;
 }
@@ -176,14 +176,14 @@
   background: var(--surface-color); /* Solid background on focus */
 }
 
-/* Documents Grid */
+/* Documents Grid*/
 .documents-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Responsive grid */
   gap: 1.5rem;
 }
 
-/* Document/Folder Card */
+/* Document/Folder Card*/
 .document-card {
   background: var(--surface-color); /* Use theme variable */
   border: 1px solid var(--border-color); /* Use theme variable */
@@ -238,7 +238,7 @@
   color: var(--text-secondary); /* Use theme variable */
 }
 
-/* Tags Display */
+/* Tags Display*/
 .document-tags {
   display: flex;
   flex-wrap: wrap;
@@ -257,7 +257,7 @@
   white-space: nowrap;
 }
 
-/* Document Actions */
+/* Document Actions*/
 .document-actions {
   display: flex;
   gap: 0.5rem;
@@ -287,7 +287,7 @@
   background-color: rgba(var(--danger-color-rgb), 0.1);
 }
 
-/* PDF Viewer Modal */
+/* PDF Viewer Modal*/
 .pdf-viewer-modal-backdrop {
   position: fixed;
   top: 0;
@@ -347,7 +347,7 @@
   padding: 1.5rem;
 }
 
-/* Responsive Adjustments */
+/* Responsive Adjustments*/
 @media (max-width: 768px) {
   .documents-container {
     padding: 1.5rem;
@@ -450,5 +450,54 @@
 
   .document-actions button {
     padding: 0.3rem;
+  }
+}
+/* Additional Responsive Adjustments for smaller screens */
+@media (max-width: 768px) {
+  .documents-main-content {
+    grid-template-columns: 1fr; /* Stack panels vertically */
+  }
+
+  .documents-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Adjust for smaller screens */
+    gap: 1rem;
+  }
+
+  .documents-list-panel > div:first-child {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .documents-list-panel button {
+    width: 100%; /* Full width button */
+  }
+}
+
+@media (max-width: 480px) {
+  .documents-grid {
+    grid-template-columns: 1fr; /* Single column for very small screens */
+  }
+
+  .document-card {
+    flex-direction: row; /* Arrange icon and info horizontally */
+    text-align: left;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .document-icon-wrapper {
+    margin-bottom: 0;
+  }
+
+  .document-info {
+    flex-grow: 1;
+    margin-bottom: 0;
+  }
+
+  .document-actions {
+    flex-direction: column; /* Stack action buttons vertically */
+    gap: 0.25rem;
+    margin-top: 0;
   }
 }
