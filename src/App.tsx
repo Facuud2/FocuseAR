@@ -12,7 +12,7 @@ import { Toaster } from 'react-hot-toast';
 
 import ProtectedRoute from './ProtectedRoute';
 import Auth from './components/Auth';
-import Dashboard from './components/Dashboard';
+import Dashboard from './components/dashboard/Dashboard';
 //import PDFSummaryTest from './components/PDFSummaryTest'; ELIMINAR MÁS ADELANTE
 import Sidebar from './components/Sidebar';
 import AccountSettings from './components/AccountSettings';
