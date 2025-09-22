@@ -3,12 +3,12 @@ import './AIPlanner.css';
 import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
 import { type StudyPlanDay } from './Dashboard';
+import { usePlanner } from '../context/PlannerContext';
+import { type Topic } from '../types/studyPlan';
 
-interface Topic {
+interface TopicLocal {
   id: string;
   name: string;
-  description?: string;
-  order?: number;
 }
 
 interface Pdf {
@@ -28,7 +28,6 @@ interface Subject {
     date: string;
     type: 'exam' | 'tp' | 'other';
   }[];
-  extractedTopics?: Topic[];
 }
 
 interface StudyPlan {
@@ -36,7 +35,7 @@ interface StudyPlan {
   subjectName: string;
   eventName: string;
   examDate: string;
-  topics: string[];
+  topics: Topic[];
   studyDays: string[];
   content: string;
   structuredPlan:
@@ -66,6 +65,7 @@ interface StudyPlan {
 
 const AIPlanner = () => {
   const { user } = useContext(AuthContext);
+  const { extractedTopics } = usePlanner();
 
   const [topicCounter, setTopicCounter] = useState(1);
   const [generatingPlan, setGeneratingPlan] = useState(false);
@@ -75,16 +75,10 @@ const AIPlanner = () => {
     string | number | null
   >(null);
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const [topics, setTopics] = useState<TopicLocal[]>([]);
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [nextPlanId, setNextPlanId] = useState(1);
-
-  // currently selected subject object for convenience
-  const selectedSubject = subjects.find(
-    (s) => s.id === selectedSubjectForPlanning,
-  );
-  const subjectTopics: Topic[] = selectedSubject?.extractedTopics ?? [];
 
   const {
     getUserStudyPlans,
@@ -98,36 +92,24 @@ const AIPlanner = () => {
       if (!user) return;
       try {
         const materials = await getUserMaterials();
-        interface MaterialPartial {
-          id?: string;
-          subjectName?: string;
-          fileName?: string;
-          examDate?: string;
-          color?: string;
-          importantDates?: Subject['importantDates'];
-          extractedTopics?: Topic[];
-        }
-
         const convertedSubjects: Subject[] = materials.map(
-          (materialRaw: unknown, index) => {
-            const material = materialRaw as MaterialPartial;
+          (material, index) => {
             const subjectId = material.id || `subject-${Date.now()}-${index}`;
             return {
               id: subjectId,
               name:
                 material.subjectName ||
-                (material.fileName || '').replace(/\.(pdf|docx|doc)$/i, ''),
+                material.fileName.replace(/\.(pdf|docx|doc)$/i, ''),
               examDate: material.examDate || '',
               color: material.color || '#4285F4',
               pdfs: [
                 {
                   id: 1,
-                  name: material.fileName || 'unknown',
+                  name: material.fileName,
                   size: '0 MB',
                 },
               ],
               importantDates: material.importantDates || [],
-              extractedTopics: material.extractedTopics || [],
             };
           },
         );
@@ -162,14 +144,28 @@ const AIPlanner = () => {
             subjectName: plan.generatedPlan.title || 'Plan de Estudio',
             eventName: 'Examen',
             examDate: plan.generatedPlan.examDate || '',
-            topics: plan.generatedPlan.topics || [],
+            topics: Array.isArray(plan.generatedPlan.topics)
+              ? plan.generatedPlan.topics.map((topic) =>
+                  typeof topic === 'string'
+                    ? {
+                        id: `topic-${Date.now()}`,
+                        title: topic,
+                        description: '',
+                      }
+                    : topic,
+                )
+              : [],
             studyDays: plan.generatedPlan.studyDates || [],
             content: JSON.stringify(structuredPlan || {}),
             structuredPlan: structuredPlan,
             progress: 0,
-            createdAt:
-              plan.createdAt?.toDate?.()?.toISOString() ||
-              new Date().toISOString(),
+            createdAt: plan.createdAt
+              ? typeof plan.createdAt === 'object' && 'toDate' in plan.createdAt
+                ? plan.createdAt.toDate().toISOString()
+                : typeof plan.createdAt === 'string'
+                  ? plan.createdAt
+                  : new Date().toISOString()
+              : new Date().toISOString(),
             expanded: false,
           };
         });
@@ -235,70 +231,22 @@ const AIPlanner = () => {
         return;
       }
 
-      const weekDayNames = [
-        'domingo',
-        'lunes',
-        'martes',
-        'miércoles',
-        'jueves',
-        'viernes',
-        'sábado',
-      ];
-      const prompt = `
-Eres un asistente especializado en crear planes de estudio personalizados.
-
-DATOS DEL ESTUDIANTE:
-- Materia: ${selectedSubject.name}
-- Evento de estudio: ${selectedEvent.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
-- Fecha del examen: ${examDate ? formatDate(examDate) : 'No especificada'}
-- Días disponibles para estudiar: ${generatedStudyDates.length} días
-- Días disponibles: ${generatedStudyDates.length} (${selectedWeekDays.map((d) => weekDayNames[d]).join(', ')})
-
-TEMAS A ESTUDIAR:
-${topics.map((topic, topicIndex) => `${topicIndex + 1}. ${topic.name}`).join('\n')}
-
-INSTRUCCIONES:
-1. Distribuye los ${topics.length} temas entre los ${generatedStudyDates.length} días disponibles de manera equilibrada
-2. Para cada día asignado, especifica qué temas estudiar y proporciona un resumen breve de cada tema
-3. Incluye recomendaciones de tiempo de estudio por tema
-4. Organiza el plan cronológicamente por fechas y distribuye todos los temas entre todos los días disponibles
-5. Solo devolvé el JSON
-
-FORMATO DE RESPUESTA REQUERIDO:
-Devuelve ÚNICAMENTE un JSON válido con la siguiente estructura exacta:
-
-{
-  "title": "Plan de Estudio - [Materia] - [Evento]",
-  "summary": "Resumen general del plan de estudio",
-  "days": [
-    {
-      "date": "YYYY-MM-DD",
-      "dayNumber": 1,
-      "topics": [
-        {
-          "name": "Tema",
-          "summary": "Resumen breve",
-          "estimatedTime": "X horas"
-        }
-      ],
-      "totalTime": "X horas",
-      "recommendations": "Breve Recomendación"
-    }
-  ],
-  "finalRecommendations": "Consejos finales para el examen"
-}
-
-Genera el JSON del plan de estudio:`;
-
       const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse',
+        import.meta.env.VITE_GENERATE_PLAN_ENDPOINT,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            text: prompt,
+            subjectName: selectedSubject.name,
+            eventName: selectedEvent
+              .replace(/-/g, ' ')
+              .replace(/\b\w/g, (l) => l.toUpperCase()),
+            examDate: examDate,
+            topics: topics.map((topic) => topic.name),
+            studyDates: generatedStudyDates,
+            weekDays: selectedWeekDays,
           }),
         },
       );
@@ -309,52 +257,53 @@ Genera el JSON del plan de estudio:`;
 
       const result = await response.json();
       let studyPlan = '';
-      if (result.raw_response) {
+      let structuredPlan = null;
+
+      if (result.plan) {
+        // La respuesta viene con el plan ya parseado
+        structuredPlan = result.plan;
+        studyPlan = JSON.stringify(structuredPlan);
+      } else if (result.raw_response) {
+        // Fallback si viene en formato raw_response
         studyPlan = result.raw_response;
-      } else if (typeof result === 'string') {
-        studyPlan = result;
-      } else if (result.response) {
-        studyPlan = result.response;
-      } else if (result.summary) {
-        studyPlan = result.summary;
+        try {
+          const cleanedPlan = studyPlan
+            .replace(/^[^{]*/, '')
+            .replace(/[^}]*$/, '');
+          const parsedPlan = JSON.parse(cleanedPlan);
+
+          if (parsedPlan.days && Array.isArray(parsedPlan.days)) {
+            parsedPlan.days = parsedPlan.days.map((day: StudyPlanDay) => ({
+              ...day,
+              date: normalizeDate(day.date),
+              completed: false,
+            }));
+            structuredPlan = parsedPlan;
+          }
+        } catch (error: unknown) {
+          console.log(
+            '⚠️ No se pudo parsear como JSON, usando formato texto:',
+            error,
+          );
+        }
       } else {
-        studyPlan = JSON.stringify(result);
+        throw new Error('Formato de respuesta inesperado');
       }
 
-      studyPlan = studyPlan
-        .replace(/```markdown/g, '')
-        .replace(/```/g, '')
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
+      // Asegurar que el plan estructurado tenga el formato correcto
+      if (
+        structuredPlan &&
+        structuredPlan.days &&
+        Array.isArray(structuredPlan.days)
+      ) {
+        structuredPlan.days = structuredPlan.days.map((day: StudyPlanDay) => ({
+          ...day,
+          date: normalizeDate(day.date),
+          completed: false,
+        }));
+      }
 
       setGeneratedStudyPlan(studyPlan);
-
-      let structuredPlan = null;
-      try {
-        let jsonContent = studyPlan;
-        if (studyPlan.startsWith('json\n')) {
-          jsonContent = studyPlan.substring(5).trim();
-        }
-        const cleanedPlan = jsonContent
-          .replace(/^[^{]*/, '')
-          .replace(/[^}]*$/, '');
-        const parsedPlan = JSON.parse(cleanedPlan);
-
-        if (parsedPlan.days && Array.isArray(parsedPlan.days)) {
-          parsedPlan.days = parsedPlan.days.map((day: StudyPlanDay) => ({
-            ...day,
-            date: normalizeDate(day.date),
-            completed: false,
-          }));
-          structuredPlan = parsedPlan;
-        }
-      } catch (error: unknown) {
-        console.log(
-          '⚠️ No se pudo parsear como JSON, usando formato texto:',
-          error,
-        );
-      }
 
       try {
         const planId = await createStudyPlan({
@@ -368,7 +317,7 @@ Genera el JSON del plan de estudio:`;
             durationDays: generatedStudyDates.length,
             examDate: examDate,
             selectedWeekDays: selectedWeekDays,
-            topics: topics.map((t) => t.name),
+            topics: topics.map((t) => ({ id: t.id, title: t.name })),
             studyDates: generatedStudyDates,
             structuredPlan: structuredPlan as
               | {
@@ -417,7 +366,7 @@ Genera el JSON del plan de estudio:`;
           .replace(/-/g, ' ')
           .replace(/\b\w/g, (l) => l.toUpperCase()),
         examDate: examDate || '',
-        topics: topics.map((t) => t.name),
+        topics: topics.map((t) => ({ id: t.id, title: t.name })),
         studyDays: generatedStudyDates,
         content: studyPlan,
         structuredPlan: structuredPlan,
@@ -595,62 +544,58 @@ Genera el JSON del plan de estudio:`;
                 </div>
                 {selectedEvent && (
                   <div>
-                    {subjectTopics.length > 0 && (
+                    {extractedTopics.length > 0 && (
                       <div className="form-group">
                         <h4 className="label-heading">
                           🤖 Temas extraídos por IA del PDF (
-                          {subjectTopics.length} temas encontrados):
+                          {extractedTopics.length} temas encontrados):
                         </h4>
                         <div className="topic-list-container">
-                          {subjectTopics.map(
-                            (extractedTopic: Topic, index: number) => {
-                              const isAlreadyAdded = topics.some(
-                                (t) =>
-                                  t.name.toLowerCase() ===
-                                  extractedTopic.name.toLowerCase(),
-                              );
-                              return (
-                                <div
-                                  key={`planning-topic-${extractedTopic.id || index}`}
-                                  className={`topic-item ${isAlreadyAdded ? 'added' : ''}`}
-                                  onClick={() => {
-                                    if (!isAlreadyAdded) {
-                                      const newTopic = {
-                                        id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
-                                        name: extractedTopic.name,
-                                      };
-                                      setTopics([...topics, newTopic]);
-                                      setTopicCounter((prev) => prev + 1);
-                                    }
-                                  }}
-                                >
-                                  <div>
-                                    <span className="topic-name">
-                                      {index + 1}. {extractedTopic.name}
-                                    </span>
-                                    {extractedTopic.description && (
-                                      <div className="topic-description">
-                                        {extractedTopic.description}
-                                      </div>
-                                    )}
-                                  </div>
-                                  <button
-                                    className={`topic-add-btn ${isAlreadyAdded ? 'added' : ''}`}
-                                    disabled={isAlreadyAdded}
-                                  >
-                                    {isAlreadyAdded
-                                      ? '✓ Agregado'
-                                      : '+ Agregar'}
-                                  </button>
+                          {extractedTopics.map((extractedTopic, index) => {
+                            const isAlreadyAdded = topics.some(
+                              (t) =>
+                                t.name.toLowerCase() ===
+                                extractedTopic.name.toLowerCase(),
+                            );
+                            return (
+                              <div
+                                key={`planning-topic-${extractedTopic.id || index}`}
+                                className={`topic-item ${isAlreadyAdded ? 'added' : ''}`}
+                                onClick={() => {
+                                  if (!isAlreadyAdded) {
+                                    const newTopic = {
+                                      id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
+                                      name: extractedTopic.name,
+                                    };
+                                    setTopics([...topics, newTopic]);
+                                    setTopicCounter((prev) => prev + 1);
+                                  }
+                                }}
+                              >
+                                <div>
+                                  <span className="topic-name">
+                                    {index + 1}. {extractedTopic.name}
+                                  </span>
+                                  {extractedTopic.description && (
+                                    <div className="topic-description">
+                                      {extractedTopic.description}
+                                    </div>
+                                  )}
                                 </div>
-                              );
-                            },
-                          )}
+                                <button
+                                  className={`topic-add-btn ${isAlreadyAdded ? 'added' : ''}`}
+                                  disabled={isAlreadyAdded}
+                                >
+                                  {isAlreadyAdded ? '✓ Agregado' : '+ Agregar'}
+                                </button>
+                              </div>
+                            );
+                          })}
                         </div>
                         <button
                           onClick={() => {
-                            const newTopics = subjectTopics
-                              .filter((extractedTopic: Topic) => {
+                            const newTopics = extractedTopics
+                              .filter((extractedTopic) => {
                                 const isAlreadyAdded = topics.some(
                                   (t) =>
                                     t.name.toLowerCase() ===
@@ -658,7 +603,7 @@ Genera el JSON del plan de estudio:`;
                                 );
                                 return !isAlreadyAdded;
                               })
-                              .map((extractedTopic: Topic, index: number) => ({
+                              .map((extractedTopic, index) => ({
                                 id: `topic-${selectedSubjectForPlanning}-${topicCounter + index}`,
                                 name: extractedTopic.name,
                               }));

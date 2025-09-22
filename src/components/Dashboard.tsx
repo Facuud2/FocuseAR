@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import NotesAndChecklist from './NotesAndChecklist';
 import './Dashboard.css';
 import { Settings } from 'lucide-react';
+import type { Topic } from '../types/studyPlan';
 
 export type StudyPlanDay = {
   date: string;
@@ -25,7 +26,7 @@ interface StudyPlanData {
   subjectName: string;
   eventName: string;
   examDate: string;
-  topics: string[];
+  topics: Topic[];
   studyDays: string[];
   content: string;
   structuredPlan: {
@@ -80,14 +81,30 @@ const Dashboard: React.FC = () => {
             subjectColor: plan.generatedPlan?.subjectColor || '#4285F4',
             eventName: 'Examen',
             examDate: plan.generatedPlan?.examDate || '',
-            topics: plan.generatedPlan?.topics || [],
+            topics: Array.isArray(plan.generatedPlan?.topics)
+              ? plan.generatedPlan.topics.map((topic) =>
+                  typeof topic === 'string'
+                    ? {
+                        id: `topic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                        title: topic,
+                        description: '',
+                      }
+                    : topic,
+                )
+              : [],
             studyDays: plan.generatedPlan?.studyDates || [],
             content: JSON.stringify(plan.generatedPlan?.structuredPlan || {}),
-            structuredPlan: plan.generatedPlan?.structuredPlan || null,
+            structuredPlan:
+              (plan.generatedPlan
+                ?.structuredPlan as StudyPlanData['structuredPlan']) || null,
             progress: 0,
-            createdAt:
-              plan.createdAt?.toDate?.()?.toISOString() ||
-              new Date().toISOString(),
+            createdAt: plan.createdAt
+              ? typeof plan.createdAt === 'object' && 'toDate' in plan.createdAt
+                ? plan.createdAt.toDate().toISOString()
+                : typeof plan.createdAt === 'string'
+                  ? plan.createdAt
+                  : new Date().toISOString()
+              : new Date().toISOString(),
             expanded: false,
           };
         });

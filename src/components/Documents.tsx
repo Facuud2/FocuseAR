@@ -10,10 +10,10 @@ import {
   Download,
   Sun,
   Moon,
+  X,
 } from 'lucide-react';
 
-//ssa
-interface Document {
+interface DocumentType {
   id: number;
   name: string;
   size: string;
@@ -22,7 +22,10 @@ interface Document {
   uploadStatus: 'pending' | 'uploading' | 'completed' | 'failed';
 }
 
-const initialDocuments: Document[] = [
+// SIMULACIÓN de la base de datos para almacenar archivos
+const database = new Map<number, ArrayBuffer>();
+
+const initialDocuments: DocumentType[] = [
   {
     id: 1,
     name: 'Clase-1-Matematicas.pdf',
@@ -31,39 +34,15 @@ const initialDocuments: Document[] = [
     uploadProgress: 100,
     uploadStatus: 'completed',
   },
-  {
-    id: 2,
-    name: 'Resumen-Historia.docx',
-    size: '800 KB',
-    subject: 'Historia',
-    uploadProgress: 100,
-    uploadStatus: 'completed',
-  },
-  {
-    id: 3,
-    name: 'Quimica-Organica.pdf',
-    size: '5.1 MB',
-    subject: 'Química',
-    uploadProgress: 100,
-    uploadStatus: 'completed',
-  },
-  {
-    id: 4,
-    name: 'Introduccion-Fisica.pdf',
-    size: '1.2 MB',
-    subject: 'Física',
-    uploadProgress: 100,
-    uploadStatus: 'completed',
-  },
 ];
 
-// Placeholder para FileUpload, ya que el componente original no está disponible
 const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     onChange(files);
+    e.target.value = '';
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -89,6 +68,7 @@ const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
         style={{ display: 'none' }}
         ref={fileInputRef}
         onChange={handleFileSelect}
+        accept=".pdf"
       />
       <div className="upload-content">
         <Upload size={36} />
@@ -98,7 +78,6 @@ const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
   );
 };
 
-// Nuevo componente de subida de archivos
 const FileUploadDemo = ({
   onFilesUploaded,
 }: {
@@ -122,6 +101,10 @@ const Documents: React.FC = () => {
   const [documents, setDocuments] = useState(initialDocuments);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<DocumentType | null>(
+    null,
+  );
+  const [viewableUrl, setViewableUrl] = useState<string | null>(null);
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-mode' : '';
@@ -132,47 +115,116 @@ const Documents: React.FC = () => {
   };
 
   const uploadFiles = useCallback((files: File[]) => {
-    const newDocs: Document[] = files.map((file) => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-      subject: 'Sin asignar',
-      uploadProgress: 0,
-      uploadStatus: 'pending',
-    }));
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          const newDoc: DocumentType = {
+            id: Date.now() + Math.random(),
+            name: file.name,
+            size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+            subject: 'Sin asignar',
+            uploadProgress: 0,
+            uploadStatus: 'pending',
+          };
 
-    setDocuments((prevDocs) => [...prevDocs, ...newDocs]);
+          database.set(newDoc.id, e.target.result as ArrayBuffer);
 
-    newDocs.forEach((doc) => {
-      const interval = setInterval(() => {
-        setDocuments((prevDocs) =>
-          prevDocs.map((d) => {
-            if (d.id === doc.id) {
-              const newProgress = d.uploadProgress + 10;
-              if (newProgress >= 100) {
-                clearInterval(interval);
-                return { ...d, uploadProgress: 100, uploadStatus: 'completed' };
-              }
-              return {
-                ...d,
-                uploadProgress: newProgress,
-                uploadStatus: 'uploading',
-              };
-            }
-            return d;
-          }),
-        );
-      }, 200);
+          setDocuments((prevDocs) => [...prevDocs, newDoc]);
+
+          const interval = setInterval(() => {
+            setDocuments((prevDocs) =>
+              prevDocs.map((d) => {
+                if (d.id === newDoc.id) {
+                  const newProgress = d.uploadProgress + 10;
+                  if (newProgress >= 100) {
+                    clearInterval(interval);
+                    return {
+                      ...d,
+                      uploadProgress: 100,
+                      uploadStatus: 'completed',
+                    };
+                  }
+                  return {
+                    ...d,
+                    uploadProgress: newProgress,
+                    uploadStatus: 'uploading',
+                  };
+                }
+                return d;
+              }),
+            );
+          }, 200);
+        }
+      };
+      reader.readAsArrayBuffer(file);
     });
   }, []);
 
   const handleDelete = (id: number) => {
+    database.delete(id);
     setDocuments(documents.filter((doc) => doc.id !== id));
+    if (selectedDocument && selectedDocument.id === id) {
+      setSelectedDocument(null);
+      setViewableUrl(null);
+    }
+  };
+
+  const handleOpenViewer = (doc: DocumentType) => {
+    if (doc.name.toLowerCase().endsWith('.pdf')) {
+      const storedData = database.get(doc.id);
+      if (storedData) {
+        const blob = new Blob([storedData], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        setSelectedDocument(doc);
+        setViewableUrl(url);
+      } else {
+        // Para documentos de ejemplo, usar un PDF de prueba
+        const initialDoc = initialDocuments.find((d) => d.id === doc.id);
+        if (initialDoc) {
+          setSelectedDocument(doc);
+          setViewableUrl(
+            'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
+          );
+        }
+      }
+    }
   };
 
   const filteredDocuments = documents.filter((doc) =>
     doc.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  const handleDownload = (doc: DocumentType) => {
+    const storedData = database.get(doc.id);
+    if (storedData) {
+      const blob = new Blob([storedData], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } else {
+      const initialDoc = initialDocuments.find((d) => d.id === doc.id);
+      if (initialDoc) {
+        window.open(
+          'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
+          '_blank',
+        );
+      }
+    }
+  };
+
+  const closeViewer = () => {
+    if (viewableUrl && viewableUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(viewableUrl);
+    }
+    setSelectedDocument(null);
+    setViewableUrl(null);
+  };
 
   return (
     <div className="documents-container">
@@ -203,7 +255,6 @@ const Documents: React.FC = () => {
             <Folder className="panel-icon" />
             Documentos Subidos
           </h2>
-          {/* Componente de búsqueda de Uiverse */}
           <div className="search-container">
             <div id="poda">
               <div className="glow"></div>
@@ -308,18 +359,28 @@ const Documents: React.FC = () => {
                   <div className="document-actions">
                     {doc.uploadStatus === 'completed' && (
                       <>
-                        <button className="download-btn">
-                          <Download size={18}>
-                            <title>Descargar</title>
-                          </Download>
+                        {doc.name.toLowerCase().endsWith('.pdf') && (
+                          <button
+                            onClick={() => handleOpenViewer(doc)}
+                            className="view-btn"
+                            title="Ver PDF"
+                          >
+                            <FileText size={18} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDownload(doc)}
+                          className="download-btn"
+                          title="Descargar"
+                        >
+                          <Download size={18} />
                         </button>
                         <button
                           onClick={() => handleDelete(doc.id)}
                           className="delete-btn"
+                          title="Eliminar"
                         >
-                          <Trash2 size={18}>
-                            <title>Eliminar</title>
-                          </Trash2>
+                          <Trash2 size={18} />
                         </button>
                       </>
                     )}
@@ -330,17 +391,13 @@ const Documents: React.FC = () => {
                       <CheckCircle
                         size={20}
                         className="status-icon completed-icon"
-                      >
-                        <title>Carga Completa</title>
-                      </CheckCircle>
+                      />
                     )}
                     {doc.uploadStatus === 'failed' && (
                       <AlertCircle
                         size={20}
                         className="status-icon failed-icon"
-                      >
-                        <title>Error en la Carga</title>
-                      </AlertCircle>
+                      />
                     )}
                   </div>
                 </div>
@@ -356,6 +413,35 @@ const Documents: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {selectedDocument && viewableUrl && (
+        <div className="pdf-viewer-modal-backdrop">
+          <div className="pdf-viewer-modal-content">
+            <header className="pdf-viewer-header">
+              <h3>{selectedDocument.name}</h3>
+              <button className="close-modal-btn" onClick={closeViewer}>
+                <X size={24} />
+              </button>
+            </header>
+            <div
+              className="pdf-viewer-body"
+              style={{ width: '100%', height: '100%' }}
+            >
+              <object
+                data={viewableUrl}
+                type="application/pdf"
+                width="100%"
+                height="100%"
+              >
+                <p>
+                  Alternative text - include a link{' '}
+                  <a href={viewableUrl}>to the PDF!</a>
+                </p>
+              </object>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
