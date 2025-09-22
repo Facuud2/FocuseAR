@@ -96,50 +96,61 @@ const StudyArea: React.FC<StudyAreaProps> = ({
         examDate: plan.generatedPlan?.examDate || '',
         subjectColor: plan.generatedPlan?.subjectColor || '#4285F4',
         topics:
-          plan.generatedPlan?.topics?.map((topic: string, index: number) => {
-            // Buscar el estado de completado en dailyTasks o structuredPlan
-            let isCompleted = false;
+          plan.generatedPlan?.topics?.map(
+            (
+              topic: string | { title?: string; name?: string },
+              index: number,
+            ) => {
+              // Manejar tanto formato string como objeto
+              const topicName =
+                typeof topic === 'string'
+                  ? topic
+                  : topic.title || topic.name || 'Tema sin nombre';
+              // Buscar el estado de completado en dailyTasks o structuredPlan
+              let isCompleted = false;
 
-            // Verificar en dailyTasks si existe
-            if (plan.generatedPlan?.dailyTasks) {
-              const taskForTopic = plan.generatedPlan.dailyTasks.find((task) =>
-                task.task.toLowerCase().includes(topic.toLowerCase()),
-              );
-              if (taskForTopic) {
-                isCompleted = taskForTopic.completed || false;
-                console.log(
-                  `✅ [StudyArea] Tema "${topic}" encontrado en dailyTasks - Completado: ${isCompleted}`,
+              // Verificar en dailyTasks si existe
+              if (plan.generatedPlan?.dailyTasks) {
+                const taskForTopic = plan.generatedPlan.dailyTasks.find(
+                  (task) =>
+                    task.task.toLowerCase().includes(topicName.toLowerCase()),
                 );
-              }
-            }
-
-            // Verificar en structuredPlan si existe
-            if (plan.generatedPlan?.structuredPlan?.days) {
-              for (const day of plan.generatedPlan.structuredPlan.days) {
-                const topicInDay = day.topics.find((t) =>
-                  t.name.toLowerCase().includes(topic.toLowerCase()),
-                );
-                if (topicInDay) {
-                  // Verificar si el topic específico está completado o si el día completo está completado
-                  isCompleted =
-                    (topicInDay as { completed?: boolean }).completed ||
-                    day.completed ||
-                    false;
+                if (taskForTopic) {
+                  isCompleted = taskForTopic.completed || false;
                   console.log(
-                    `✅ [StudyArea] Tema "${topic}" encontrado en structuredPlan día ${day.dayNumber} - Completado: ${isCompleted}`,
+                    `✅ [StudyArea] Tema "${topicName}" encontrado en dailyTasks - Completado: ${isCompleted}`,
                   );
-                  break;
                 }
               }
-            }
 
-            return {
-              id: `topic-${index}`,
-              name: topic,
-              estimatedTime: '25 min',
-              completed: isCompleted,
-            };
-          }) || [],
+              // Verificar en structuredPlan si existe
+              if (plan.generatedPlan?.structuredPlan?.days) {
+                for (const day of plan.generatedPlan.structuredPlan.days) {
+                  const topicInDay = day.topics.find((t) =>
+                    t.name.toLowerCase().includes(topicName.toLowerCase()),
+                  );
+                  if (topicInDay) {
+                    // Verificar si el topic específico está completado o si el día completo está completado
+                    isCompleted =
+                      (topicInDay as { completed?: boolean }).completed ||
+                      day.completed ||
+                      false;
+                    console.log(
+                      `✅ [StudyArea] Tema "${topicName}" encontrado en structuredPlan día ${day.dayNumber} - Completado: ${isCompleted}`,
+                    );
+                    break;
+                  }
+                }
+              }
+
+              return {
+                id: `topic-${index}`,
+                name: topicName,
+                estimatedTime: '25 min',
+                completed: isCompleted,
+              };
+            },
+          ) || [],
       }));
 
       setStudyPlans(convertedPlans);

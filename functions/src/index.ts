@@ -44,13 +44,13 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-//import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions';
 import cors from 'cors';
 import { onRequest } from 'firebase-functions/https';
 import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenAI } from '@google/genai';
-//import { db } from './firebaseAdmin';
-//import crypto from 'crypto';
+import { db } from './firebaseAdmin';
+import crypto from 'crypto';
 
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 const corsHandler = cors({ origin: true });
@@ -65,7 +65,6 @@ function addCorsHeaders(res: {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 }
 
-/*
 // Función principal con CORS habilitado para desarrollo y producción
 export const geminiResponse = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
@@ -199,8 +198,6 @@ export const geminiResponseTest = functions.https.onRequest(
   },
 );
 
-
-
 // Nueva función: Consulta a Gemini sobre una materia y tema específico
 export const askGeminiBot = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
@@ -318,7 +315,7 @@ export const askGeminiBot = onRequest(
 );
 
 // -----------------------------
-// Función: processPdfTopics
+// Función: Procesar PDF y extraer temas
 // Recibe: { text: string, subjectName: string }
 // Responde: { parsed: {...} } o { raw_response: string }
 // -----------------------------
@@ -382,7 +379,7 @@ export const processPdfTopics = onRequest(
 );
 
 // -----------------------------
-// Función: generateStudyPlan
+// Función: Generar Plan de estudios
 // Recibe: { subjectName, eventName, examDate, topics: string[], studyDates: string[], weekDays?: number[] }
 // Responde: { plan: {...} } o { raw_response: string }
 // -----------------------------
@@ -503,8 +500,6 @@ Genera el JSON ahora.`;
     });
   },
 );
-
-*/
 
 // -----------------------------
 // Función: generateStudyContent
