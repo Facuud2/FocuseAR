@@ -119,7 +119,17 @@ const StudySchedule: React.FC = () => {
         subjectName: plan.generatedPlan.title || 'Plan de Estudio',
         eventName: 'Examen',
         examDate: plan.generatedPlan.examDate || '',
-        topics: plan.generatedPlan.topics || [],
+        topics: Array.isArray(plan.generatedPlan.topics)
+          ? plan.generatedPlan.topics.map((topic) =>
+              typeof topic === 'string'
+                ? {
+                    id: `topic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    title: topic,
+                    description: '',
+                  }
+                : topic,
+            )
+          : [],
         studyDays: plan.generatedPlan.studyDates || [],
         structuredPlan:
           (plan.generatedPlan.structuredPlan as StudyPlan['structuredPlan']) ||
