@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useDatabase } from '../../hooks/useDatabase';
-import { AuthContext } from '../../hooks/authContext';
+import { useDatabase } from '../hooks/useDatabase';
+import { AuthContext } from '../hooks/authContext';
 import { useNavigate } from 'react-router-dom';
-import NotesAndChecklist from '../NotesAndChecklist';
+import NotesAndChecklist from '../components/NotesAndChecklist';
 import './Dashboard.css';
 import { Settings } from 'lucide-react';
-import type { Topic } from '../../types/studyPlan';
+import type { Topic } from '../types/studyPlan';
 
 export type StudyPlanDay = {
   date: string;
