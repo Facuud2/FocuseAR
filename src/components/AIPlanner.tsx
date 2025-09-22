@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import './AIPlanner.css';
 import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
-import { type StudyPlanDay } from './Dashboard';
+import { type StudyPlanDay } from '../pages/Dashboard';
 import { usePlanner } from '../context/PlannerContext';
 import { type Topic } from '../types/studyPlan';
 
@@ -365,7 +365,7 @@ const AIPlanner = () => {
             dailyTasks: structuredPlan?.days
               ? structuredPlan.days.map((day: StudyPlanDay, index: number) => ({
                   day: index + 1,
-                  task: `${day.topics.map((t) => t.name).join(', ')} - ${day.recommendations}`,
+                  task: `${day.topics.map((t: { name: string }) => t.name).join(', ')} - ${day.recommendations}`,
                   completed: false,
                 }))
               : generatedStudyDates.map((date, index) => ({
