@@ -144,14 +144,28 @@ const AIPlanner = () => {
             subjectName: plan.generatedPlan.title || 'Plan de Estudio',
             eventName: 'Examen',
             examDate: plan.generatedPlan.examDate || '',
-            topics: plan.generatedPlan.topics || [],
+            topics: Array.isArray(plan.generatedPlan.topics)
+              ? plan.generatedPlan.topics.map((topic) =>
+                  typeof topic === 'string'
+                    ? {
+                        id: `topic-${Date.now()}`,
+                        title: topic,
+                        description: '',
+                      }
+                    : topic,
+                )
+              : [],
             studyDays: plan.generatedPlan.studyDates || [],
             content: JSON.stringify(structuredPlan || {}),
             structuredPlan: structuredPlan,
             progress: 0,
-            createdAt:
-              plan.createdAt?.toDate?.()?.toISOString() ||
-              new Date().toISOString(),
+            createdAt: plan.createdAt
+              ? typeof plan.createdAt === 'object' && 'toDate' in plan.createdAt
+                ? plan.createdAt.toDate().toISOString()
+                : typeof plan.createdAt === 'string'
+                  ? plan.createdAt
+                  : new Date().toISOString()
+              : new Date().toISOString(),
             expanded: false,
           };
         });
