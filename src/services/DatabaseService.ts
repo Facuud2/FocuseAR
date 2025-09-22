@@ -103,6 +103,17 @@ export interface AIConversation {
   updatedAt: Timestamp;
 }
 
+export interface UserEvent {
+  id?: string;
+  userId: string;
+  title: string;
+  type: 'study' | 'exam' | 'task';
+  date: string;
+  time: string;
+  color?: string;
+  createdAt: Timestamp;
+}
+
 export class DatabaseService {
   // 1. Crear o actualizar usuario cuando se autentica con Google
   static async createOrUpdateUser(user: User): Promise<UserData> {
@@ -464,6 +475,50 @@ export class DatabaseService {
       console.log('✅ Título de conversación actualizado');
     } catch (error) {
       console.error('❌ Error al actualizar título de conversación:', error);
+      throw error;
+    }
+  }
+
+  // 15. Crear un nuevo evento de usuario
+  static async createUserEvent(
+    event: Omit<UserEvent, 'id' | 'createdAt'>,
+  ): Promise<string> {
+    try {
+      console.log('📅 Creando evento de usuario en Firestore...');
+
+      const eventData: Omit<UserEvent, 'id'> = {
+        ...event,
+        createdAt: Timestamp.now(),
+      };
+
+      const eventRef = await addDoc(collection(db, 'userEvents'), eventData);
+      console.log('✅ Evento de usuario creado con ID:', eventRef.id);
+
+      return eventRef.id;
+    } catch (error) {
+      console.error('❌ Error al crear evento de usuario:', error);
+      throw error;
+    }
+  }
+
+  // 16. Obtener eventos de un usuario
+  static async getUserEvents(userId: string): Promise<UserEvent[]> {
+    try {
+      const eventsQuery = query(
+        collection(db, 'userEvents'),
+        where('userId', '==', userId),
+      );
+
+      const eventsSnap = await getDocs(eventsQuery);
+      const events: UserEvent[] = [];
+
+      eventsSnap.forEach((doc) => {
+        events.push({ id: doc.id, ...doc.data() } as UserEvent);
+      });
+
+      return events;
+    } catch (error) {
+      console.error('❌ Error al obtener eventos del usuario:', error);
       throw error;
     }
   }

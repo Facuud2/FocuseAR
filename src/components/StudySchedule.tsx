@@ -14,15 +14,8 @@ import { es } from 'date-fns/locale';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './StudySchedule.css';
-
-// Tipado para los eventos del calendario
-interface CalendarEvent {
-  type: 'study' | 'exam' | 'task';
-  title: string;
-  time: string;
-  date: string;
-  color?: string;
-}
+import { UserEvent } from '../services/DatabaseService'; // Import UserEvent
+import { Timestamp } from 'firebase/firestore'; // Import Timestamp
 
 // Tipado para los datos de la base de datos
 type StudyPlanDay = {
@@ -76,21 +69,23 @@ interface StudyPlan {
 
 const StudySchedule: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { getUserMaterials, getUserStudyPlans } = useDatabase();
+  const {
+    getUserMaterials,
+    getUserStudyPlans,
+    createUserEvent,
+    getUserEvents,
+  } = useDatabase();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
-  const [localEvents, setLocalEvents] = useState<CalendarEvent[]>([]);
+  const [localEvents, setLocalEvents] = useState<UserEvent[]>([]);
 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  const [newEvent, setNewEvent] = useState<{
-    title: string;
-    type: 'study' | 'exam' | 'task';
-    date: Date | null;
-    time: string;
-  }>({
+  const [newEvent, setNewEvent] = useState<
+    Partial<UserEvent> & { date: Date | null }
+  >({
     title: '',
     type: 'study',
     date: null,
@@ -123,10 +118,14 @@ const StudySchedule: React.FC = () => {
         structuredPlan: plan.generatedPlan.structuredPlan || undefined,
       }));
       setStudyPlans(convertedPlans);
+
+      // Fetch user events
+      const userEvents = await getUserEvents();
+      setLocalEvents(userEvents);
     } catch (error) {
       console.error('Error al cargar datos del usuario:', error);
     }
-  }, [user, getUserMaterials, getUserStudyPlans]);
+  }, [user, getUserMaterials, getUserStudyPlans, getUserEvents]);
 
   // CORRECCIÓN: El array de dependencias ahora solo incluye loadUserData
   useEffect(() => {
@@ -149,7 +148,7 @@ const StudySchedule: React.FC = () => {
   };
 
   const getCombinedEvents = () => {
-    const combinedEvents: { [date: string]: CalendarEvent[] } = {};
+    const combinedEvents: { [date: string]: UserEvent[] } = {};
 
     studyPlans.forEach((plan) => {
       if (plan.structuredPlan?.days) {
@@ -246,15 +245,15 @@ const StudySchedule: React.FC = () => {
     }
   };
 
-  const handleAddEvent = (e: React.FormEvent) => {
+  const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newEvent.title && newEvent.date) {
+    if (newEvent.title && newEvent.date && user) {
       const dateStr = format(newEvent.date, 'yyyy-MM-dd');
-      const newLocalEvent: CalendarEvent = {
+      const eventToSave: Omit<UserEvent, 'id' | 'createdAt' | 'userId'> = {
         title: newEvent.title,
-        type: newEvent.type,
+        type: newEvent.type || 'study',
         date: dateStr,
-        time: newEvent.time,
+        time: newEvent.time || '',
         color:
           newEvent.type === 'study'
             ? '#4285F4'
@@ -262,8 +261,24 @@ const StudySchedule: React.FC = () => {
               ? '#EA4335'
               : '#FBBC05',
       };
-      setLocalEvents([...localEvents, newLocalEvent]);
-      setNewEvent({ title: '', type: 'study', date: null, time: '' });
+
+      try {
+        const eventId = await createUserEvent(eventToSave);
+        if (eventId) {
+          setLocalEvents((prevEvents) => [
+            ...prevEvents,
+            {
+              ...eventToSave,
+              id: eventId,
+              userId: user.uid,
+              createdAt: Timestamp.now(),
+            },
+          ]);
+          setNewEvent({ title: '', type: 'study', date: null, time: '' });
+        }
+      } catch (error) {
+        console.error('Error al guardar el evento:', error);
+      }
     }
   };
 
