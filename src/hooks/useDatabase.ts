@@ -7,6 +7,7 @@ import type {
   AIConversation,
   AIConversationMessage,
 } from '../services/DatabaseService';
+import type { Topic } from '../types/studyPlan';
 import { AuthContext } from './authContext';
 
 export const useDatabase = () => {
@@ -21,12 +22,6 @@ export const useDatabase = () => {
       subjectName: string; // CORREGIDO: Parámetro agregado para el nombre de la materia
       examDate?: string; // CORREGIDO: Parámetro para la fecha del examen
       color?: string; // CORREGIDO: Parámetro para el color de la materia
-      extractedTopics?: Array<{
-        id: string;
-        name: string;
-        description?: string;
-        order: number;
-      }>; //CORREGIDO: Parámetro agregado para los temas extraídos
       importantDates?: Array<{
         name: string;
         date: string;
@@ -47,8 +42,6 @@ export const useDatabase = () => {
         const materialId = await DatabaseService.createMaterial({
           userId: user.uid,
           ...materialData,
-          // Nos aseguramos que los temas extraidos aparezcan si están presentes
-          extractedTopics: materialData.extractedTopics || [],
         });
 
         console.log('✅ Material creado:', materialId);
@@ -76,7 +69,7 @@ export const useDatabase = () => {
         durationDays: number;
         examDate?: string;
         selectedWeekDays?: number[];
-        topics?: string[];
+        topics?: Topic[];
         studyDates?: string[];
         subjectColor?: string; // CORREGIDO: Campo para el color de la materia
         structuredPlan?: {
