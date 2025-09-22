@@ -6,6 +6,7 @@ import type {
   StudyPlan,
   AIConversation,
   AIConversationMessage,
+  UserEvent,
 } from '../services/DatabaseService';
 import { AuthContext } from './authContext';
 
@@ -389,10 +390,11 @@ export const useDatabase = () => {
       setError(null);
 
       try {
-        const eventId = await DatabaseService.createUserEvent({
+        const eventToCreate: Omit<UserEvent, 'id' | 'createdAt'> = {
           userId: user.uid,
           ...eventData,
-        });
+        };
+        const eventId = await DatabaseService.createUserEvent(eventToCreate);
 
         console.log('✅ Evento de usuario creado:', eventId);
         return eventId;

@@ -14,7 +14,7 @@ import { es } from 'date-fns/locale';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './StudySchedule.css';
-import { UserEvent } from '../services/DatabaseService'; // Import UserEvent
+import type { UserEvent } from '../services/DatabaseService'; // Import UserEvent
 import { Timestamp } from 'firebase/firestore'; // Import Timestamp
 
 // Tipado para los datos de la base de datos
@@ -67,6 +67,14 @@ interface StudyPlan {
   };
 }
 
+interface NewEventState {
+  title: string;
+  type: 'study' | 'exam' | 'task';
+  date: Date | null;
+  time: string;
+  color?: string;
+}
+
 const StudySchedule: React.FC = () => {
   const { user } = useContext(AuthContext);
   const {
@@ -83,9 +91,7 @@ const StudySchedule: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  const [newEvent, setNewEvent] = useState<
-    Partial<UserEvent> & { date: Date | null }
-  >({
+  const [newEvent, setNewEvent] = useState<NewEventState>({
     title: '',
     type: 'study',
     date: null,
@@ -147,8 +153,10 @@ const StudySchedule: React.FC = () => {
     setCurrentYear(y);
   };
 
-  const getCombinedEvents = () => {
+  const getCombinedEvents = (userId: string | undefined) => {
     const combinedEvents: { [date: string]: UserEvent[] } = {};
+
+    if (!userId) return combinedEvents;
 
     studyPlans.forEach((plan) => {
       if (plan.structuredPlan?.days) {
@@ -163,6 +171,8 @@ const StudySchedule: React.FC = () => {
             time: day.totalTime || '',
             date: dateStr,
             color: subject?.color || '#1a73e8',
+            userId: userId,
+            createdAt: Timestamp.now(),
           });
         });
       }
@@ -177,7 +187,7 @@ const StudySchedule: React.FC = () => {
     return combinedEvents;
   };
 
-  const combinedEvents = getCombinedEvents();
+  const combinedEvents = getCombinedEvents(user?.uid);
 
   const renderDays = () => {
     const firstDay = new Date(currentYear, currentMonth, 1);
