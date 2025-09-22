@@ -1,135 +1,337 @@
 /* src/components/AccountSettings.css */
 
-/* --- Variables y Base --- */
+/* ===== VARIABLES Y BASE (REPETIDAS PARA MANTENER LA CONSISTENCIA) ===== */
 :root {
   --primary-color: #4285f4;
   --secondary-color: #34a853;
   --danger-color: #ea4335;
   --warning-color: #fbbc05;
-  --background-color: #f0f4f8;
+  --background-color: #f0f4f8; /* Soft blue-gray */
   --surface-color: #ffffff;
   --text-primary: #1f2937;
   --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
   --border-color: #e5e7eb;
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
   --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 12px 20px -4px rgba(0, 0, 0, 0.15), 0 8px 12px -2px rgba(0, 0, 0, 0.08);
+  --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --transition: all 0.3s ease;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ===== VARIABLES PARA MODO OSCURO ===== */
 [data-theme='dark'] {
+  --primary-color: #4A90E2;
+  --secondary-color: #63B5F6;
+  --danger-color: #FF6B6B;
+  --warning-color: #FFD700;
   --background-color: #1a202c;
   --surface-color: #2d3748;
   --text-primary: #f9fafb;
   --text-secondary: #cbd5e0;
+  --text-muted: #9ca3af;
   --border-color: #4a5568;
 }
 
+/* El body se gestiona en dashboard.css, pero se añade aquí para un CSS independiente si lo necesitas. */
 body.settings-page {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--background-color);
   color: var(--text-primary);
   line-height: 1.6;
   background: linear-gradient(135deg, #b7e9ff 0%, #286fb6 100%);
 }
 
-/* --- Contenedor Principal --- */
+/* ===== CONTENEDOR PRINCIPAL ===== */
 .settings-container {
   max-width: 900px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 4rem auto;
+  padding: 0 2rem;
+  animation: fadeInUp 0.8s ease-out;
 }
 
-/* --- Tarjetas de Configuración (AJUSTADO) --- */
+/* ===== TARJETAS DE CONFIGURACIÓN ===== */
 .settings-card {
   background: var(--surface-color);
   border-radius: var(--radius-lg);
-  padding: 1.5rem; /* Menor padding para celulares por defecto */
+  padding: 2.5rem;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   transition: var(--transition);
 }
 
+.settings-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+.settings-card-header {
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+}
+
 .settings-card-header h2 {
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .settings-card-header p {
-  font-size: clamp(0.9rem, 2vw, 1rem); /* Tamaño de fuente más pequeño en móviles */
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
 }
 
-/* --- Formularios y Botones --- */
+/* ===== SECCIONES DENTRO DE LA TARJETA ===== */
+.settings-section {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: border-bottom var(--transition);
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+}
+
+.settings-section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.settings-section-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+/* ===== FORMULARIOS ===== */
 .form-group {
-  margin-bottom: 1.25rem; /* Espacio más compacto entre los campos */
+  margin-bottom: 1.5rem;
 }
 
+.form-group label {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.form-control,
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 0.75rem; /* Padding más compacto en los inputs */
+  padding: 0.9rem 1.2rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
+  font-size: 1rem;
+  transition: var(--transition);
   background: var(--background-color);
   color: var(--text-primary);
-  font-size: 0.9rem; /* Fuente más pequeña para que quepa mejor */
 }
 
-.flex-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.form-control:focus,
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.1);
+  background: var(--surface-color);
 }
 
-.save-btn, .delete-account-btn {
-  width: 100%;
-  padding: 0.9rem; /* Padding más compacto en los botones */
-  font-size: 1rem;
+/* Estilo para los botones de guardar cambios */
+.save-btn {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #1a73e8 100%);
+  color: white;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.save-btn {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #1a73e8 100%);
-  color: white;
+.save-btn:hover {
+  background: linear-gradient(135deg, #1a73e8 0%, var(--primary-color) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
+/* Estilo para el botón de eliminar cuenta */
 .delete-account-btn {
   background-color: var(--danger-color);
   color: white;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
 }
 
-/* --- Botones de Días de la Semana --- */
+.delete-account-btn:hover {
+  background-color: #c52c20;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Estilos de utilidades (reutilizados) */
+.flex-group {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.flex-group .form-group {
+  flex: 1;
+}
+
+/* ===== NUEVAS REGLAS PARA BOTONES DE DÍAS DISPONIBLES ===== */
+
+/* Estilo para el contenedor de los botones */
 .availability-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(65px, 1fr)); /* Min-width reducido para que los botones sean más pequeños */
+  display: flex;
+  justify-content: space-between;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
+/* Estilo base del botón */
 .day-button {
-  padding: 0.6rem 0.5rem; /* Padding más compacto */
-  font-size: 0.9rem; /* Fuente más pequeña */
-  text-align: center;
   background-color: var(--background-color);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
+  font-weight: 600;
+  padding: 0.75rem 1rem;
   border-radius: var(--radius-md);
   cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+  
+  flex: 1 1 auto;
+  text-align: center;
+  white-space: nowrap; /* Evita que el texto se rompa */
+  min-width: 80px; /* Ancho mínimo para que el texto no se acorte demasiado */
+  
 }
 
+/* Estilo del botón cuando está activo (seleccionado) */
 .day-button.active {
   background-color: var(--primary-color);
   color: white;
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-/* --- Estilos de Membresía (AJUSTADOS Y MEJORADOS) --- */
+/* Solución de especificidad: 
+  El hover solo se aplica si el botón NO tiene la clase 'active'
+*/
+.day-button:not(.active):hover {
+  background-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transform: none; /* Desactiva la animación de translateY para el hover no activo */
+}
+
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .settings-container {
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  
+  .settings-card {
+    padding: 1.5rem;
+  }
+
+  .settings-card-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .flex-group {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Ajusta la visualización de los botones en pantallas pequeñas */
+  .availability-grid {
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .day-button {
+    flex-basis: auto;
+    width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+    .day-button {
+        flex-basis: auto;
+        width: auto;
+    }
+}
+
+
+/* ===== NUEVAS REGLAS PARA TABS ===== */
+.tabs-container {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 2.5rem;
+  gap: 1rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding-bottom: 0.5rem;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 0.75rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.3s ease;
+  border-bottom: 3px solid transparent;
+  flex-shrink: 0;
+}
+
+.tab-button:hover {
+  color: var(--primary-color);
+}
+
+.tab-button.active {
+  color: var(--primary-color);
+  border-bottom: 3px solid var(--primary-color);
+}
+
+.tab-content {
+  padding-top: 1rem;
+}
+
+
+/* ===== NUEVAS REGLAS PARA MEMBRESÍA PREMIUM ===== */
 .membership-plans-container {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
   margin-top: 2rem;
 }
@@ -174,6 +376,18 @@ body.settings-page {
   font-weight: 700;
   transform: rotate(45deg);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 2rem;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: var(--shadow-sm);
+}
+
+.plan-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
 }
 
 .plan-card h4 {
@@ -231,7 +445,86 @@ body.settings-page {
 }
 
 .checkout-modal {
-  width: 90%;
+  position: relative;
+  background: var(--surface-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  animation: slideUp 0.5s ease-out;
+}
+
+.checkout-close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.checkout-close:hover {
+  color: var(--danger-color);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.benefits-content {
+  padding: 2rem;
+  text-align: center;
+}
+
+.benefits-content h3 {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.benefits-content p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.benefits-content ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 1.5rem;
+  text-align: left;
+}
+
+.benefits-content li {
+  background: var(--background-color);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.benefits-content li:before {
+  content: '✓';
+  color: var(--secondary-color);
+  font-weight: bold;
+  margin-right: 0.75rem;
+}
+
+/* From Uiverse.io by zanina-yassine */
+.modal {
+  width: fit-content;
+  height: fit-content;
+  background: #FFFFFF;
+  box-shadow: 0px 187px 75px rgba(0, 0, 0, 0.01), 0px 105px 63px rgba(0, 0, 0, 0.05), 0px 47px 47px rgba(0, 0, 0, 0.09), 0px 12px 26px rgba(0, 0, 0, 0.1), 0px 0px 0px rgba(0, 0, 0, 0.1);
+  border-radius: 26px;
   max-width: 450px;
   background: var(--surface-color);
   padding: 2rem;
@@ -340,16 +633,56 @@ body.settings-page {
   .plan-card {
     padding: 2rem;
   }
-
-  .plan-card h4 {
-    font-size: 1.25rem;
+  100% {
+    transform: translate(-50%, -50%);
+    clip-path: inset(0 0 0 0);
   }
-  
-  .plan-price {
-    font-size: 1.8rem;
+}
+
+@keyframes glitch-anim-text {
+  0% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+  20% {
+    transform: translate(-3px, 2px);
+    clip-path: inset(50% 0 20% 0);
+  }
+  40% {
+    transform: translate(2px, -1px);
+    clip-path: inset(20% 0 60% 0);
+  }
+  60% {
+    transform: translate(-2px, 1px);
+    clip-path: inset(80% 0 5% 0);
+  }
+  80% {
+    transform: translate(2px, -2px);
+    clip-path: inset(30% 0 45% 0);
+  }
+  100% {
+    transform: translate(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Responsive para el modal de checkout */
+@media (max-width: 768px) {
+  .checkout-modal {
+    width: 90%;
   }
 
-  .split {
-    flex-direction: row;
+  .payment--options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    width: 100%;
+  }
+
+  .checkout-overlay .container {
+    padding: 0;
   }
 }

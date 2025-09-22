@@ -11,7 +11,6 @@ import {
 import { Toaster } from 'react-hot-toast';
 
 import ProtectedRoute from './ProtectedRoute';
-import PublicOnlyRoute from './PublicOnlyRoute';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
 //import PDFSummaryTest from './components/PDFSummaryTest'; ELIMINAR MÁS ADELANTE
@@ -65,11 +64,7 @@ function AppRoutes() {
         <main className="content-area">
           <Toaster position="top-right" />
           <Routes>
-            {/* Rutas públicas solo para usuarios NO autenticados */}
-            <Route element={<PublicOnlyRoute />}>
-              <Route path="/" element={<Auth />} />
-            </Route>
-            {/* Rutas protegidas solo para usuarios autenticados */}
+            <Route path="/" element={<Auth />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/study-schedule" element={<StudySchedule />} />
