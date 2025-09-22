@@ -15,9 +15,6 @@ import {
 import type { DocumentData } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 
-//Tipos usados
-import type { StudyPlan as StudyPlanType, Topic } from '../types/studyPlan';
-
 // Interfaces para la estructura de datos
 export interface UserData {
   uid: string;
@@ -46,12 +43,54 @@ export interface Material {
   updatedAt: Timestamp;
 }
 
-// NOTE: We keep the original interfaces above for other services, but for
-// study plans we prefer to reuse the typed definitions from
-// `src/types/studyPlan.ts` (Topic + StudyPlan) to represent editable topics.
+export interface StudyPlan {
+  id?: string;
+  userId: string;
+  materialId: string;
+  subjectName?: string; // Added subjectName to StudyPlan interface
+  generatedPlan: {
+    title: string;
+    summary?: string;
+    durationDays: number;
+    examDate?: string;
+    selectedWeekDays?: number[];
+    topics?: (string | Topic)[]; // Acepta un array que puede contener strings u objetos Topic
+    studyDates?: string[];
+    subjectColor?: string; // CORREGIDO: Campo para guardar el color de la materia
+    structuredPlan?: {
+      title: string;
+      summary: string;
+      days: Array<{
+        date: string;
+        dayNumber: number;
+        topics: Array<{
+          name: string;
+          summary: string;
+          estimatedTime: string;
+        }>;
+        totalTime: string;
+        recommendations: string;
+        completed: boolean;
+      }>;
+      finalRecommendations: string;
+    } | null;
+    dailyTasks: Array<{
+      day: number;
+      task: string;
+      completed?: boolean;
+    }>;
+  };
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
 
-// Alias the imported StudyPlanType to avoid name collision with older exports
-export type StudyPlan = StudyPlanType;
+// Interfaz para temas
+export interface Topic {
+  id: string;
+  title: string;
+  description?: string;
+  order?: number;
+}
 
 // Interfaces para conversaciones de IA
 export interface AIConversationMessage {
@@ -78,7 +117,7 @@ export class DatabaseService {
   }
   // Ayuda: garantiza que los temas sean objetos (Topic[]). Si se encuentra la cadena heredada string[],
   // convierte cada cadena en un tema con el ID generado y una descripción vacía.
-  private static normalizeTopics(rawTopics: unknown[] | undefined): Topic[] {
+  public static normalizeTopics(rawTopics: unknown[] | undefined): Topic[] {
     if (!rawTopics) return [];
 
     return rawTopics.map((t) => {
@@ -180,19 +219,28 @@ export class DatabaseService {
     try {
       console.log('📘 Creando plan de estudio en Firestore...');
 
-      // Asegúrese de que los temas estén normalizados antes de guardarlos. El plan de estudio entrante
-      // puede contener generatedPlan.topics como string[] (heredado) o Topic[].
-      const normalizedTopics = this.normalizeTopics(
-        (studyPlan as unknown as DocumentData).generatedPlan
-          ?.topics as unknown[],
-      );
+      // Crear una copia del plan de estudio para no modificar el original
+      const studyPlanCopy = { ...studyPlan };
+
+      // Normalizar los temas si existen
+      if (studyPlanCopy.generatedPlan.topics) {
+        const topicsToNormalize = Array.isArray(
+          studyPlanCopy.generatedPlan.topics,
+        )
+          ? studyPlanCopy.generatedPlan.topics
+          : [];
+
+        const normalizedTopics = this.normalizeTopics(topicsToNormalize);
+
+        // Actualizar la copia con los temas normalizados
+        studyPlanCopy.generatedPlan = {
+          ...studyPlanCopy.generatedPlan,
+          topics: normalizedTopics,
+        };
+      }
 
       const studyPlanData: StudyPlan = {
-        ...studyPlan,
-        generatedPlan: {
-          ...studyPlan.generatedPlan,
-          topics: normalizedTopics,
-        },
+        ...studyPlanCopy,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -259,25 +307,17 @@ export class DatabaseService {
       const plansSnap = await getDocs(plansQuery);
       const plans: StudyPlan[] = [];
 
-      plansSnap.forEach((doc) => {
-        const raw = doc.data() as DocumentData;
-
-        const normalized: StudyPlan = {
-          id: doc.id,
-          userId: raw.userId as string,
-          materialId: raw.materialId as string,
-          generatedPlan: {
-            ...(raw.generatedPlan as DocumentData),
-            topics: this.normalizeTopics(
-              (raw.generatedPlan as DocumentData)?.topics as unknown[],
-            ),
-          } as StudyPlanType['generatedPlan'],
-          createdAt: raw.createdAt,
-          updatedAt: raw.updatedAt,
-        };
-
-        plans.push(normalized);
-      });
+      for (const doc of plansSnap.docs) {
+        const plan = { id: doc.id, ...doc.data() } as StudyPlan;
+        // Fetch associated material to get subjectName
+        if (plan.materialId) {
+          const material = await this.getMaterialById(plan.materialId);
+          if (material) {
+            plan.subjectName = material.subjectName; // Add subjectName to study plan
+          }
+        }
+        plans.push(plan);
+      }
 
       return plans;
     } catch (error) {
@@ -285,6 +325,22 @@ export class DatabaseService {
         '❌ Error al obtener planes de estudio del usuario:',
         error,
       );
+      throw error;
+    }
+  }
+
+  // 6.1. Obtener material por ID
+  static async getMaterialById(materialId: string): Promise<Material | null> {
+    try {
+      const materialRef = doc(db, 'materials', materialId);
+      const materialSnap = await getDoc(materialRef);
+
+      if (materialSnap.exists()) {
+        return { id: materialSnap.id, ...materialSnap.data() } as Material;
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Error al obtener material por ID:', error);
       throw error;
     }
   }
