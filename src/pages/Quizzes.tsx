@@ -23,11 +23,25 @@ interface Quiz {
 
 const Quizzes: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { getQuizzes } = useDatabase();
+  const { getQuizzes, deleteQuiz } = useDatabase();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+
+  const handleDeleteQuiz = async (quizId: string) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este quiz?')) {
+      try {
+        await deleteQuiz(quizId);
+        setQuizzes((prevQuizzes) =>
+          prevQuizzes.filter((quiz) => quiz.id !== quizId),
+        );
+      } catch (error) {
+        console.error('Error al eliminar el quiz:', error);
+        alert('Hubo un error al eliminar el quiz.');
+      }
+    }
+  };
 
   useEffect(() => {
     const loadQuizzes = async () => {
@@ -43,7 +57,7 @@ const Quizzes: React.FC = () => {
       }
     };
     loadQuizzes();
-  }, [user, getQuizzes]);
+  }, [user, getQuizzes, deleteQuiz]);
 
   // Define a type for Firestore Timestamp-like objects
   interface FirestoreTimestamp {
@@ -125,7 +139,7 @@ const Quizzes: React.FC = () => {
   return (
     <div className="quizzes-dashboard-container">
       <header className="quizzes-dashboard-header">
-        <h2>Mis Quizzes y Flashcards</h2>
+        <h2>Mis Quizzes</h2>
         <div className="header-actions">
           <Link to="/create-quiz" className="create-quiz-btn">
             + Crear Nuevo
@@ -185,6 +199,12 @@ const Quizzes: React.FC = () => {
               <Link to={`/quiz/${quizItem.id}`} className="play-quiz-btn">
                 Jugar
               </Link>
+              <button
+                onClick={() => quizItem.id && handleDeleteQuiz(quizItem.id)}
+                className="delete-quiz-btn"
+              >
+                Eliminar
+              </button>
             </div>
           ))}
         </div>

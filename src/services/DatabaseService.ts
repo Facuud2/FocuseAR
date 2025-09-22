@@ -253,7 +253,7 @@ export class DatabaseService {
     try {
       const plansQuery = query(
         collection(db, 'studyPlans'),
-        where('userId', '==', userId),
+        where('materialId', '==', userId),
       );
 
       const plansSnap = await getDocs(plansQuery);
@@ -493,6 +493,18 @@ export class DatabaseService {
       return null;
     } catch (error) {
       console.error('❌ Error al obtener el quiz:', error);
+      throw error;
+    }
+  }
+
+  // 17. Delete a quiz by its ID
+  static async deleteQuiz(quizId: string): Promise<void> {
+    try {
+      const quizRef = doc(db, 'quizzes', quizId);
+      await deleteDoc(quizRef);
+      console.log('✅ Quiz eliminado exitosamente');
+    } catch (error) {
+      console.error('❌ Error al eliminar el quiz:', error);
       throw error;
     }
   }

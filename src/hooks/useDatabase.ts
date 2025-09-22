@@ -420,6 +420,23 @@ export const useDatabase = () => {
     [user],
   );
 
+  const deleteQuiz = useCallback(async (quizId: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await DatabaseService.deleteQuiz(quizId);
+      console.log('✅ Quiz eliminado:', quizId);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al eliminar quiz:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Limpiar error
   const clearError = useCallback(() => {
     setError(null);
@@ -444,5 +461,6 @@ export const useDatabase = () => {
     updateConversationTitle,
     getQuizzes,
     getQuiz,
+    deleteQuiz,
   };
 };

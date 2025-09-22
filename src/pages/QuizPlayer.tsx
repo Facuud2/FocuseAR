@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { Timestamp } from 'firebase/firestore';
@@ -31,6 +31,7 @@ const QuizPlayer: React.FC = () => {
   const [score, setScore] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const navigate = useNavigate(); // Moved to top level
 
   // Helper function to convert Firestore timestamp to string
   const formatDate = (date: string | Timestamp | Date | undefined): string => {
@@ -150,6 +151,7 @@ const QuizPlayer: React.FC = () => {
         <p>
           Tu puntuación final es: {score} de {quiz.questions.length}
         </p>
+        <button onClick={() => navigate('/quizzes')}>Volver a Quizzes</button>
       </div>
     );
   }
