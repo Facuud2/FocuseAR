@@ -249,11 +249,32 @@
   transform: translateY(-1px);
 }
 
+.delete-quiz-btn {
+  background-color: #dc3545; /* Red color for delete */
+  color: white;
+  padding: 8px 15px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  margin-top: 10px; /* Space from play button */
+}
+
+.delete-quiz-btn:hover {
+  background-color: #c82333;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .quizzes-dashboard-container {
+    padding: 15px;
+  }
+
   .quizzes-dashboard-header {
     flex-direction: column;
     align-items: flex-start;
+    margin-bottom: 20px;
   }
 
   .quizzes-dashboard-header h2 {
@@ -264,11 +285,15 @@
   .create-quiz-btn {
     width: 100%;
     justify-content: center;
+    font-size: 1em;
+    padding: 10px 20px;
   }
 
   .quizzes-controls {
     flex-direction: column;
     gap: 15px;
+    margin-bottom: 20px;
+    padding: 10px;
   }
 
   .filter-options,
@@ -279,10 +304,13 @@
   .filter-options select,
   .sort-options select {
     width: 100%;
+    font-size: 0.9em;
+    padding: 6px 10px;
   }
 
   .quizzes-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
 
   .quiz-card {
@@ -291,5 +319,52 @@
 
   .quiz-card h3 {
     font-size: 1.5em;
+  }
+
+  .play-quiz-btn,
+  .delete-quiz-btn {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  }
+}
+
+@media (max-width: 480px) {
+  .quizzes-dashboard-container {
+    padding: 10px;
+  }
+
+  .quizzes-dashboard-header h2 {
+    font-size: 1.8em;
+  }
+
+  .create-quiz-btn {
+    font-size: 0.9em;
+    padding: 8px 15px;
+  }
+
+  .filter-options label,
+  .sort-options label {
+    font-size: 0.9em;
+  }
+
+  .filter-options select,
+  .sort-options select {
+    font-size: 0.8em;
+    padding: 5px 8px;
+  }
+
+  .quiz-card h3 {
+    font-size: 1.3em;
+  }
+
+  .quiz-card p {
+    font-size: 0.8em;
+  }
+
+  .play-quiz-btn,
+  .delete-quiz-btn {
+    font-size: 0.9em;
+    padding: 8px 10px;
   }
 }

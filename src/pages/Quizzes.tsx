@@ -3,7 +3,6 @@ import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { Link } from 'react-router-dom';
 import { Timestamp } from 'firebase/firestore';
-import './Quizzes.css'; // For individual quiz card styles
 import './QuizzesDashboard.css'; // For dashboard specific styles
 
 interface QuizQuestion {
