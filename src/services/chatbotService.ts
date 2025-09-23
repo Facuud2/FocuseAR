@@ -1,4 +1,4 @@
-import { getDocs, collection } from 'firebase/firestore';
+import { getDocs, collection, getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export interface ChatbotMaterial {
@@ -21,8 +21,8 @@ interface StudyPlan {
 export const getUserMaterialsAndTopics = async (
   userId: string,
 ): Promise<ChatbotMaterial[]> => {
-  // 1. Obtener todos los planes de estudio del usuario
-  const studyPlansSnap = await getDocs(collection(db, 'study_plans'));
+  // 1. Obtener todos los planes de estudio del usuario (colección unificada: 'studyPlans')
+  const studyPlansSnap = await getDocs(collection(db, 'studyPlans'));
   const studyPlans = studyPlansSnap.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
     .filter((plan) => (plan as StudyPlan).userId === userId) as StudyPlan[];
@@ -37,9 +37,55 @@ export const getUserMaterialsAndTopics = async (
       materialName = plan.generatedPlan.title;
     }
     // console.log('DEBUG materialName:', materialName, 'plan:', plan);
+
     let topics: string[] = [];
     if (plan.generatedPlan && Array.isArray(plan.generatedPlan.topics)) {
-      topics = plan.generatedPlan.topics;
+      topics = plan.generatedPlan.topics
+        .map((t: unknown) => {
+          if (typeof t === 'string') return t;
+          if (t && typeof t === 'object') {
+            const o = t as Record<string, unknown>;
+            return (
+              (typeof o.title === 'string' && o.title) ||
+              (typeof o.name === 'string' && o.name) ||
+              (typeof o.id === 'string' && o.id) ||
+              JSON.stringify(o)
+            );
+          }
+          return '';
+        })
+        .filter((s) => s && s.length > 0);
+    }
+
+    // Si no hay topics en el plan, intentar leer extractedTopics desde el material (si existe)
+    if ((!topics || topics.length === 0) && materialId) {
+      try {
+        const materialRef = doc(db, 'materials', materialId);
+        const materialSnap = await getDoc(materialRef);
+        if (materialSnap.exists()) {
+          const materialData = materialSnap.data();
+          const extracted = materialData?.extractedTopics;
+          if (Array.isArray(extracted) && extracted.length > 0) {
+            topics = extracted
+              .map((t: unknown) => {
+                if (typeof t === 'string') return t;
+                if (t && typeof t === 'object') {
+                  const o = t as Record<string, unknown>;
+                  return (
+                    (typeof o.name === 'string' && o.name) ||
+                    (typeof o.title === 'string' && o.title) ||
+                    (typeof o.id === 'string' && o.id) ||
+                    JSON.stringify(o)
+                  );
+                }
+                return '';
+              })
+              .filter((s: string) => s && s.length > 0);
+          }
+        }
+      } catch (e) {
+        console.warn('Error leyendo extractedTopics del material:', e);
+      }
     }
     results.push({ materialId, materialName, topics });
   }

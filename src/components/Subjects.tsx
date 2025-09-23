@@ -40,7 +40,7 @@ interface AnalysisState {
 
 const Subjects: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { setExtractedTopics } = usePlanner();
+  const { extractedTopics, setExtractedTopics } = usePlanner();
   const {
     loading: dbLoading,
     getUserMaterials,
@@ -200,6 +200,11 @@ const Subjects: React.FC = () => {
           fileType: 'pdf',
           color: selectedColor,
           examDate: importantDates.length > 0 ? importantDates[0].date : '',
+          // Guardar los temas extraídos junto con el material (si existen)
+          extractedTopics:
+            extractedTopics && extractedTopics.length > 0
+              ? extractedTopics
+              : undefined,
           importantDates: importantDates,
         });
 

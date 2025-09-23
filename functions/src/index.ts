@@ -371,39 +371,113 @@ export const generateStudyPlan = onRequest(
         return;
       }
 
-      const { subjectName, eventName, examDate, topics, studyDates, weekDays } =
+      const { subjectName, eventName, examDate, topics, userId } =
         req.body || {};
+
+      // Minimal validation: client must send subjectName, topics array, userId and examDate
       if (
         !subjectName ||
         !topics ||
         !Array.isArray(topics) ||
-        !studyDates ||
-        !Array.isArray(studyDates)
+        !userId ||
+        !examDate
       ) {
         res.status(400).json({
-          error: "Campos requeridos: 'subjectName', 'topics[]', 'studyDates[]'",
+          error:
+            "Campos requeridos: 'subjectName', 'topics[]', 'userId' y 'examDate'",
         });
         return;
       }
 
+      // Helper: compute YYYY-MM-DD strings between start and end (inclusive) matching allowed weekdays
+      function computeStudyDatesBetween(
+        start: Date,
+        end: Date,
+        allowedWeekDays: number[],
+      ) {
+        const dates: string[] = [];
+        const cur = new Date(start);
+        while (cur <= end) {
+          const wd = cur.getDay();
+          if (allowedWeekDays.includes(wd)) {
+            dates.push(cur.toISOString().slice(0, 10));
+          }
+          cur.setDate(cur.getDate() + 1);
+        }
+        return dates;
+      }
+
+      // Read user settings - must exist and contain selectedWeekDays
+      const settingsRef = db.collection('user_settings').doc(String(userId));
+      const settingsSnap = await settingsRef.get();
+      if (!settingsSnap.exists) {
+        res
+          .status(400)
+          .json({
+            error:
+              'No se encontró configuración de usuario (user_settings) para este userId.',
+          });
+        return;
+      }
+      const settings = settingsSnap.data();
+      const selectedWeekDays: number[] | undefined =
+        settings && Array.isArray(settings.selectedWeekDays)
+          ? settings.selectedWeekDays
+          : undefined;
+      if (!selectedWeekDays || selectedWeekDays.length === 0) {
+        res
+          .status(400)
+          .json({
+            error:
+              'La configuración de usuario no contiene días de estudio (selectedWeekDays).',
+          });
+        return;
+      }
+
+      // Parse examDate and compute studyDates between today and exam
+      const now = new Date();
+      const startDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      );
+      const parsedExam = new Date(String(examDate));
+      if (isNaN(parsedExam.getTime())) {
+        res.status(400).json({ error: "'examDate' no es una fecha válida." });
+        return;
+      }
+
+      const studyDates = computeStudyDatesBetween(
+        startDate,
+        parsedExam,
+        selectedWeekDays,
+      );
+      if (!studyDates || studyDates.length === 0) {
+        res
+          .status(400)
+          .json({
+            error:
+              'No hay días de estudio disponibles entre hoy y la fecha del examen según la configuración del usuario.',
+          });
+        return;
+      }
+
+      // Also compute calendar days between start and exam (inclusive)
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const calendarDays =
+        Math.floor((parsedExam.getTime() - startDate.getTime()) / msPerDay) + 1;
+
       try {
-        const weekDayNames = [
-          'domingo',
-          'lunes',
-          'martes',
-          'miércoles',
-          'jueves',
-          'viernes',
-          'sábado',
-        ];
+        // Build prompt: include computed studyDates info for the model to schedule topics.
         const prompt = `Eres un asistente especializado en crear planes de estudio personalizados.
 
 DATOS:
 - Materia: ${subjectName}
 - Evento: ${eventName || 'No especificado'}
 - Fecha del examen: ${examDate || 'No especificada'}
-- Días disponibles (${studyDates.length}): ${studyDates.join(', ')}
-- Días de la semana: ${weekDays && Array.isArray(weekDays) ? weekDays.map((d: number) => weekDayNames[d]).join(', ') : 'No especificado'}
+- Días calendario entre hoy y el examen: ${calendarDays}
+- Número de fechas de estudio disponibles según la configuración del usuario: ${studyDates.length}
+- Fechas disponibles: ${studyDates.join(', ')}
 
 TEMAS:
 ${topics.map((t: string, i: number) => `${i + 1}. ${t}`).join('\n')}

@@ -11,6 +11,11 @@ interface TopicLocal {
   name: string;
 }
 
+interface UserAvailability {
+  availability?: Record<string, boolean>;
+  selectedWeekDays?: number[];
+}
+
 interface Pdf {
   id: number;
   name: string;
@@ -77,15 +82,19 @@ const AIPlanner = () => {
   >(null);
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [topics, setTopics] = useState<TopicLocal[]>([]);
-  const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
+  const [userAvailability, setUserAvailability] =
+    useState<UserAvailability | null>(null);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [materials, setMaterials] = useState<unknown[]>([]);
+  // Contador local para generar IDs temporales para planes creados en sesión
+  const [nextPlanId, setNextPlanId] = useState<number>(Date.now());
 
   const {
     getUserStudyPlans,
     createStudyPlan,
     deleteStudyPlan,
     getUserMaterials,
+    getUserAvailability,
   } = useDatabase();
 
   useEffect(() => {
@@ -201,20 +210,56 @@ const AIPlanner = () => {
     loadUserData();
   }, [user, getUserStudyPlans, getUserMaterials, setExtractedTopics]);
 
+  // Cargar disponibilidad del usuario por separado
+  useEffect(() => {
+    const loadAvailability = async () => {
+      if (!user) return;
+      try {
+        const availability = await getUserAvailability(user.uid);
+        setUserAvailability(availability || null);
+      } catch (err) {
+        console.warn('No se pudo cargar la disponibilidad del usuario:', err);
+        setUserAvailability(null);
+      }
+    };
+    loadAvailability();
+  }, [user, getUserAvailability]);
+
   const removeTopic = (id: string) => {
     setTopics(topics.filter((t) => t.id !== id));
   };
 
   const generateStudyPlan = async () => {
-    if (
-      !selectedSubjectForPlanning ||
-      !selectedEvent ||
-      topics.length === 0 ||
-      selectedWeekDays.length === 0
-    ) {
-      alert(
-        'Por favor completa todos los campos: materia, evento, temas y días de la semana.',
+    if (!selectedSubjectForPlanning || !selectedEvent || topics.length === 0) {
+      alert('Por favor completa todos los campos: materia, evento y temas.');
+      return;
+    }
+
+    // Leer obligatoriamente la configuración del usuario desde Firestore
+    if (!user) {
+      alert('Debes iniciar sesión para generar un plan.');
+      return;
+    }
+
+    let userSettings: UserAvailability | null = null;
+    try {
+      userSettings = await getUserAvailability(user.uid);
+      if (
+        !userSettings ||
+        !Array.isArray(userSettings.selectedWeekDays) ||
+        userSettings.selectedWeekDays.length === 0
+      ) {
+        alert(
+          'Por favor guarda tu disponibilidad en Configuración antes de generar un plan.',
+        );
+        return;
+      }
+    } catch (e) {
+      console.warn(
+        'No se pudieron cargar los días de configuración del usuario:',
+        e,
       );
+      alert('Error leyendo la configuración del usuario. Inténtalo de nuevo.');
       return;
     }
 
@@ -243,18 +288,6 @@ const AIPlanner = () => {
         examDate = segundoParcial?.date || '';
       }
 
-      const generatedStudyDates = generateStudyDatesFromWeekDays(
-        examDate,
-        selectedWeekDays,
-      );
-
-      if (generatedStudyDates.length === 0) {
-        alert(
-          'No hay fechas disponibles con los días de la semana seleccionados hasta la fecha del examen.',
-        );
-        return;
-      }
-
       const response = await fetch(
         'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateStudyPlan',
         {
@@ -269,8 +302,7 @@ const AIPlanner = () => {
               .replace(/\b\w/g, (l) => l.toUpperCase()),
             examDate: examDate,
             topics: topics.map((topic) => topic.name),
-            studyDates: generatedStudyDates,
-            weekDays: selectedWeekDays,
+            userId: user.uid,
           }),
         },
       );
@@ -283,8 +315,11 @@ const AIPlanner = () => {
       let studyPlan = '';
       let structuredPlan = null;
 
-      if (result.plan) {
-        // La respuesta viene con el plan ya parseado
+      if (result.parsed) {
+        structuredPlan = result.parsed;
+        studyPlan = JSON.stringify(structuredPlan);
+      } else if (result.plan) {
+        // compatibilidad con variantes antiguas
         structuredPlan = result.plan;
         studyPlan = JSON.stringify(structuredPlan);
       } else if (result.raw_response) {
@@ -329,8 +364,19 @@ const AIPlanner = () => {
 
       setGeneratedStudyPlan(studyPlan);
 
+      // Extraer studyDates desde el structuredPlan recibido
+      const generatedStudyDates: string[] =
+        structuredPlan && Array.isArray(structuredPlan.days)
+          ? structuredPlan.days.map((d: StudyPlanDay) => normalizeDate(d.date))
+          : [];
+
+      // Construir un título legible para el plan (ej: "Final - Materia")
+      const eventTitle = `${selectedEvent
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase())} - ${selectedSubject.name}`;
+
+      let savedPlanId: string | undefined = undefined;
       try {
-        const eventTitle = `${selectedEvent.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())} - ${selectedSubject.name}`;
         const planId = await createStudyPlan({
           materialId: selectedSubject.id.toString(),
           generatedPlan: {
@@ -339,10 +385,10 @@ const AIPlanner = () => {
               structuredPlan?.summary || 'Plan de estudio generado con IA',
             durationDays: generatedStudyDates.length,
             examDate: examDate,
-            selectedWeekDays: selectedWeekDays,
+            selectedWeekDays: userSettings.selectedWeekDays,
             topics: topics.map((t) => ({ id: t.id, title: t.name })),
             studyDates: generatedStudyDates,
-            structuredPlan: structuredPlan,
+            structuredPlan: structuredPlan ?? undefined,
             dailyTasks: structuredPlan?.days
               ? structuredPlan.days.map((day: StudyPlanDay, index: number) => ({
                   day: index + 1,
@@ -358,6 +404,7 @@ const AIPlanner = () => {
         });
 
         if (planId) {
+          savedPlanId = planId;
           console.log('✅ Plan completo guardado en Firebase con ID:', planId);
           // After saving successfully, reload plans from Firebase
           const studyPlans = await getUserStudyPlans();
@@ -400,7 +447,24 @@ const AIPlanner = () => {
         console.error('❌ Error guardando plan en Firebase:', firebaseError);
       }
 
-      // Plans are already updated from Firebase above
+      const newPlan: StudyPlan = {
+        id: savedPlanId || nextPlanId,
+        subjectName: selectedSubject.name,
+        eventName: selectedEvent
+          .replace(/-/g, ' ')
+          .replace(/\b\w/g, (l) => l.toUpperCase()),
+        examDate: examDate || '',
+        topics: topics.map((t) => ({ id: t.id, title: t.name })),
+        studyDays: generatedStudyDates,
+        content: studyPlan,
+        structuredPlan: structuredPlan,
+        progress: 0,
+        createdAt: new Date().toISOString(),
+        expanded: false,
+      };
+
+      setStudyPlans((prevPlans) => [...prevPlans, newPlan]);
+      setNextPlanId((prev) => prev + 1);
 
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
     } catch (error: unknown) {
@@ -473,24 +537,6 @@ const AIPlanner = () => {
     }
   };
 
-  const generateStudyDatesFromWeekDays = (
-    examDate: string,
-    weekDays: number[],
-  ) => {
-    const today = new Date();
-    const exam = new Date(examDate);
-    const studyDates: string[] = [];
-    const current = new Date(today);
-    current.setDate(current.getDate() + 1);
-    while (current <= exam) {
-      if (weekDays.includes(current.getDay())) {
-        studyDates.push(current.toISOString().split('T')[0]);
-      }
-      current.setDate(current.getDate() + 1);
-    }
-    return studyDates;
-  };
-
   const normalizeDate = (dateString: string) => {
     const date = new Date(dateString + 'T00:00:00');
     return date.toISOString().split('T')[0];
@@ -505,6 +551,15 @@ const AIPlanner = () => {
       day: 'numeric',
       timeZone: 'UTC',
     });
+  };
+
+  const formatWeekDays = (weekDays: number[] | undefined | null) => {
+    if (!Array.isArray(weekDays) || weekDays.length === 0) return '';
+    const names = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    return weekDays
+      .sort((a, b) => a - b)
+      .map((d) => names[d] || String(d))
+      .join(', ');
   };
 
   return (
@@ -538,7 +593,7 @@ const AIPlanner = () => {
                   setSelectedSubjectForPlanning(subjectId);
                   setSelectedEvent(null);
                   setTopics([]);
-                  setSelectedWeekDays([]);
+                  // availability is read from server; no local weekday selection
 
                   // Cargar temas extraídos de la materia seleccionada
                   const selectedMaterial = materials.find((m: unknown) => {
@@ -592,7 +647,7 @@ const AIPlanner = () => {
                     onChange={(e) => {
                       setSelectedEvent(e.target.value || null);
                       setTopics([]);
-                      setSelectedWeekDays([]);
+                      // availability is read from server; no local weekday selection
                     }}
                   >
                     <option value="">-- Selecciona un evento --</option>
@@ -675,134 +730,26 @@ const AIPlanner = () => {
                       </div>
                     )}
                     <div className="form-group">
-                      <label>
-                        📅 Selecciona los días de la semana que tienes
-                        disponibles para estudiar
-                      </label>
-                      <div className="day-selector-grid">
-                        {[
-                          { day: 1, name: 'Lunes' },
-                          { day: 2, name: 'Martes' },
-                          { day: 3, name: 'Miércoles' },
-                          { day: 4, name: 'Jueves' },
-                          { day: 5, name: 'Viernes' },
-                          { day: 6, name: 'Sábado' },
-                          { day: 0, name: 'Domingo' },
-                        ].map(({ day, name }) => (
-                          <div
-                            key={day}
-                            className={`day-selector-card ${selectedWeekDays.includes(day) ? 'selected-day' : ''}`}
-                            onClick={() => {
-                              if (selectedWeekDays.includes(day)) {
-                                setSelectedWeekDays(
-                                  selectedWeekDays.filter((d) => d !== day),
-                                );
-                              } else {
-                                setSelectedWeekDays([...selectedWeekDays, day]);
-                              }
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedWeekDays.includes(day)}
-                              onChange={() => {}}
-                            />
-                            <span>{name}</span>
-                          </div>
-                        ))}
+                      <label>📅 Días de estudio</label>
+                      <div className="info-box">
+                        Los días de estudio se tomarán desde tu configuración
+                        (Configuración de cuenta). No es necesario seleccionar
+                        días aquí.
                       </div>
-                      {(() => {
-                        const selectedSubject = subjects.find(
-                          (s) => s.id === selectedSubjectForPlanning,
-                        );
-                        if (!selectedSubject) {
-                          return (
-                            <p className="error-message">
-                              ⚠️ No se encontró la materia seleccionada.
-                            </p>
-                          );
-                        }
-                        let examDate = '';
-                        const importantDates =
-                          selectedSubject.importantDates || [];
-                        if (selectedEvent === 'primer-parcial') {
-                          const primerParcial = importantDates.find(
-                            (d) => d.name === 'Primer Parcial',
-                          );
-                          examDate = primerParcial?.date || '';
-                        } else if (selectedEvent === 'final') {
-                          const segundoParcial = importantDates.find(
-                            (d) => d.name === 'Segundo Parcial',
-                          );
-                          examDate = segundoParcial?.date || '';
-                        }
-                        if (!examDate) {
-                          const eventName =
-                            selectedEvent === 'primer-parcial'
-                              ? 'Primer Parcial'
-                              : 'Segundo Parcial';
-                          return (
-                            <p className="info-message">
-                              No se encontró la fecha del {eventName} para esta
-                              materia.
-                            </p>
-                          );
-                        }
-                        const generatedDates =
-                          selectedWeekDays.length > 0
-                            ? generateStudyDatesFromWeekDays(
-                                examDate,
-                                selectedWeekDays,
-                              )
-                            : [];
-                        return (
-                          <div>
-                            {selectedWeekDays.length > 0 && (
-                              <div className="summary-box">
-                                <div className="summary-title">
-                                  📊 Resumen de tu planificación:
-                                </div>
-                                <ul className="summary-list">
-                                  <li>
-                                    • Días de la semana seleccionados:{' '}
-                                    {selectedWeekDays.length}
-                                  </li>
-                                  <li>
-                                    • Fecha del examen: {formatDate(examDate)}
-                                  </li>
-                                  <li>
-                                    • Sesiones de estudio generadas:{' '}
-                                    {generatedDates.length}
-                                  </li>
-                                  {topics.length > 0 && (
-                                    <li>
-                                      • Aproximadamente{' '}
-                                      {Math.ceil(
-                                        generatedDates.length / topics.length,
-                                      )}{' '}
-                                      sesiones por tema
-                                    </li>
-                                  )}
-                                </ul>
-                              </div>
-                            )}
-                            {selectedWeekDays.length > 0 &&
-                              generatedDates.length === 0 && (
-                                <div className="warning-box">
-                                  ⚠️ No hay fechas disponibles con los días de
-                                  la semana seleccionados hasta la fecha del
-                                  examen.
-                                </div>
-                              )}
-                            {selectedWeekDays.length === 0 && (
-                              <div className="info-box">
-                                👆 Selecciona los días de la semana que tienes
-                                disponibles para estudiar
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
+                      {userAvailability &&
+                      Array.isArray(userAvailability.selectedWeekDays) &&
+                      userAvailability.selectedWeekDays.length > 0 ? (
+                        <div className="saved-days-box">
+                          <strong>Días guardados:</strong>{' '}
+                          {formatWeekDays(userAvailability.selectedWeekDays)}
+                        </div>
+                      ) : (
+                        <div className="warning-box">
+                          Aún no configuraste tu disponibilidad. Ve a
+                          <strong> Configuración de cuenta</strong> y guarda tus
+                          días de estudio antes de generar un plan.
+                        </div>
+                      )}
                     </div>
                     {topics.length > 0 && (
                       <div>
@@ -831,27 +778,30 @@ const AIPlanner = () => {
                         </div>
                       </div>
                     )}
-                    {topics.length > 0 && selectedWeekDays.length > 0 && (
-                      <div className="action-container">
-                        <button
-                          onClick={generateStudyPlan}
-                          disabled={generatingPlan}
-                          className="button-primary generate-btn"
-                        >
-                          {generatingPlan ? (
-                            <>
-                              <span>🤖</span>
-                              Generando plan de estudio...
-                            </>
-                          ) : (
-                            <>
-                              <span>📝</span>
-                              Plan de estudio
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
+                    {topics.length > 0 &&
+                      userAvailability &&
+                      Array.isArray(userAvailability.selectedWeekDays) &&
+                      userAvailability.selectedWeekDays.length > 0 && (
+                        <div className="action-container">
+                          <button
+                            onClick={generateStudyPlan}
+                            disabled={generatingPlan}
+                            className="button-primary generate-btn"
+                          >
+                            {generatingPlan ? (
+                              <>
+                                <span>🤖</span>
+                                Generando plan de estudio...
+                              </>
+                            ) : (
+                              <>
+                                <span>📝</span>
+                                Plan de estudio
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
                     {generatedStudyPlan && (
                       <div className="generated-plan-container">
                         <h4 className="generated-plan-title">
