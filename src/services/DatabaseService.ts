@@ -129,6 +129,21 @@ export interface Quiz {
   updatedAt: Timestamp;
 }
 
+export interface UserEvent {
+  id?: string;
+  userId: string;
+  title: string;
+  description?: string;
+  type: 'study' | 'exam' | 'task' | 'reminder';
+  start: string | Date;
+  end?: string | Date;
+  allDay?: boolean;
+  color?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  time?: string;
+}
+
 export interface Activity {
   id: string;
   userId: string;
@@ -623,7 +638,64 @@ export class DatabaseService {
     }
   }
 
-  // 18. Get recent activities for a user
+  // 18. Create a user event
+  static async createUserEvent(
+    event: Omit<UserEvent, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<string> {
+    try {
+      console.log('📅 Creando evento de usuario en Firestore...');
+      const eventData = {
+        ...event,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      };
+      const eventRef = await addDoc(collection(db, 'events'), eventData);
+      console.log('✅ Evento creado exitosamente con ID:', eventRef.id);
+      return eventRef.id;
+    } catch (error) {
+      console.error('❌ Error al crear evento:', error);
+      throw error;
+    }
+  }
+
+  // 19. Get user events
+  static async getUserEvents(userId: string): Promise<UserEvent[]> {
+    try {
+      const eventsQuery = query(
+        collection(db, 'events'),
+        where('userId', '==', userId),
+      );
+      const eventsSnap = await getDocs(eventsQuery);
+      const events: UserEvent[] = [];
+      eventsSnap.forEach((doc) => {
+        events.push({ id: doc.id, ...doc.data() } as UserEvent);
+      });
+      return events;
+    } catch (error) {
+      console.error('❌ Error al obtener eventos del usuario:', error);
+      throw error;
+    }
+  }
+
+  // 20. Update study plan
+  static async updateStudyPlan(
+    planId: string,
+    updatedPlan: Partial<StudyPlan>,
+  ): Promise<void> {
+    try {
+      const planRef = doc(db, 'studyPlans', planId);
+      await updateDoc(planRef, {
+        ...updatedPlan,
+        updatedAt: Timestamp.now(),
+      });
+      console.log('✅ Plan de estudio actualizado exitosamente');
+    } catch (error) {
+      console.error('❌ Error al actualizar plan de estudio:', error);
+      throw error;
+    }
+  }
+
+  // 21. Get recent activities for a user
   static async getRecentActivities(
     userId: string,
     activitiesLimit: number = 5,
