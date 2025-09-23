@@ -65,7 +65,7 @@ interface StudyPlan {
 
 const AIPlanner = () => {
   const { user } = useContext(AuthContext);
-  const { extractedTopics } = usePlanner();
+  const { extractedTopics, setExtractedTopics } = usePlanner();
 
   const [topicCounter, setTopicCounter] = useState(1);
   const [generatingPlan, setGeneratingPlan] = useState(false);
@@ -79,6 +79,7 @@ const AIPlanner = () => {
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [nextPlanId, setNextPlanId] = useState(1);
+  const [materials, setMaterials] = useState<unknown[]>([]);
 
   const {
     getUserStudyPlans,
@@ -91,8 +92,9 @@ const AIPlanner = () => {
     const loadUserData = async () => {
       if (!user) return;
       try {
-        const materials = await getUserMaterials();
-        const convertedSubjects: Subject[] = materials.map(
+        const materialsData = await getUserMaterials();
+        setMaterials(materialsData);
+        const convertedSubjects: Subject[] = materialsData.map(
           (material, index) => {
             const subjectId = material.id || `subject-${Date.now()}-${index}`;
             return {
@@ -114,6 +116,28 @@ const AIPlanner = () => {
           },
         );
         setSubjects(convertedSubjects);
+
+        // Cargar temas extraídos del primer material si existe
+        if (
+          materialsData.length > 0 &&
+          materialsData[0] &&
+          'extractedTopics' in materialsData[0] &&
+          materialsData[0].extractedTopics
+        ) {
+          const firstMaterial = materialsData[0] as {
+            extractedTopics: Array<{
+              id: string;
+              name: string;
+              description?: string;
+            }>;
+          };
+          setExtractedTopics(
+            firstMaterial.extractedTopics.map((topic, index) => ({
+              ...topic,
+              order: index + 1,
+            })),
+          );
+        }
 
         const studyPlans = await getUserStudyPlans();
         const convertedPlans = studyPlans.map((plan, index) => {
@@ -175,7 +199,7 @@ const AIPlanner = () => {
       }
     };
     loadUserData();
-  }, [user, getUserStudyPlans, getUserMaterials]);
+  }, [user, getUserStudyPlans, getUserMaterials, setExtractedTopics]);
 
   const removeTopic = (id: string) => {
     setTopics(topics.filter((t) => t.id !== id));
@@ -232,7 +256,7 @@ const AIPlanner = () => {
       }
 
       const response = await fetch(
-        import.meta.env.VITE_GENERATE_PLAN_ENDPOINT,
+        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateStudyPlan',
         {
           method: 'POST',
           headers: {
@@ -341,7 +365,7 @@ const AIPlanner = () => {
             dailyTasks: structuredPlan?.days
               ? structuredPlan.days.map((day: StudyPlanDay, index: number) => ({
                   day: index + 1,
-                  task: `${day.topics.map((t) => t.name).join(', ')} - ${day.recommendations}`,
+                  task: `${day.topics.map((t: { name: string }) => t.name).join(', ')} - ${day.recommendations}`,
                   completed: false,
                 }))
               : generatedStudyDates.map((date, index) => ({
@@ -515,6 +539,40 @@ const AIPlanner = () => {
                   setSelectedEvent(null);
                   setTopics([]);
                   setSelectedWeekDays([]);
+
+                  // Cargar temas extraídos de la materia seleccionada
+                  const selectedMaterial = materials.find((m: unknown) => {
+                    const material = m as { id?: string };
+                    return material.id === subjectId;
+                  });
+                  if (
+                    selectedMaterial &&
+                    typeof selectedMaterial === 'object' &&
+                    selectedMaterial !== null &&
+                    'extractedTopics' in selectedMaterial
+                  ) {
+                    const materialWithTopics = selectedMaterial as {
+                      extractedTopics: Array<{
+                        id: string;
+                        name: string;
+                        description?: string;
+                      }>;
+                    };
+                    if (materialWithTopics.extractedTopics) {
+                      setExtractedTopics(
+                        materialWithTopics.extractedTopics.map(
+                          (topic, index) => ({
+                            ...topic,
+                            order: index + 1,
+                          }),
+                        ),
+                      );
+                    } else {
+                      setExtractedTopics([]);
+                    }
+                  } else {
+                    setExtractedTopics([]);
+                  }
                 }}
               >
                 <option value="">-- Selecciona una materia --</option>

@@ -18,6 +18,7 @@ import {
   Gift,
 } from 'lucide-react';
 import Store from './Store';
+import StudyArea from './StudyArea';
 
 // Define the interfaces for store items, achievements, and rewards
 interface StoreItem {
@@ -106,6 +107,11 @@ const PomodoroTimer = () => {
   const [customRewards, setCustomRewards] = useState<CustomReward[]>([]);
   const [achievements, setAchievements] =
     useState<Achievement[]>(initialAchievements);
+  const [currentStudyTopic, setCurrentStudyTopic] = useState<{
+    id: string;
+    name: string;
+    estimatedTime: string;
+  } | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const notificationSound = useRef<HTMLAudioElement | null>(null);
@@ -283,6 +289,20 @@ const PomodoroTimer = () => {
     setFocusPoints((prev) => prev + 100);
   };
 
+  // Función para iniciar sesión de estudio con un tema específico
+  const handleStartStudySession = (topic: {
+    id: string;
+    name: string;
+    estimatedTime: string;
+  }) => {
+    setCurrentStudyTopic(topic);
+    if (!isActive) {
+      setMode('pomodoro');
+      setTime(POMODORO_TIME);
+      setIsActive(true);
+    }
+  };
+
   // Custom Rewards Logic
   const addReward = (name: string, cost: number) => {
     setCustomRewards((prev) => [
@@ -421,7 +441,11 @@ const PomodoroTimer = () => {
       {isAchievementsOpen && renderAchievementsModal()}
 
       <header className="cottagecore-header">
-        <h1 className="cottagecore-title">Pomodoro</h1>
+        <h1 className="cottagecore-title">
+          {currentStudyTopic
+            ? `Estudiando: ${currentStudyTopic.name}`
+            : 'Área de Estudio'}
+        </h1>
         <div className="user-info">
           <button className="store-btn" onClick={() => setIsRewardsOpen(true)}>
             <Gift size={20} /> Recompensas
@@ -446,64 +470,36 @@ const PomodoroTimer = () => {
       </header>
 
       <div className="main-content-wrapper">
-        <div className="study-area-left">
-          <div className="video-window">
-            <video
-              ref={videoRef}
-              className="study-video"
-              src={getVideoSource()}
-              autoPlay
-              loop
-              muted
-            />
-          </div>
-          <div className="avatar-section">
-            <img
-              src={'/public/base1.png'}
-              alt="Avatar"
-              className="avatar-image"
-            />
-            {avatarItems.map((item, index) => (
-              <img
-                key={index}
-                src={getItemImagePath(item)}
-                alt="Avatar Item"
-                className="avatar-item"
-              />
-            ))}
-          </div>
-          <div className="garden-area">
-            {gardenItems.map((item, index) => (
-              <img
-                key={index}
-                src={`/assets/items/${item}.png`}
-                alt="Garden Item"
-                className="garden-item"
-              />
-            ))}
-          </div>
+        {/* Área de Estudio - Panel Principal */}
+        <div className="study-content-area">
+          <StudyArea
+            isTimerActive={isActive}
+            currentMode={mode}
+            onStartStudySession={handleStartStudySession}
+          />
         </div>
 
-        <div className="study-area-right">
+        {/* Panel de Timer - Más Compacto */}
+        <div className="timer-sidebar">
           <div className="timer-panel">
             <div className="mode-selection">
               <button
                 className={`mode-btn ${mode === 'pomodoro' ? 'active' : ''}`}
                 onClick={() => handleManualModeChange('pomodoro')}
               >
-                <Brain size={20} /> Foco
+                <Brain size={18} /> Foco
               </button>
               <button
                 className={`mode-btn ${mode === 'short-break' ? 'active' : ''}`}
                 onClick={() => handleManualModeChange('short-break')}
               >
-                <Coffee size={20} /> Corto
+                <Coffee size={18} /> Corto
               </button>
               <button
                 className={`mode-btn ${mode === 'long-break' ? 'active' : ''}`}
                 onClick={() => handleManualModeChange('long-break')}
               >
-                <Sun size={20} /> Largo
+                <Sun size={18} /> Largo
               </button>
             </div>
 
@@ -517,24 +513,69 @@ const PomodoroTimer = () => {
                   className="control-btn play-pause"
                   onClick={startNextCycle}
                 >
-                  <Check size={28} /> Siguiente
+                  <Check size={24} /> Siguiente
                 </button>
               ) : (
                 <button
                   className="control-btn play-pause"
                   onClick={handleStartPause}
                 >
-                  {isActive ? <Pause size={28} /> : <Play size={28} />}
+                  {isActive ? <Pause size={24} /> : <Play size={24} />}
                   {isActive ? 'Pausar' : 'Empezar'}
                 </button>
               )}
               <button className="control-btn reset" onClick={handleReset}>
-                <RotateCcw size={28} /> Reiniciar
+                <RotateCcw size={24} /> Reiniciar
               </button>
             </div>
 
             <div className="cycle-info">
-              Ciclos completados: **{cycles}** | Racha: **{consecutiveCycles}**
+              <div>
+                Ciclos: <strong>{cycles}</strong>
+              </div>
+              <div>
+                Racha: <strong>{consecutiveCycles}</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Video y Avatar - Sección Compacta */}
+          <div className="ambient-section">
+            <div className="video-window-compact">
+              <video
+                ref={videoRef}
+                className="study-video"
+                src={getVideoSource()}
+                autoPlay
+                loop
+                muted
+              />
+            </div>
+
+            <div className="avatar-section-compact">
+              <img
+                src={'/public/base1.png'}
+                alt="Avatar"
+                className="avatar-image"
+              />
+              {avatarItems.map((item, index) => (
+                <img
+                  key={index}
+                  src={getItemImagePath(item)}
+                  alt="Avatar Item"
+                  className="avatar-item"
+                />
+              ))}
+              <div className="garden-items-compact">
+                {gardenItems.slice(0, 3).map((item, index) => (
+                  <img
+                    key={index}
+                    src={`/assets/items/${item}.png`}
+                    alt="Garden Item"
+                    className="garden-item-small"
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
