@@ -186,7 +186,7 @@
 @media (max-width: 1200px) {
   .analytics-main-content,
   .analytics-secondary-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack columns on medium screens */
   }
 }
 
@@ -208,6 +208,38 @@
   .panel-title {
     font-size: 1.5rem;
   }
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Adjust minmax for smaller cards */
+  }
+  .metric-value {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .analytics-container {
+    padding: 0.8rem;
+  }
+  .analytics-title {
+    font-size: 1.4rem;
+  }
+  .analytics-subtitle {
+    font-size: 0.7rem;
+  }
+  .metrics-panel,
+  .chart-panel,
+  .productivity-panel {
+    padding: 1rem;
+  }
+  .panel-title {
+    font-size: 1rem;
+  }
+  .metric-value {
+    font-size: 1.2rem;
+  }
+  .metric-label {
+    font-size: 0.7rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -215,7 +247,7 @@
     padding: 1rem;
   }
   .analytics-title {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
   }
   .analytics-subtitle {
     font-size: 0.9rem;
@@ -229,27 +261,30 @@
     font-size: 1.3rem;
   }
   .metrics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack metrics on very small screens */
   }
   .metric-value {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+  }
+  .metric-label {
+    font-size: 0.8rem;
   }
 }
 
 @media (max-width: 380px) {
     .analytics-title {
-        font-size: 1.4rem;
+        font-size: 1.6rem;
     }
     .analytics-subtitle {
         font-size: 0.8rem;
     }
     .panel-title {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
     }
     .metric-value {
-        font-size: 1.6rem;
+        font-size: 1.4rem;
     }
     .metric-label {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
     }
 }
