@@ -2,7 +2,6 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import './Documents.css';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { getFunctions, httpsCallable } from 'firebase/functions';
 import {
   ref,
   uploadBytes,
@@ -12,7 +11,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { storage } from '../firebase';
 import type { Folder as FolderType } from '../types/folder';
-import { getFolders, createFolder } from '../services/folders'; // Corrected import path for getFolders
+import { getFolders, createFolder, renameFolder } from '../services/folders'; // Importar renameFolder
 import {
   getUserMaterials,
   saveMaterialMetadata,
@@ -36,6 +35,8 @@ import {
 } from 'lucide-react';
 
 import type { MaterialMetadata } from '../types/material';
+import toast from 'react-hot-toast';
+import { auth } from '../firebase'; // Ajusta la ruta según tu estructura
 
 type OnMaterialContextMenu = (
   e: React.MouseEvent,
@@ -45,8 +46,8 @@ type OnMaterialContextMenu = (
 type HandleOpenViewer = (doc: MaterialMetadata) => void;
 type HandleDownload = (doc: MaterialMetadata) => void;
 type HandleDeleteMaterial = (
-  materialId: string | undefined,
-  storagePath: string,
+  materialId?: string,
+  storagePath?: string,
 ) => Promise<void>;
 
 type OnDropMaterial = (materialId: string, newPath: string) => Promise<void>;
@@ -129,13 +130,19 @@ const DraggableMaterial = ({
   handleDownload: HandleDownload;
   handleDelete: HandleDeleteMaterial;
 }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
+  const [{ isDragging }, dragRef] = useDrag(() => ({
     type: ItemTypes.MATERIAL,
     item: { id: doc.id },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
   }));
+
+  const drag = (node: HTMLDivElement | null) => {
+    if (node) {
+      dragRef(node);
+    }
+  };
 
   return (
     <div
@@ -204,7 +211,7 @@ const DropTargetFolder = ({
   onRename: OnRenameFolder;
   onDelete: OnDeleteFolder;
 }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
+  const [{ isOver }, dropRef] = useDrop(() => ({
     accept: ItemTypes.MATERIAL,
     drop: (item: { id: string }) =>
       onDrop(item.id, `${folder.path}${folder.name}/`),
@@ -213,12 +220,22 @@ const DropTargetFolder = ({
     }),
   }));
 
+  const drop = (node: HTMLDivElement | null) => {
+    if (node) {
+      dropRef(node);
+    }
+  };
+
   return (
     <div
       ref={drop}
       className="document-card"
       style={{ backgroundColor: isOver ? '#f0f0f0' : 'transparent' }}
-      onClick={() => onNavigate(`${folder.path}${folder.name}/`)}
+      onClick={() =>
+        folder.path &&
+        folder.name &&
+        onNavigate(`${folder.path}${folder.name}/`)
+      }
       onContextMenu={(e) => onContextMenu(e, folder, 'folder')}
     >
       <div className="document-icon-wrapper">
@@ -227,11 +244,21 @@ const DropTargetFolder = ({
       <div className="document-info">
         <span className="document-name">{folder.name}</span>
       </div>
-      <div className="document-actions">
-        <button onClick={() => onRename(folder.id, folder.name)}>
+      <div className="document-actions" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (folder.id && folder.name) onRename(folder.id, folder.name);
+          }}
+        >
           <Edit size={18} />
         </button>
-        <button onClick={() => onDelete(folder.id)}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (folder.id) onDelete(folder.id);
+          }}
+        >
           <Trash2 size={18} />
         </button>
       </div>
@@ -255,8 +282,6 @@ const Documents: React.FC = () => {
   const [documentToEditTags, setDocumentToEditTags] =
     useState<MaterialMetadata | null>(null);
 
-  const functions = getFunctions();
-
   const loadContent = useCallback(async () => {
     if (!user) {
       console.log('User not authenticated, cannot load content.'); // Log 6
@@ -273,8 +298,19 @@ const Documents: React.FC = () => {
       console.log('Materials loaded:', materials); // Log 9
       setFolders(folders);
       setDocuments(materials);
-    } catch (error) {
-      console.error('Error loading content:', error); // Log Error
+    } catch (error: unknown) {
+      console.error('Error al cargar el contenido:', error);
+      let errorMessage = 'Error al cargar el contenido';
+
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      toast.error(errorMessage);
     }
     setLoading(false);
   }, [user, currentPath]); // Removed getFolders and getUserMaterials
@@ -296,25 +332,101 @@ const Documents: React.FC = () => {
   };
 
   const handleRenameFolder = async (folderId: string, currentName: string) => {
-    const newName = prompt('Enter new name:', currentName);
-    if (newName && user) {
-      const renameFolderFn = httpsCallable(functions, 'renameFolder');
-      await renameFolderFn({ folderId, newName });
+    try {
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const newName = prompt('Ingrese el nuevo nombre:', currentName);
+
+      // Si el usuario cancela o no ingresa un nombre, no hacemos nada
+      if (newName === null || newName.trim() === '') {
+        return;
+      }
+
+      // Validar que el nombre no sea el mismo
+      if (newName === currentName) {
+        return; // No es necesario hacer nada si el nombre no cambia
+      }
+
+      // Usar la función local del servicio en lugar de la función de Firebase
+      await renameFolder(folderId, newName);
+
+      // Recargar el contenido después de renombrar
       loadContent();
+    } catch (error: unknown) {
+      console.error('Error al renombrar la carpeta:', error);
+
+      // Mostrar mensaje de error al usuario
+      let errorMessage = 'Ocurrió un error al intentar renombrar la carpeta';
+
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      alert(errorMessage);
     }
   };
 
   const handleDeleteFolder = async (folderId: string) => {
-    if (window.confirm('Are you sure you want to delete this folder?')) {
-      const deleteFolderFn = httpsCallable(functions, 'deleteFolder');
-      await deleteFolderFn({ folderId, path: currentPath });
-      loadContent();
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta carpeta?')) {
+      return;
+    }
+
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const token = await user.getIdToken();
+      const response = await fetch(
+        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/deleteFolder',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ folderId }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al eliminar la carpeta');
+      }
+
+      // Actualizar el estado local
+      setFolders((prevFolders) =>
+        prevFolders.filter((folder) => folder.id !== folderId),
+      );
+      toast.success('Carpeta eliminada correctamente');
+      loadContent(); // Recargar el contenido actualizado
+    } catch (error: unknown) {
+      console.error('Error al eliminar carpeta:', error);
+      let errorMessage = 'Error al eliminar la carpeta';
+
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      toast.error(errorMessage);
     }
   };
 
-  const handleDeleteMaterial = async (
-    materialId: string,
-    storagePath: string,
+  const handleDeleteMaterial: HandleDeleteMaterial = async (
+    materialId = '',
+    storagePath = '',
   ) => {
     if (window.confirm('Are you sure you want to delete this material?')) {
       const storageRef = ref(storage, storagePath);
@@ -571,55 +683,68 @@ const Documents: React.FC = () => {
             y={contextMenu.y}
             onClose={closeContextMenu}
           >
-            {contextMenu.type === 'folder' && (
+            {contextMenu.type === 'folder' && 'path' in contextMenu.item && (
               <>
                 <div
                   className="context-menu-item"
-                  onClick={() =>
-                    handleRenameFolder(
-                      contextMenu.item.id,
-                      contextMenu.item.name,
-                    )
-                  }
+                  onClick={() => {
+                    const folder = contextMenu.item as FolderType;
+                    if (folder.id && 'name' in folder) {
+                      handleRenameFolder(folder.id, folder.name);
+                    }
+                  }}
                 >
                   Rename
                 </div>
                 <div
                   className="context-menu-item"
-                  onClick={() => handleDeleteFolder(contextMenu.item.id)}
+                  onClick={() => {
+                    const folder = contextMenu.item as FolderType;
+                    if (folder.id) {
+                      handleDeleteFolder(folder.id);
+                    }
+                  }}
                 >
                   Delete
                 </div>
               </>
             )}
-            {contextMenu.type === 'material' && (
-              <>
-                <div
-                  className="context-menu-item"
-                  onClick={() =>
-                    handleDeleteMaterial(
-                      contextMenu.item.id,
-                      contextMenu.item.storagePath,
-                    )
-                  }
-                >
-                  Delete
-                </div>
-                <div
-                  className="context-menu-item"
-                  onClick={() => handleEditTags(contextMenu.item)}
-                >
-                  Edit Tags
-                </div>
-                <div
-                  className="context-menu-item"
-                  onClick={() => handleMoveToRoot(contextMenu.item.id)}
-                >
-                  Move to Root
-                </div>{' '}
-                {/* New item */}
-              </>
-            )}
+            {contextMenu.type === 'material' &&
+              'storagePath' in contextMenu.item && (
+                <>
+                  <div
+                    className="context-menu-item"
+                    onClick={() =>
+                      contextMenu.item.id &&
+                      'storagePath' in contextMenu.item &&
+                      handleDeleteMaterial(
+                        contextMenu.item.id,
+                        contextMenu.item.storagePath,
+                      )
+                    }
+                  >
+                    Delete
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    onClick={() =>
+                      'storagePath' in contextMenu.item &&
+                      handleEditTags(contextMenu.item)
+                    }
+                  >
+                    Edit Tags
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    onClick={() =>
+                      contextMenu.item.id &&
+                      handleMoveToRoot(contextMenu.item.id)
+                    }
+                  >
+                    Move to Root
+                  </div>
+                </>
+              )}
           </ContextMenu>
         )}
       </div>
