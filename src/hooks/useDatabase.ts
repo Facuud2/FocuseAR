@@ -7,6 +7,7 @@ import type {
   AIConversation,
   AIConversationMessage,
   UserEvent,
+  Quiz,
 } from '../services/DatabaseService';
 import type { Topic } from '../types/studyPlan';
 import { AuthContext } from './authContext';
