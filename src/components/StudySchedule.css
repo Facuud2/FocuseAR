@@ -197,11 +197,13 @@ body {
 
 /* Paneles de Contenido Lateral */
 .panel {
-  background: var(--surface-color);
+  background: rgba(255, 255, 255, 0.2); /* Light background for the glass effect */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* For Safari */
   border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Light border */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Softer shadow */
   padding: 2rem;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
   transition: var(--transition);
   height: fit-content;
 }
@@ -405,5 +407,89 @@ body {
   .event {
     font-size: 0.65rem;
     padding: 0.15rem 0.3rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .schedule-container {
+    padding: 0.5rem; /* Further reduce padding for very small screens */
+  }
+  .schedule-title {
+    font-size: 1.8rem;
+  }
+  .schedule-subtitle {
+    font-size: 0.9rem;
+  }
+  .schedule-main-content {
+    gap: 1rem; /* Reduce gap between main content sections */
+  }
+  .schedule-sidebar {
+    gap: 1rem; /* Reduce gap between sidebar panels */
+  }
+  .schedule-calendar-panel,
+  .panel {
+    padding: 1rem; /* Reduce panel padding */
+  }
+  .calendar-header {
+    flex-direction: column; /* Stack month/year and nav buttons */
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .calendar-nav-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 1.2rem;
+  }
+  .calendar-month-year {
+    font-size: 1.2rem;
+  }
+  .weekday-header {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.2rem;
+  }
+  .calendar-cell {
+    min-height: 60px; /* Further reduce min-height for cells */
+    padding: 0.5rem;
+  }
+  .day-number {
+    font-size: 0.75rem;
+  }
+  .event {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.2rem;
+    margin-bottom: 0.1rem;
+  }
+  .panel-title {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+  }
+  .form-group label {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+  .form-group input,
+  .form-group select,
+  .full-width-input {
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+  .add-event-btn {
+    padding: 0.9rem 1rem;
+    font-size: 0.9rem;
+  }
+  .upcoming-item {
+    padding: 0.8rem;
+    gap: 0.8rem;
+  }
+  .item-icon {
+    width: 35px;
+    height: 35px;
+  }
+  .item-title {
+    font-size: 0.9rem;
+  }
+  .item-date, .item-time {
+    font-size: 0.7rem;
   }
 }

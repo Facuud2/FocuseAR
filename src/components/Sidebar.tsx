@@ -19,6 +19,7 @@ import {
   Sun,
   Menu,
   Bot, //importa el icono del bot
+  HelpCircle,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -77,6 +78,7 @@ export default function Sidebar({
           icon: Brain,
           path: '/ai-planner',
         },
+        { id: 'quizzes', label: 'Quizzes', icon: HelpCircle, path: '/quizzes' },
         { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
       ],
     },
