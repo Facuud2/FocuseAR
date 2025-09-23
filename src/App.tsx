@@ -79,7 +79,6 @@ function AppRoutes() {
               <Route path="/settings" element={<AccountSettings />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/analytics" element={<Analytics />} />
-              <Route path="/pdf-summary-test" element={<PDFSummaryTest />} />
               <Route path="/quizzes" element={<Quizzes />} />
               <Route path="/quiz/:quizId" element={<QuizPlayer />} />
               <Route path="/create-quiz" element={<QuizCreator />} />
