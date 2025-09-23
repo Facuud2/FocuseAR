@@ -77,19 +77,8 @@ const StudyArea: React.FC<StudyAreaProps> = ({
   const loadStudyPlans = async () => {
     if (!user) return;
 
-    console.log('🔄 [StudyArea] Cargando planes de estudio desde Firebase...');
-
     try {
       const plans = await getUserStudyPlans();
-      console.log(
-        '📊 [StudyArea] Planes obtenidos de Firebase:',
-        plans.length,
-        'planes',
-      );
-      console.log(
-        '🔍 [StudyArea] Datos completos de Firebase:',
-        JSON.stringify(plans, null, 2),
-      );
       const convertedPlans: StudyPlan[] = plans.map((plan) => ({
         id: plan.id || `plan-${Date.now()}`,
         subjectName: plan.generatedPlan?.title || 'Plan de Estudio',
@@ -154,23 +143,9 @@ const StudyArea: React.FC<StudyAreaProps> = ({
       }));
 
       setStudyPlans(convertedPlans);
-      console.log(
-        '📋 [StudyArea] Planes convertidos y guardados en estado local:',
-        convertedPlans.length,
-      );
 
       if (convertedPlans.length > 0) {
         setSelectedPlan(convertedPlans[0]);
-        console.log(
-          '🎯 [StudyArea] Plan seleccionado:',
-          convertedPlans[0].subjectName,
-        );
-        console.log(
-          '📝 [StudyArea] Temas en el plan:',
-          convertedPlans[0].topics.map(
-            (t) => `${t.name} (${t.completed ? 'Completado' : 'Pendiente'})`,
-          ),
-        );
       }
     } catch (error) {
       console.error('Error cargando planes de estudio:', error);
@@ -188,9 +163,8 @@ const StudyArea: React.FC<StudyAreaProps> = ({
     if (!user) return;
 
     const interval = setInterval(() => {
-      console.log('🔄 [StudyArea] Verificando actualizaciones de Firebase...');
       loadStudyPlans();
-    }, 10000); // Verificar cada 10 segundos
+    }, 30000); // Verificar cada 30 segundos
 
     return () => clearInterval(interval);
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -247,11 +221,6 @@ const StudyArea: React.FC<StudyAreaProps> = ({
     planId: string,
     topicName: string,
   ) => {
-    console.log('🚀 [StudyArea] Iniciando marcado como completado:', {
-      planId,
-      topicName,
-    });
-
     // Actualizar el estado local del tema como completado
     setStudyPlans((prevPlans) =>
       prevPlans.map((plan) => {
@@ -272,43 +241,19 @@ const StudyArea: React.FC<StudyAreaProps> = ({
 
     // Persistir cambios en Firebase
     try {
-      console.log('💾 [StudyArea] Iniciando actualización en Firebase...');
-
       // Obtener el plan completo desde Firebase para actualizarlo correctamente
       const plans = await getUserStudyPlans();
       const planToUpdate = plans.find((plan) => plan.id === planId);
 
-      console.log(
-        '🔍 [StudyArea] Plan encontrado para actualizar:',
-        planToUpdate ? 'Sí' : 'No',
-      );
-      console.log('🆔 [StudyArea] ID del plan a actualizar:', planId);
-      console.log('📋 [StudyArea] Plan completo:', planToUpdate);
-      console.log(
-        '📊 [StudyArea] Todos los planes disponibles:',
-        plans.map((p) => ({ id: p.id, title: p.generatedPlan?.title })),
-      );
-
       if (!planToUpdate) {
-        console.log(
-          '❌ [StudyArea] Plan no encontrado en Firebase. Posibles causas:',
-        );
-        console.log('   - El documento fue eliminado');
-        console.log('   - El ID no coincide con ningún documento existente');
-        console.log('   - Problema de sincronización entre local y Firebase');
         return;
       }
 
       // Actualizar dailyTasks si existe
       if (planToUpdate.generatedPlan?.dailyTasks) {
-        console.log('📝 [StudyArea] Actualizando dailyTasks...');
-
         const updatedDailyTasks = planToUpdate.generatedPlan.dailyTasks.map(
           (task) => {
             if (task.task.toLowerCase().includes(topicName.toLowerCase())) {
-              console.log(
-                `✅ [StudyArea] Tarea encontrada en dailyTasks: "${task.task}" - Marcando como completada`,
-              );
               return { ...task, completed: true };
             }
             return task;
@@ -322,28 +267,17 @@ const StudyArea: React.FC<StudyAreaProps> = ({
           },
         };
 
-        console.log(
-          '🔄 [StudyArea] Enviando actualización a Firebase (dailyTasks)...',
-        );
         await updateStudyPlan(planId, updateData);
-        console.log(
-          '✅ [StudyArea] Tema marcado como completado en dailyTasks de Firebase',
-        );
       }
 
       // Actualizar structuredPlan si existe
       if (planToUpdate.generatedPlan?.structuredPlan?.days) {
-        console.log('📅 [StudyArea] Actualizando structuredPlan...');
-
         const updatedDays = planToUpdate.generatedPlan.structuredPlan.days.map(
           (day) => {
             const hasTopicInDay = day.topics.some((t) =>
               t.name.toLowerCase().includes(topicName.toLowerCase()),
             );
             if (hasTopicInDay) {
-              console.log(
-                `✅ [StudyArea] Día encontrado con el tema: Día ${day.dayNumber} - Marcando tema como completado`,
-              );
               // Marcar el topic específico como completado
               const updatedTopics = day.topics.map((topic) => {
                 if (
@@ -379,32 +313,11 @@ const StudyArea: React.FC<StudyAreaProps> = ({
           },
         };
 
-        console.log(
-          '🔄 [StudyArea] Enviando actualización a Firebase (structuredPlan)...',
-        );
-        console.log(
-          '📊 [StudyArea] Datos que se van a guardar:',
-          JSON.stringify(updateData, null, 2),
-        );
         await updateStudyPlan(planId, updateData);
-        console.log(
-          '✅ [StudyArea] Tema marcado como completado en structuredPlan de Firebase',
-        );
       }
     } catch (error) {
-      console.error(
-        '❌ [StudyArea] Error al actualizar tema en Firebase:',
-        error,
-      );
-      console.error('📊 [StudyArea] Detalles del error:', {
-        planId,
-        topicName,
-        errorMessage: (error as Error).message,
-        errorStack: (error as Error).stack,
-      });
+      console.error('Error al actualizar tema:', error);
     }
-
-    console.log('🏁 [StudyArea] Proceso de marcado como completado finalizado');
   };
 
   const getNextTopic = () => {
