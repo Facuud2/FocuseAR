@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import './AccountSettings.css';
+import { subscriptionService } from '../services/SubscriptionService';
 
 // Mueve la definición del estado inicial fuera del componente.
 const initialAvailability: { [key: string]: boolean } = {
@@ -383,6 +384,34 @@ const AccountSettings = () => {
                     onClick={() => handleSelectPlan('annual')}
                   >
                     Seleccionar
+                  </button>
+                  {/* Botón temporal para activar premium */}
+                  <button
+                    className="plan-btn activate-premium-btn"
+                    onClick={async () => {
+                      try {
+                        const success =
+                          await subscriptionService.activateTemporaryPremium();
+                        if (success) {
+                          alert('¡Premium activado con éxito!');
+                          window.location.reload();
+                        } else {
+                          alert(
+                            'Error al activar el premium. Por favor, inténtalo de nuevo.',
+                          );
+                        }
+                      } catch (error) {
+                        console.error('Error:', error);
+                        alert('Error al activar el premium.');
+                      }
+                    }}
+                    style={{
+                      marginTop: '10px',
+                      backgroundColor: '#FFD700',
+                      color: 'black',
+                    }}
+                  >
+                    Activar Premium (Temporal)
                   </button>
                 </div>
                 <div className="plan-card">

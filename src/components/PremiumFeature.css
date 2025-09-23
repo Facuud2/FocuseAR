@@ -1,0 +1,77 @@
+.premium-feature-locked {
+  position: relative;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.premium-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  pointer-events: auto;
+  backdrop-filter: blur(4px);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.premium-overlay h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #FFD700;
+}
+
+.premium-overlay p {
+  margin-bottom: 1.5rem;
+}
+
+.upgrade-button {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.upgrade-button:hover {
+  transform: scale(1.05);
+}
+
+/* Estilos para los badges de características premium */
+.premium-badge {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  color: black;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+/* Animación para características bloqueadas */
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.premium-feature-locked .premium-overlay {
+  animation: pulseGlow 2s infinite;
+}
