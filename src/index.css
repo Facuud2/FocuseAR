@@ -15,20 +15,30 @@
   --danger-color: #EA4335;
   --warning-color: #FBC02D;
   --success-color: #34A853;
-  --background-light: #F8F9FA;
-  --background-dark: #E9ECEF;
-  --surface-color: #ffffff;
+  --background-light: rgba(248, 249, 250, 0.7);
+  --background-dark: rgba(233, 236, 239, 0.8);
+  --surface-color: rgba(255, 255, 255, 0.8);
   --text-primary: #1F2937;
   --text-secondary: #6B7280;
   --text-light: #F0F4F8;
-  --border-color: #E5E7EB;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.2);
+  --border-color: rgba(229, 231, 235, 0.3);
+  --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 15px 35px rgba(0, 0, 0, 0.15);
+  --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  --glass-border: 1px solid rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --backdrop-blur: blur(10px);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Input specific variables */
+  --input-bg-light: rgba(255, 255, 255, 0.9);
+  --input-bg-dark: rgba(26, 32, 44, 0.8);
+  --input-border-light: rgba(229, 231, 235, 0.5);
+  --input-border-dark: rgba(74, 85, 104, 0.5);
+  --input-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* ===== VARIABLES PARA MODO OSCURO ===== */
@@ -180,18 +190,24 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--surface-color);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   padding: 2rem 3rem;
   margin-bottom: 2.5rem;
-  transition: background var(--transition), box-shadow var(--transition);
+  transition: all 0.3s ease;
   width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
 [data-theme='dark'] header {
-  background: var(--surface-color);
-  box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, rgba(26, 32, 44, 0.8), rgba(26, 32, 44, 0.6));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .logo {
@@ -254,13 +270,30 @@ header {
   100% { transform: scale(1.07); }
 }
 
+@keyframes neonPulse {
+  0% {
+    text-shadow: 0 0 10px rgba(46, 134, 193, 0.5),
+                 0 0 20px rgba(46, 134, 193, 0.3),
+                 0 0 30px rgba(46, 134, 193, 0.1);
+  }
+  50% {
+    text-shadow: 0 0 15px rgba(46, 134, 193, 0.7),
+                 0 0 25px rgba(46, 134, 193, 0.5),
+                 0 0 35px rgba(46, 134, 193, 0.3);
+  }
+  100% {
+    text-shadow: 0 0 10px rgba(46, 134, 193, 0.5),
+                 0 0 20px rgba(46, 134, 193, 0.3),
+                 0 0 30px rgba(46, 134, 193, 0.1);
+  }
+}
+
 .user-info {
   display: flex;
   align-items: center;
   color: var(--text-primary);
   gap: 1rem;
   padding: 0.75rem 1.25rem;
-  background-color: var(--background-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
@@ -299,22 +332,29 @@ header {
 }
 
 .panel {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   padding: 2.5rem;
-  transition: background var(--transition), border var(--transition), box-shadow var(--transition);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 [data-theme='dark'] .panel {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
+  background: linear-gradient(135deg, rgba(26, 32, 44, 0.8), rgba(26, 32, 44, 0.6));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 .panel:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.45);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 h2 {
@@ -325,8 +365,12 @@ h2 {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12);
   padding-bottom: 1rem;
+  text-shadow: 0 0 10px rgba(46, 134, 193, 0.5),
+               0 0 20px rgba(46, 134, 193, 0.3),
+               0 0 30px rgba(46, 134, 193, 0.1);
+  animation: neonPulse 2s infinite;
 }
 
 h2 i {
@@ -350,12 +394,15 @@ h2 i {
 .form-group select {
   width: 100%;
   padding: 0.9rem 1.2rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--input-border-light);
   border-radius: var(--radius-md);
   font-size: 1rem;
-  background: var(--background-light);
+  background: var(--input-bg-light);
   color: var(--text-primary);
   transition: var(--transition);
+  box-shadow: var(--input-shadow);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 .form-group input:focus, 
@@ -363,21 +410,24 @@ h2 i {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 4px rgba(46, 134, 193, 0.1);
-  background: var(--surface-color);
+  background: var(--input-bg-light);
 }
 
 /* Dark mode for inputs */
 [data-theme='dark'] .form-group input,
 [data-theme='dark'] .form-group select,
 [data-theme='dark'] .form-group textarea {
-  background: var(--background-dark);
-  color: var(--text-primary);
-  border-color: var(--border-color);
+  background: var(--input-bg-dark);
+  color: var(--text-light);
+  border-color: var(--input-border-dark);
 }
+
 [data-theme='dark'] .form-group input:focus,
 [data-theme='dark'] .form-group select:focus,
 [data-theme='dark'] .form-group textarea:focus {
-  background: var(--surface-color);
+  background: var(--input-bg-dark);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.2);
 }
 
 .color-options {

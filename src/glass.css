@@ -1,0 +1,256 @@
+/* Modern Glass UI Styles */
+.panel, .subject-card, .calendar-cell, .modal-content {
+  background: var(--glass-gradient);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border: var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Modern Animations */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardHover {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Glass effect hover states */
+.panel:hover, .subject-card:hover, .calendar-cell:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Modern Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-color);
+}
+
+/* Enhanced Modal Styles */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+/* Enhanced Form Controls */
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(46, 134, 193, 0.2);
+}
+
+/* Enhanced Buttons */
+.planify-btn,
+.nav-btn,
+button.primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.planify-btn:hover,
+.nav-btn:hover,
+button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Subject Cards Enhanced */
+.subject-card {
+  background: var(--glass-gradient);
+  border: var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.subject-icon {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Calendar Enhancements */
+.calendar-cell {
+  background: var(--glass-gradient);
+  border: var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.today {
+  background: linear-gradient(135deg, rgba(46, 134, 193, 0.1), rgba(116, 172, 223, 0.1));
+  border: 2px solid var(--primary-color);
+}
+
+.event {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* PDF Upload Area Enhanced */
+.upload-area {
+  background: var(--glass-gradient);
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary-color);
+}
+
+/* Enhanced Progress Bars */
+.progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  transition: width 0.5s ease;
+}
+
+/* Responsive Grid Layouts */
+.subjects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .panel {
+    padding: 1.5rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .subjects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-grid {
+    gap: 0.5rem;
+  }
+
+  .event {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text h1 {
+    font-size: 1.8em;
+  }
+
+  .subject-card {
+    padding: 1rem;
+  }
+
+  .calendar-cell {
+    min-height: 80px;
+    padding: 0.5rem;
+  }
+
+  .form-group input,
+  .form-group select {
+    padding: 0.75rem 1rem;
+  }
+
+  .planify-btn {
+    padding: 1rem;
+    font-size: 1rem;
+  }
+
+  .user-info {
+    padding: 0.5rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Dark Mode Enhancements */
+[data-theme='dark'] {
+  --glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+[data-theme='dark'] .form-group input,
+[data-theme='dark'] .form-group select,
+[data-theme='dark'] .form-group textarea {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .form-group input:focus,
+[data-theme='dark'] .form-group select:focus,
+[data-theme='dark'] .form-group textarea:focus {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: var(--primary-color);
+}

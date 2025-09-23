@@ -90,7 +90,6 @@
   text-align: center;
   cursor: pointer;
   transition: var(--transition);
-  background: var(--background-light); /* Use theme variable */
 }
 
 .new-file-upload:hover {
@@ -164,7 +163,6 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   font-size: 1rem;
-  background: var(--background-light); /* Use theme variable */
   color: var(--text-primary);
   transition: var(--transition);
 }

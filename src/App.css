@@ -70,9 +70,6 @@ body {
   transition: background var(--transition), color var(--transition);
 }
 
-[data-theme='dark'] body {
-  background: linear-gradient(135deg, #1A202C 0%, #2D3748 100%);
-}
 
 .sidebar {
   flex-shrink: 0;
@@ -182,7 +179,6 @@ header {
   color: var(--text-primary);
   gap: 1rem;
   padding: 0.75rem 1.25rem;
-  background-color: var(--background-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
