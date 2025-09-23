@@ -6,6 +6,7 @@ import type {
   StudyPlan,
   AIConversation,
   AIConversationMessage,
+  UserEvent,
   Quiz,
 } from '../services/DatabaseService';
 import type { Topic } from '../types/studyPlan';
@@ -435,6 +436,64 @@ export const useDatabase = () => {
     setError(null);
   }, []);
 
+  // Crear evento de usuario
+  const createUserEvent = useCallback(
+    async (eventData: Omit<UserEvent, 'id' | 'createdAt' | 'userId'>) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const eventToCreate: Omit<UserEvent, 'id' | 'createdAt'> = {
+          userId: user.uid,
+          ...eventData,
+        };
+        const eventId = await DatabaseService.createUserEvent(eventToCreate);
+
+        console.log('✅ Evento de usuario creado:', eventId);
+        return eventId;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al crear evento de usuario:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
+  // Obtener eventos de usuario
+  const getUserEvents = useCallback(async (): Promise<UserEvent[]> => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return [];
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const events = await DatabaseService.getUserEvents(user.uid);
+      console.log('✅ Eventos de usuario obtenidos:', events.length);
+      return events;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener eventos de usuario:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   return {
     loading,
     error,
@@ -452,6 +511,8 @@ export const useDatabase = () => {
     getUserAIConversations,
     deleteAIConversation,
     updateConversationTitle,
+    createUserEvent, // Add this line
+    getUserEvents, // Add this line
     getQuizzes,
     getQuiz,
     deleteQuiz,

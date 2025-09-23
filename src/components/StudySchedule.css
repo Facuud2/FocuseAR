@@ -197,11 +197,13 @@ body {
 
 /* Paneles de Contenido Lateral */
 .panel {
-  background: var(--surface-color);
+  background: rgba(255, 255, 255, 0.2); /* Light background for the glass effect */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px); /* For Safari */
   border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.3); /* Light border */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Softer shadow */
   padding: 2rem;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
   transition: var(--transition);
   height: fit-content;
 }

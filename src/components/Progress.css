@@ -216,9 +216,9 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .progress-main-content {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack columns on medium screens */
   }
 }
 
@@ -242,6 +242,45 @@
 
   .panel-title {
     font-size: 1.5rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Further adjust minmax for smaller cards */
+  }
+
+  .metric-value {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 320px) {
+  .progress-containers {
+    padding: 0.8rem;
+  }
+
+  .progress-title {
+    font-size: 1.4rem;
+  }
+
+  .progress-subtitle {
+    font-size: 0.7rem;
+  }
+
+  .analytics-panel,
+  .metrics-panel {
+    padding: 1rem;
+  }
+
+  .panel-title {
+    font-size: 1rem;
+  }
+
+  .metric-value {
+    font-size: 1.2rem;
+  }
+
+  .metric-label {
+    font-size: 0.7rem;
   }
 }
 
@@ -268,10 +307,32 @@
   }
 
   .metrics-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack metrics on very small screens */
   }
 
   .metric-value {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
+  }
+
+  .metric-label {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .progress-title {
+    font-size: 1.6rem;
+  }
+
+  .progress-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .panel-title {
+    font-size: 1.1rem;
+  }
+
+  .metric-value {
+    font-size: 1.4rem;
   }
 }
