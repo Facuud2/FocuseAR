@@ -5,20 +5,13 @@ import {
   query,
   where,
   getDocs,
+  doc,
+  updateDoc,
+  deleteDoc, // Added deleteDoc here
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
-interface MaterialMetadata {
-  fileName: string;
-  originalName: string;
-  storagePath: string;
-  downloadUrl: string;
-  userId: string;
-  fileSize: number;
-  mimeType: string;
-  status: 'pending' | 'completed' | 'error';
-  createdAt?: Date;
-}
+import type { MaterialMetadata } from '../types/material';
 
 export const saveMaterialMetadata = async (
   metadata: Omit<MaterialMetadata, 'createdAt'>,
@@ -37,11 +30,13 @@ export const saveMaterialMetadata = async (
 
 export const getUserMaterials = async (
   userId: string,
+  path: string,
 ): Promise<MaterialMetadata[]> => {
   try {
     const materialsQuery = query(
       collection(db, 'materials'),
       where('userId', '==', userId),
+      where('path', '==', path),
     );
 
     const querySnapshot = await getDocs(materialsQuery);
@@ -52,5 +47,43 @@ export const getUserMaterials = async (
   } catch (error) {
     console.error('Error al obtener los materiales:', error);
     throw new Error('Error al obtener la lista de materiales.');
+  }
+};
+
+export const moveMaterial = async (
+  materialId: string,
+  newPath: string,
+): Promise<void> => {
+  try {
+    const materialRef = doc(db, 'materials', materialId);
+    await updateDoc(materialRef, { path: newPath });
+  } catch (error) {
+    console.error('Error al mover el material:', error);
+    throw new Error('Error al mover el material.');
+  }
+};
+
+export const updateMaterialTags = async (
+  // Added this function
+  materialId: string,
+  newTags: string[],
+): Promise<void> => {
+  try {
+    const materialRef = doc(db, 'materials', materialId);
+    await updateDoc(materialRef, { tags: newTags });
+  } catch (error) {
+    console.error('Error updating material tags:', error);
+    throw new Error('Error updating material tags.');
+  }
+};
+
+export const deleteMaterial = async (materialId: string): Promise<void> => {
+  try {
+    const materialRef = doc(db, 'materials', materialId);
+    await deleteDoc(materialRef);
+    // Also delete the file from storage
+  } catch (error) {
+    console.error('Error deleting material:', error);
+    throw new Error('Error deleting material.');
   }
 };

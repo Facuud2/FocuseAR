@@ -1,47 +1,86 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import './Documents.css';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
+import { useAuth } from '../hooks/useAuth';
+import { storage } from '../firebase';
+import type { Folder as FolderType } from '../types/folder';
+import { getFolders, createFolder, renameFolder } from '../services/folders'; // Importar renameFolder
+import {
+  getUserMaterials,
+  saveMaterialMetadata,
+  moveMaterial,
+  deleteMaterial,
+  updateMaterialTags,
+} from '../services/materials'; // Corrected import path for materials services
+import CreateFolderModal from './CreateFolderModal';
+import EditTagsModal from './EditTagsModal'; // Import the new modal
+import ContextMenu from './ContextMenu';
+import './Modal.css';
+import './ContextMenu.css';
 import {
   FileText,
   Upload,
   Trash2,
   Folder,
-  CheckCircle,
-  AlertCircle,
   Download,
-  Sun,
-  Moon,
-  X,
+  X, // Removed Sun, Moon
+  Edit,
 } from 'lucide-react';
 
-interface DocumentType {
-  id: number;
-  name: string;
-  size: string;
-  subject: string;
-  uploadProgress: number;
-  uploadStatus: 'pending' | 'uploading' | 'completed' | 'failed';
+import type { MaterialMetadata } from '../types/material';
+import toast from 'react-hot-toast';
+import { auth } from '../firebase'; // Ajusta la ruta según tu estructura
+
+type OnMaterialContextMenu = (
+  e: React.MouseEvent,
+  item: MaterialMetadata,
+  type: 'material',
+) => void;
+type HandleOpenViewer = (doc: MaterialMetadata) => void;
+type HandleDownload = (doc: MaterialMetadata) => void;
+type HandleDeleteMaterial = (
+  materialId?: string,
+  storagePath?: string,
+) => Promise<void>;
+
+type OnDropMaterial = (materialId: string, newPath: string) => Promise<void>;
+type OnNavigateFolder = (path: string) => void;
+type OnFolderContextMenu = (
+  e: React.MouseEvent,
+  item: FolderType,
+  type: 'folder',
+) => void;
+type OnRenameFolder = (folderId: string, currentName: string) => Promise<void>;
+type OnDeleteFolder = (folderId: string) => Promise<void>;
+
+interface ContextMenuState {
+  x: number;
+  y: number;
+  item: MaterialMetadata | FolderType;
+  type: 'material' | 'folder';
 }
 
-// SIMULACIÓN de la base de datos para almacenar archivos
-const database = new Map<number, ArrayBuffer>();
+const ItemTypes = {
+  MATERIAL: 'material',
+};
 
-const initialDocuments: DocumentType[] = [
-  {
-    id: 1,
-    name: 'Clase-1-Matematicas.pdf',
-    size: '2.4 MB',
-    subject: 'Matemáticas',
-    uploadProgress: 100,
-    uploadStatus: 'completed',
-  },
-];
-
-const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
+const FileUploadDemo = ({
+  onFilesUploaded,
+}: {
+  onFilesUploaded: (files: File[]) => void;
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    onChange(files);
+    onFilesUploaded(files);
     e.target.value = '';
   };
 
@@ -52,7 +91,7 @@ const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files || []);
-    onChange(files);
+    onFilesUploaded(files);
   };
 
   return (
@@ -78,371 +117,638 @@ const FileUpload = ({ onChange }: { onChange: (files: File[]) => void }) => {
   );
 };
 
-const FileUploadDemo = ({
-  onFilesUploaded,
+const DraggableMaterial = ({
+  doc,
+  onContextMenu,
+  handleOpenViewer,
+  handleDownload,
+  handleDelete,
 }: {
-  onFilesUploaded: (files: File[]) => void;
+  doc: MaterialMetadata;
+  onContextMenu: OnMaterialContextMenu;
+  handleOpenViewer: HandleOpenViewer;
+  handleDownload: HandleDownload;
+  handleDelete: HandleDeleteMaterial;
 }) => {
-  const [, setFiles] = useState<File[]>([]);
-  const handleFileUpload = (files: File[]) => {
-    setFiles(files);
-    onFilesUploaded(files);
-    console.log(files);
+  const [{ isDragging }, dragRef] = useDrag(() => ({
+    type: ItemTypes.MATERIAL,
+    item: { id: doc.id },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }));
+
+  const drag = (node: HTMLDivElement | null) => {
+    if (node) {
+      dragRef(node);
+    }
   };
 
   return (
-    <div className="file-upload-wrapper">
-      <FileUpload onChange={handleFileUpload} />
+    <div
+      ref={drag}
+      className="document-card"
+      style={{ opacity: isDragging ? 0.5 : 1 }}
+      onContextMenu={(e) => onContextMenu(e, doc, 'material')}
+    >
+      <div className="document-icon-wrapper">
+        <FileText size={48} className="document-icon" />
+      </div>
+      <div className="document-info">
+        <span className="document-name">{doc.fileName}</span>
+        <span className="document-size">
+          {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
+        </span>
+        {doc.tags && doc.tags.length > 0 && (
+          <div className="document-tags">
+            {doc.tags.map((tag) => (
+              <span key={tag} className="tag-display-item">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="document-actions">
+        <button
+          onClick={() => handleOpenViewer(doc)}
+          className="view-btn"
+          title="Ver PDF"
+        >
+          <FileText size={18} />
+        </button>
+        <button
+          onClick={() => handleDownload(doc)}
+          className="download-btn"
+          title="Descargar"
+        >
+          <Download size={18} />
+        </button>
+        <button
+          onClick={() => handleDelete(doc.id, doc.storagePath)}
+          className="delete-btn"
+          title="Eliminar"
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const DropTargetFolder = ({
+  folder,
+  onDrop,
+  onNavigate,
+  onContextMenu,
+  onRename,
+  onDelete,
+}: {
+  folder: FolderType;
+  onDrop: OnDropMaterial;
+  onNavigate: OnNavigateFolder;
+  onContextMenu: OnFolderContextMenu;
+  onRename: OnRenameFolder;
+  onDelete: OnDeleteFolder;
+}) => {
+  const [{ isOver }, dropRef] = useDrop(() => ({
+    accept: ItemTypes.MATERIAL,
+    drop: (item: { id: string }) =>
+      onDrop(item.id, `${folder.path}${folder.name}/`),
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  }));
+
+  const drop = (node: HTMLDivElement | null) => {
+    if (node) {
+      dropRef(node);
+    }
+  };
+
+  return (
+    <div
+      ref={drop}
+      className="document-card"
+      style={{ backgroundColor: isOver ? '#f0f0f0' : 'transparent' }}
+      onClick={() =>
+        folder.path &&
+        folder.name &&
+        onNavigate(`${folder.path}${folder.name}/`)
+      }
+      onContextMenu={(e) => onContextMenu(e, folder, 'folder')}
+    >
+      <div className="document-icon-wrapper">
+        <Folder size={48} className="document-icon" />
+      </div>
+      <div className="document-info">
+        <span className="document-name">{folder.name}</span>
+      </div>
+      <div className="document-actions" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (folder.id && folder.name) onRename(folder.id, folder.name);
+          }}
+        >
+          <Edit size={18} />
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (folder.id) onDelete(folder.id);
+          }}
+        >
+          <Trash2 size={18} />
+        </button>
+      </div>
     </div>
   );
 };
 
 const Documents: React.FC = () => {
-  const [documents, setDocuments] = useState(initialDocuments);
+  const { user } = useAuth();
+  const [documents, setDocuments] = useState<MaterialMetadata[]>([]);
+  const [folders, setFolders] = useState<FolderType[]>([]);
+  const [currentPath, setCurrentPath] = useState('/');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<DocumentType | null>(
-    null,
-  );
+  const [selectedDocument, setSelectedDocument] =
+    useState<MaterialMetadata | null>(null);
   const [viewableUrl, setViewableUrl] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isEditTagsModalOpen, setIsEditTagsModalOpen] = useState(false);
+  const [documentToEditTags, setDocumentToEditTags] =
+    useState<MaterialMetadata | null>(null);
+
+  const loadContent = useCallback(async () => {
+    if (!user) {
+      console.log('User not authenticated, cannot load content.'); // Log 6
+      return;
+    }
+    setLoading(true);
+    console.log('Loading content for user:', user.uid, 'at path:', currentPath); // Log 7
+    try {
+      const [folders, materials] = await Promise.all([
+        getFolders(user.uid, currentPath),
+        getUserMaterials(user.uid, currentPath),
+      ]);
+      console.log('Folders loaded:', folders); // Log 8
+      console.log('Materials loaded:', materials); // Log 9
+      setFolders(folders);
+      setDocuments(materials);
+    } catch (error: unknown) {
+      console.error('Error al cargar el contenido:', error);
+      let errorMessage = 'Error al cargar el contenido';
+
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      toast.error(errorMessage);
+    }
+    setLoading(false);
+  }, [user, currentPath]); // Removed getFolders and getUserMaterials
 
   useEffect(() => {
-    document.body.className = isDarkMode ? 'dark-mode' : '';
-  }, [isDarkMode]);
+    loadContent();
+  }, [loadContent]);
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-  };
-
-  const uploadFiles = useCallback((files: File[]) => {
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          const newDoc: DocumentType = {
-            id: Date.now() + Math.random(),
-            name: file.name,
-            size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-            subject: 'Sin asignar',
-            uploadProgress: 0,
-            uploadStatus: 'pending',
-          };
-
-          database.set(newDoc.id, e.target.result as ArrayBuffer);
-
-          setDocuments((prevDocs) => [...prevDocs, newDoc]);
-
-          const interval = setInterval(() => {
-            setDocuments((prevDocs) =>
-              prevDocs.map((d) => {
-                if (d.id === newDoc.id) {
-                  const newProgress = d.uploadProgress + 10;
-                  if (newProgress >= 100) {
-                    clearInterval(interval);
-                    return {
-                      ...d,
-                      uploadProgress: 100,
-                      uploadStatus: 'completed',
-                    };
-                  }
-                  return {
-                    ...d,
-                    uploadProgress: newProgress,
-                    uploadStatus: 'uploading',
-                  };
-                }
-                return d;
-              }),
-            );
-          }, 200);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }, []);
-
-  const handleDelete = (id: number) => {
-    database.delete(id);
-    setDocuments(documents.filter((doc) => doc.id !== id));
-    if (selectedDocument && selectedDocument.id === id) {
-      setSelectedDocument(null);
-      setViewableUrl(null);
+  const handleCreateFolder = async (folderName: string) => {
+    if (folderName && user) {
+      // Use the local service function instead of Firebase Cloud Function
+      await createFolder({
+        name: folderName,
+        path: currentPath,
+        userId: user.uid,
+      });
+      loadContent();
     }
   };
 
-  const handleOpenViewer = (doc: DocumentType) => {
-    if (doc.name.toLowerCase().endsWith('.pdf')) {
-      const storedData = database.get(doc.id);
-      if (storedData) {
-        const blob = new Blob([storedData], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        setSelectedDocument(doc);
-        setViewableUrl(url);
-      } else {
-        // Para documentos de ejemplo, usar un PDF de prueba
-        const initialDoc = initialDocuments.find((d) => d.id === doc.id);
-        if (initialDoc) {
-          setSelectedDocument(doc);
-          setViewableUrl(
-            'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
-          );
-        }
+  const handleRenameFolder = async (folderId: string, currentName: string) => {
+    try {
+      if (!user) {
+        throw new Error('Usuario no autenticado');
       }
+
+      const newName = prompt('Ingrese el nuevo nombre:', currentName);
+
+      // Si el usuario cancela o no ingresa un nombre, no hacemos nada
+      if (newName === null || newName.trim() === '') {
+        return;
+      }
+
+      // Validar que el nombre no sea el mismo
+      if (newName === currentName) {
+        return; // No es necesario hacer nada si el nombre no cambia
+      }
+
+      // Usar la función local del servicio en lugar de la función de Firebase
+      await renameFolder(folderId, newName);
+
+      // Recargar el contenido después de renombrar
+      loadContent();
+    } catch (error: unknown) {
+      console.error('Error al renombrar la carpeta:', error);
+
+      // Mostrar mensaje de error al usuario
+      let errorMessage = 'Ocurrió un error al intentar renombrar la carpeta';
+
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      alert(errorMessage);
     }
   };
 
-  const filteredDocuments = documents.filter((doc) =>
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const handleDeleteFolder = async (folderId: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta carpeta?')) {
+      return;
+    }
 
-  const handleDownload = (doc: DocumentType) => {
-    const storedData = database.get(doc.id);
-    if (storedData) {
-      const blob = new Blob([storedData], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = doc.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      const token = await user.getIdToken();
+      const response = await fetch(
+        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/deleteFolder',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ folderId }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al eliminar la carpeta');
+      }
+
+      // Actualizar el estado local
+      setFolders((prevFolders) =>
+        prevFolders.filter((folder) => folder.id !== folderId),
+      );
+      toast.success('Carpeta eliminada correctamente');
+      loadContent(); // Recargar el contenido actualizado
+    } catch (error: unknown) {
+      console.error('Error al eliminar carpeta:', error);
+      let errorMessage = 'Error al eliminar la carpeta';
+
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleDeleteMaterial: HandleDeleteMaterial = async (
+    materialId = '',
+    storagePath = '',
+  ) => {
+    if (window.confirm('Are you sure you want to delete this material?')) {
+      const storageRef = ref(storage, storagePath);
+      await deleteObject(storageRef);
+      await deleteMaterial(materialId);
+      loadContent();
+    }
+  };
+
+  const handleFileUpload = async (files: File[]) => {
+    if (files.length > 0 && user) {
+      const file = files[0];
+      console.log(
+        'Attempting to upload file:',
+        file.name,
+        'for user:',
+        user.uid,
+      ); // Log 1
+      const storageRef = ref(
+        storage,
+        `materials/${user.uid}/${Date.now()}_${file.name}`,
+      );
+      try {
+        const snapshot = await uploadBytes(storageRef, file);
+        console.log('File uploaded to Storage:', snapshot.ref.fullPath); // Log 2
+        const downloadUrl = await getDownloadURL(snapshot.ref);
+        console.log('Download URL obtained:', downloadUrl); // Log 3
+        const metadataToSave: MaterialMetadata = {
+          // Added type assertion here
+          fileName: file.name,
+          originalName: file.name,
+          storagePath: snapshot.ref.fullPath,
+          downloadUrl,
+          userId: user.uid,
+          fileSize: file.size,
+          mimeType: file.type,
+          status: 'completed',
+          path: currentPath,
+          tags: [], // Initialize with empty tags array
+        };
+        console.log('Saving material metadata:', metadataToSave); // Log 4
+        await saveMaterialMetadata(metadataToSave);
+        console.log('Material metadata saved successfully.'); // Log 5
+        loadContent();
+      } catch (error) {
+        console.error('Error during file upload or metadata save:', error); // Log Error
+      }
     } else {
-      const initialDoc = initialDocuments.find((d) => d.id === doc.id);
-      if (initialDoc) {
-        window.open(
-          'https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf',
-          '_blank',
-        );
-      }
+      console.log('No file selected or user not authenticated.'); // Log 0
     }
+  };
+
+  const handleMoveMaterial = async (materialId: string, newPath: string) => {
+    await moveMaterial(materialId, newPath);
+    loadContent();
+  };
+
+  const handleMoveToRoot = async (materialId: string) => {
+    await moveMaterial(materialId, '/');
+    loadContent();
+    closeContextMenu();
+  };
+
+  const handleOpenViewer = (doc: MaterialMetadata) => {
+    setSelectedDocument(doc);
+    setViewableUrl(doc.downloadUrl);
+  };
+
+  const handleDownload = (doc: MaterialMetadata) => {
+    window.open(doc.downloadUrl, '_blank');
   };
 
   const closeViewer = () => {
-    if (viewableUrl && viewableUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(viewableUrl);
-    }
     setSelectedDocument(null);
     setViewableUrl(null);
   };
 
+  const handleContextMenu = (
+    e: React.MouseEvent,
+    item: MaterialMetadata | FolderType,
+    type: 'material' | 'folder',
+  ) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY, item, type });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  const handleEditTags = (doc: MaterialMetadata) => {
+    setDocumentToEditTags(doc);
+    setIsEditTagsModalOpen(true);
+    closeContextMenu(); // Close the context menu after selection
+  };
+
+  const handleSaveTags = async (documentId: string, newTags: string[]) => {
+    if (!user) return;
+    await updateMaterialTags(documentId, newTags); // Use the actual service function
+    loadContent();
+  };
+
+  const filteredDocuments = documents.filter((doc) =>
+    doc.fileName.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
+
   return (
-    <div className="documents-container">
-      <header className="documents-header">
-        <div>
-          <h1 className="documents-title">Mis Documentos 📄</h1>
-          <p className="documents-subtitle">
-            Organiza y gestiona todos tus documentos de estudio en un solo
-            lugar.
-          </p>
-        </div>
-        <button className="theme-toggle-btn" onClick={toggleTheme}>
-          {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
-        </button>
-      </header>
-
-      <div className="documents-main-content">
-        <div className="panel upload-panel">
-          <h2 className="panel-title">
-            <Upload className="panel-icon" />
-            Subir Documentos
-          </h2>
-          <FileUploadDemo onFilesUploaded={uploadFiles} />
-        </div>
-
-        <div className="documents-list-panel">
-          <h2 className="panel-title">
-            <Folder className="panel-icon" />
-            Documentos Subidos
-          </h2>
-          <div className="search-container">
-            <div id="poda">
-              <div className="glow"></div>
-              <div className="darkBorderBg"></div>
-              <div className="darkBorderBg"></div>
-              <div className="darkBorderBg"></div>
-              <div className="white"></div>
-              <div className="border"></div>
-              <div id="main">
-                <input
-                  placeholder="Search..."
-                  type="text"
-                  name="text"
-                  className="input"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <div id="input-mask"></div>
-                <div id="pink-mask"></div>
-                <div className="filterBorder"></div>
-                <div id="filter-icon">
-                  <svg
-                    preserveAspectRatio="none"
-                    height="27"
-                    width="27"
-                    viewBox="4.8 4.56 14.832 15.408"
-                    fill="none"
-                  >
-                    <path
-                      d="M8.16 6.65002H15.83C16.47 6.65002 16.99 7.17002 16.99 7.81002V9.09002C16.99 9.56002 16.7 10.14 16.41 10.43L13.91 12.64C13.56 12.93 13.33 13.51 13.33 13.98V16.48C13.33 16.83 13.1 17.29 12.81 17.47L12 17.98C11.24 18.45 10.2 17.92 10.2 16.99V13.91C10.2 13.5 9.97 12.98 9.73 12.69L7.52 10.36C7.23 10.08 7 9.55002 7 9.20002V7.87002C7 7.17002 7.52 6.65002 8.16 6.65002Z"
-                      stroke="#d6d6e6"
-                      strokeWidth="1"
-                      strokeMiterlimit="10"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    ></path>
-                  </svg>
-                </div>
-                <div id="search-icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    viewBox="0 0 24 24"
-                    strokeWidth="2"
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    height="24"
-                    fill="none"
-                    className="feather feather-search"
-                  >
-                    <circle
-                      stroke="url(#search)"
-                      r="8"
-                      cy="11"
-                      cx="11"
-                    ></circle>
-                    <line
-                      stroke="url(#searchl)"
-                      y2="16.65"
-                      y1="22"
-                      x2="16.65"
-                      x1="22"
-                    ></line>
-                    <defs>
-                      <linearGradient
-                        gradientTransform="rotate(50)"
-                        id="search"
-                      >
-                        <stop stopColor="#f8e7f8" offset="0%"></stop>
-                        <stop stopColor="#b6a9b7" offset="50%"></stop>
-                      </linearGradient>
-                      <linearGradient id="searchl">
-                        <stop stopColor="#b6a9b7" offset="0%"></stop>
-                        <stop stopColor="#837484" offset="50%"></stop>
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
-              </div>
-            </div>
+    <DndProvider backend={HTML5Backend}>
+      <div className="documents-container" onClick={closeContextMenu}>
+        {' '}
+        {/* Removed data-theme attribute */}
+        <header className="documents-header">
+          <div>
+            <h1 className="documents-title">Mis Documentos 📄</h1>
+            <p className="documents-subtitle">
+              Organiza y gestiona todos tus documentos de estudio en un solo
+              lugar.
+            </p>
           </div>
-          <div className="documents-grid">
-            {filteredDocuments.length > 0 ? (
-              filteredDocuments.map((doc) => (
-                <div key={doc.id} className="document-card">
-                  <div className="document-icon-wrapper">
-                    <FileText size={48} className="document-icon" />
-                  </div>
-                  <div className="document-info">
-                    <span className="document-name">{doc.name}</span>
-                    <span className="document-subject">{doc.subject}</span>
-                    <span className="document-size">{doc.size}</span>
-                    {doc.uploadStatus === 'uploading' && (
-                      <div className="progress-bar-container">
-                        <div
-                          className="progress-bar"
-                          style={{ width: `${doc.uploadProgress}%` }}
-                        ></div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="document-actions">
-                    {doc.uploadStatus === 'completed' && (
-                      <>
-                        {doc.name.toLowerCase().endsWith('.pdf') && (
-                          <button
-                            onClick={() => handleOpenViewer(doc)}
-                            className="view-btn"
-                            title="Ver PDF"
-                          >
-                            <FileText size={18} />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDownload(doc)}
-                          className="download-btn"
-                          title="Descargar"
-                        >
-                          <Download size={18} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(doc.id)}
-                          className="delete-btn"
-                          title="Eliminar"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </>
-                    )}
-                    {doc.uploadStatus === 'uploading' && (
-                      <span className="upload-status">Cargando...</span>
-                    )}
-                    {doc.uploadStatus === 'completed' && (
-                      <CheckCircle
-                        size={20}
-                        className="status-icon completed-icon"
-                      />
-                    )}
-                    {doc.uploadStatus === 'failed' && (
-                      <AlertCircle
-                        size={20}
-                        className="status-icon failed-icon"
-                      />
-                    )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="empty-state">
-                <p>
-                  No se encontraron documentos. Sube tus archivos para empezar.
-                  📁
-                </p>
-              </div>
-            )}
+          {/* Removed theme toggle button */}
+        </header>
+        <div className="documents-main-content">
+          <div className="panel upload-panel">
+            <h2 className="panel-title">
+              <Upload className="panel-icon" />
+              Subir Documentos
+            </h2>
+            <FileUploadDemo onFilesUploaded={handleFileUpload} />
           </div>
-        </div>
-      </div>
 
-      {selectedDocument && viewableUrl && (
-        <div className="pdf-viewer-modal-backdrop">
-          <div className="pdf-viewer-modal-content">
-            <header className="pdf-viewer-header">
-              <h3>{selectedDocument.name}</h3>
-              <button className="close-modal-btn" onClick={closeViewer}>
-                <X size={24} />
-              </button>
-            </header>
+          <div className="documents-list-panel">
             <div
-              className="pdf-viewer-body"
-              style={{ width: '100%', height: '100%' }}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
             >
-              <object
-                data={viewableUrl}
-                type="application/pdf"
-                width="100%"
-                height="100%"
+              <h2 className="panel-title">
+                <Folder className="panel-icon" />
+                Documentos Subidos
+              </h2>
+              <button onClick={() => setIsModalOpen(true)}>
+                Create Folder
+              </button>
+            </div>
+            <div>
+              <span
+                onClick={() => setCurrentPath('/')}
+                style={{ cursor: 'pointer' }}
               >
-                <p>
-                  Alternative text - include a link{' '}
-                  <a href={viewableUrl}>to the PDF!</a>
-                </p>
-              </object>
+                Root
+              </span>
+              {currentPath
+                .split('/')
+                .filter(Boolean)
+                .map((segment, index, arr) => (
+                  <span
+                    key={index}
+                    onClick={() =>
+                      setCurrentPath(
+                        '/' + arr.slice(0, index + 1).join('/') + '/',
+                      )
+                    }
+                    style={{ cursor: 'pointer' }}
+                  >
+                    / {segment}
+                  </span>
+                ))}
+            </div>
+            <div className="search-container">
+              <input
+                placeholder="Search..."
+                type="text"
+                name="text"
+                className="input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="documents-grid">
+              {loading ? (
+                <p>Loading...</p>
+              ) : (
+                <>
+                  {folders.map((folder) => (
+                    <DropTargetFolder
+                      key={folder.id}
+                      folder={folder}
+                      onDrop={handleMoveMaterial}
+                      onNavigate={setCurrentPath}
+                      onContextMenu={handleContextMenu}
+                      onRename={handleRenameFolder}
+                      onDelete={handleDeleteFolder}
+                    />
+                  ))}
+                  {filteredDocuments.map((doc) => (
+                    <DraggableMaterial
+                      key={doc.id}
+                      doc={doc}
+                      onContextMenu={handleContextMenu}
+                      handleOpenViewer={handleOpenViewer}
+                      handleDownload={handleDownload}
+                      handleDelete={handleDeleteMaterial}
+                    />
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </div>
-      )}
-    </div>
+        {selectedDocument && viewableUrl && (
+          <div className="pdf-viewer-modal-backdrop">
+            <div className="pdf-viewer-modal-content">
+              <header className="pdf-viewer-header">
+                <h3>{selectedDocument.fileName}</h3>
+                <button className="close-modal-btn" onClick={closeViewer}>
+                  <X size={24} />
+                </button>
+              </header>
+              <div
+                className="pdf-viewer-body"
+                style={{ width: '100%', height: '100%' }}
+              >
+                <object
+                  data={viewableUrl}
+                  type="application/pdf"
+                  width="100%"
+                  height="100%"
+                >
+                  <p>
+                    Alternative text - include a link{' '}
+                    <a href={viewableUrl}>to the PDF!</a>
+                  </p>
+                </object>
+              </div>
+            </div>
+          </div>
+        )}
+        <CreateFolderModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onCreate={handleCreateFolder}
+        />
+        <EditTagsModal
+          isOpen={isEditTagsModalOpen}
+          onClose={() => setIsEditTagsModalOpen(false)}
+          document={documentToEditTags}
+          onSave={handleSaveTags}
+        />
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={closeContextMenu}
+          >
+            {contextMenu.type === 'folder' && 'path' in contextMenu.item && (
+              <>
+                <div
+                  className="context-menu-item"
+                  onClick={() => {
+                    const folder = contextMenu.item as FolderType;
+                    if (folder.id && 'name' in folder) {
+                      handleRenameFolder(folder.id, folder.name);
+                    }
+                  }}
+                >
+                  Rename
+                </div>
+                <div
+                  className="context-menu-item"
+                  onClick={() => {
+                    const folder = contextMenu.item as FolderType;
+                    if (folder.id) {
+                      handleDeleteFolder(folder.id);
+                    }
+                  }}
+                >
+                  Delete
+                </div>
+              </>
+            )}
+            {contextMenu.type === 'material' &&
+              'storagePath' in contextMenu.item && (
+                <>
+                  <div
+                    className="context-menu-item"
+                    onClick={() =>
+                      contextMenu.item.id &&
+                      'storagePath' in contextMenu.item &&
+                      handleDeleteMaterial(
+                        contextMenu.item.id,
+                        contextMenu.item.storagePath,
+                      )
+                    }
+                  >
+                    Delete
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    onClick={() =>
+                      'storagePath' in contextMenu.item &&
+                      handleEditTags(contextMenu.item)
+                    }
+                  >
+                    Edit Tags
+                  </div>
+                  <div
+                    className="context-menu-item"
+                    onClick={() =>
+                      contextMenu.item.id &&
+                      handleMoveToRoot(contextMenu.item.id)
+                    }
+                  >
+                    Move to Root
+                  </div>
+                </>
+              )}
+          </ContextMenu>
+        )}
+      </div>
+    </DndProvider>
   );
 };
 
