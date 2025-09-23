@@ -49,6 +49,7 @@ export const uploadPDF = async (
       fileSize: file.size,
       mimeType: file.type,
       status: 'completed',
+      path: filePath, // Added missing path property
     });
 
     return {

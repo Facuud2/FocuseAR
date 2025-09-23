@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useContext,
   useCallback,
+  useMemo,
   type JSX,
 } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
@@ -15,15 +16,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './StudySchedule.css';
 import type { Topic } from '../types/studyPlan';
-
-// Tipado para los eventos del calendario
-interface CalendarEvent {
-  type: 'study' | 'exam' | 'task';
-  title: string;
-  time: string;
-  date: string;
-  color?: string;
-}
+import type { UserEvent as DBUserEvent } from '../services/DatabaseService';
+import { Timestamp } from 'firebase/firestore';
 
 // Tipado para los datos de la base de datos
 type StudyPlanDay = {
@@ -75,27 +69,49 @@ interface StudyPlan {
   };
 }
 
+interface NewEventState {
+  title: string;
+  type: 'study' | 'exam' | 'task' | 'reminder';
+  date: Date | null;
+  time: string;
+  description?: string;
+  allDay?: boolean;
+  color?: string;
+}
+
+// Extender la interfaz UserEvent con métodos útiles
+// Interfaz extendida para los eventos locales
+interface LocalUserEvent extends Omit<DBUserEvent, 'start' | 'end'> {
+  start: string; // Formato: 'yyyy-MM-dd'
+  end?: string; // Formato: 'yyyy-MM-dd'
+  time: string; // Hora en formato 'HH:mm'
+  date: string; // Alias para start para compatibilidad
+  updatedAt: Timestamp; // Aseguramos que siempre esté presente
+}
+
 const StudySchedule: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { getUserMaterials, getUserStudyPlans } = useDatabase();
+  const {
+    getUserMaterials,
+    getUserStudyPlans,
+    createUserEvent,
+    getUserEvents,
+  } = useDatabase();
 
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
-  const [localEvents, setLocalEvents] = useState<CalendarEvent[]>([]);
+  const [localEvents, setLocalEvents] = useState<LocalUserEvent[]>([]);
 
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  const [newEvent, setNewEvent] = useState<{
-    title: string;
-    type: 'study' | 'exam' | 'task';
-    date: Date | null;
-    time: string;
-  }>({
+  const [newEvent, setNewEvent] = useState<NewEventState>({
     title: '',
     type: 'study',
     date: null,
     time: '',
+    description: '',
+    allDay: true,
   });
 
   // CORRECCIÓN: Envolvemos loadUserData en useCallback para evitar el warning
@@ -136,10 +152,57 @@ const StudySchedule: React.FC = () => {
           undefined,
       }));
       setStudyPlans(convertedPlans);
+
+      // Fetch user events and convert to LocalUserEvent
+      const userEvents = await getUserEvents();
+      const convertedEvents: LocalUserEvent[] = userEvents.map((event) => {
+        // Asegurarnos de que start sea un string
+        const startDate =
+          event.start instanceof Date ? event.start : new Date(event.start);
+        const startStr = format(startDate, 'yyyy-MM-dd');
+
+        // Obtener la hora del evento o usar la hora actual
+        let timeStr = '00:00';
+        const eventWithTime = event as DBUserEvent & { time?: string };
+        if (eventWithTime.time && typeof eventWithTime.time === 'string') {
+          timeStr = eventWithTime.time;
+        } else if (event.start instanceof Date) {
+          timeStr = format(event.start, 'HH:mm');
+        }
+
+        // Convertir fecha de fin si existe
+        let endStr: string | undefined;
+        if (event.end) {
+          const endDate =
+            event.end instanceof Date ? event.end : new Date(event.end);
+          endStr = format(endDate, 'yyyy-MM-dd');
+        }
+
+        // Crear el objeto de evento local asegurando que los tipos sean correctos
+        const localEvent: LocalUserEvent = {
+          ...event,
+          id: event.id || '',
+          userId: event.userId,
+          title: event.title,
+          description: event.description || '',
+          type: event.type as 'study' | 'exam' | 'task' | 'reminder',
+          allDay: event.allDay ?? true,
+          color: event.color || '#4285F4',
+          start: startStr,
+          end: endStr,
+          date: startStr, // Alias para compatibilidad
+          time: timeStr,
+          createdAt: event.createdAt || Timestamp.now(),
+          updatedAt: event.updatedAt || Timestamp.now(),
+        };
+
+        return localEvent;
+      });
+      setLocalEvents(convertedEvents);
     } catch (error) {
       console.error('Error al cargar datos del usuario:', error);
     }
-  }, [user, getUserMaterials, getUserStudyPlans]);
+  }, [user, getUserMaterials, getUserStudyPlans, getUserEvents]);
 
   // CORRECCIÓN: El array de dependencias ahora solo incluye loadUserData
   useEffect(() => {
@@ -161,37 +224,70 @@ const StudySchedule: React.FC = () => {
     setCurrentYear(y);
   };
 
-  const getCombinedEvents = () => {
-    const combinedEvents: { [date: string]: CalendarEvent[] } = {};
+  const getCombinedEvents = useCallback(
+    (userId: string | undefined) => {
+      const combinedEvents: { [date: string]: LocalUserEvent[] } = {};
 
-    studyPlans.forEach((plan) => {
-      if (plan.structuredPlan?.days) {
-        plan.structuredPlan.days.forEach((day) => {
-          const dateStr = day.date;
-          if (!combinedEvents[dateStr]) combinedEvents[dateStr] = [];
+      if (!userId) return combinedEvents;
 
-          const subject = subjects.find((s) => s.name === plan.subjectName);
-          combinedEvents[dateStr].push({
-            type: 'study',
-            title: day.title || plan.subjectName,
-            time: day.totalTime || '',
-            date: dateStr,
-            color: subject?.color || '#1a73e8',
+      // Agregar eventos de planes de estudio
+      studyPlans.forEach((plan) => {
+        if (plan.structuredPlan?.days) {
+          plan.structuredPlan.days.forEach((day) => {
+            const dateStr = day.date;
+            if (!combinedEvents[dateStr]) combinedEvents[dateStr] = [];
+
+            const subject = subjects.find((s) => s.name === plan.subjectName);
+
+            const newEvent: LocalUserEvent = {
+              id: `plan-${plan.id}-${day.dayNumber}`,
+              userId: userId,
+              title: day.title || plan.subjectName,
+              description: day.topics.map((t) => t.name).join(', '),
+              type: 'study',
+              start: dateStr,
+              date: dateStr, // Para compatibilidad
+              time: day.totalTime || '',
+              allDay: true,
+              color: subject?.color || '#1a73e8',
+              createdAt: Timestamp.now(),
+              updatedAt: Timestamp.now(),
+            };
+
+            combinedEvents[dateStr].push(newEvent);
           });
-        });
-      }
-    });
+        }
+      });
 
-    localEvents.forEach((event) => {
-      const dateStr = event.date;
-      if (!combinedEvents[dateStr]) combinedEvents[dateStr] = [];
-      combinedEvents[dateStr].push(event);
-    });
+      // Agregar eventos locales
+      localEvents.forEach((event) => {
+        const dateStr = event.start; // Usamos start como la fecha principal
+        if (!dateStr) return;
 
-    return combinedEvents;
-  };
+        if (!combinedEvents[dateStr]) combinedEvents[dateStr] = [];
 
-  const combinedEvents = getCombinedEvents();
+        // Asegurarse de que el evento tenga todos los campos requeridos
+        const normalizedEvent: LocalUserEvent = {
+          ...event,
+          date: dateStr, // Mantener compatibilidad
+          start: dateStr,
+          time: event.time || '',
+          allDay: event.allDay ?? true,
+          updatedAt: event.updatedAt || Timestamp.now(),
+        };
+
+        combinedEvents[dateStr].push(normalizedEvent);
+      });
+
+      return combinedEvents;
+    },
+    [studyPlans, subjects, localEvents],
+  );
+
+  // Usar useMemo para evitar recálculos innecesarios
+  const combinedEvents = useMemo(() => {
+    return getCombinedEvents(user?.uid);
+  }, [getCombinedEvents, user?.uid]);
 
   const renderDays = () => {
     const firstDay = new Date(currentYear, currentMonth, 1);
@@ -227,7 +323,7 @@ const StudySchedule: React.FC = () => {
       days.push(
         <div key={d} className={`calendar-cell ${isToday ? 'today' : ''}`}>
           <div className="day-number">{d}</div>
-          {displayedEvents.map((event, idx) => (
+          {displayedEvents.map((event: LocalUserEvent, idx: number) => (
             <div
               key={idx}
               className={`event event-${event.type}`}
@@ -251,53 +347,153 @@ const StudySchedule: React.FC = () => {
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
-    const { name, value } = e.target;
-    if (name === 'type' && ['study', 'exam', 'task'].includes(value)) {
-      setNewEvent({ ...newEvent, [name]: value as 'study' | 'exam' | 'task' });
-    } else {
-      setNewEvent({ ...newEvent, [name]: value as string | null });
-    }
+    const { name, value, type } = e.target;
+
+    setNewEvent((prev) => {
+      // Manejar tipos específicos de entrada
+      if (type === 'checkbox') {
+        const target = e.target as HTMLInputElement;
+        return { ...prev, [name]: target.checked };
+      }
+
+      // Manejar tipos específicos
+      if (name === 'allDay') {
+        return { ...prev, allDay: (e.target as HTMLInputElement).checked };
+      }
+
+      // Manejar el tipo de evento
+      if (
+        name === 'type' &&
+        ['study', 'exam', 'task', 'reminder'].includes(value)
+      ) {
+        return {
+          ...prev,
+          [name]: value as 'study' | 'exam' | 'task' | 'reminder',
+        };
+      }
+
+      // Para otros campos
+      return { ...prev, [name]: value };
+    });
   };
 
-  const handleAddEvent = (e: React.FormEvent) => {
+  const handleAddEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newEvent.title && newEvent.date) {
-      const dateStr = format(newEvent.date, 'yyyy-MM-dd');
-      const newLocalEvent: CalendarEvent = {
-        title: newEvent.title,
-        type: newEvent.type,
-        date: dateStr,
-        time: newEvent.time,
-        color:
-          newEvent.type === 'study'
-            ? '#4285F4'
-            : newEvent.type === 'exam'
-              ? '#EA4335'
-              : '#FBBC05',
-      };
-      setLocalEvents([...localEvents, newLocalEvent]);
-      setNewEvent({ title: '', type: 'study', date: null, time: '' });
+    if (!newEvent.title || !newEvent.date || !user) return;
+
+    const dateStr = format(newEvent.date, 'yyyy-MM-dd');
+    const timeStr = newEvent.time || '00:00';
+
+    // Determinar el color según el tipo de evento
+    const getEventColor = () => {
+      switch (newEvent.type) {
+        case 'study':
+          return '#4285F4';
+        case 'exam':
+          return '#EA4335';
+        case 'task':
+          return '#FBBC05';
+        case 'reminder':
+        default:
+          return '#34A853';
+      }
+    };
+
+    const now = Timestamp.now();
+    const eventToSave: Omit<DBUserEvent, 'id'> = {
+      userId: user.uid,
+      title: newEvent.title,
+      description: newEvent.description || '',
+      type: newEvent.type || 'study',
+      start: dateStr,
+      end: dateStr, // Mismo día por defecto
+      allDay: newEvent.allDay ?? true,
+      color: newEvent.color || getEventColor(),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    try {
+      const eventId = await createUserEvent(eventToSave);
+      if (eventId) {
+        const newLocalEvent: LocalUserEvent = {
+          ...eventToSave,
+          id: eventId,
+          start: dateStr,
+          end: dateStr,
+          date: dateStr,
+          time: timeStr,
+          // Asegurarse de que todos los campos requeridos estén presentes
+          userId: user.uid,
+          title: newEvent.title,
+          description: newEvent.description || '',
+          type: newEvent.type as 'study' | 'exam' | 'task' | 'reminder',
+          allDay: newEvent.allDay ?? true,
+          color:
+            newEvent.color ||
+            (() => {
+              switch (newEvent.type) {
+                case 'study':
+                  return '#4285F4';
+                case 'exam':
+                  return '#EA4335';
+                case 'task':
+                  return '#FBBC05';
+                case 'reminder':
+                default:
+                  return '#34A853';
+              }
+            })(),
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+        };
+
+        setLocalEvents((prevEvents) => [...prevEvents, newLocalEvent]);
+
+        // Resetear el formulario
+        setNewEvent({
+          title: '',
+          type: 'study',
+          date: null,
+          time: '',
+          description: '',
+          allDay: true,
+        });
+      }
+    } catch (error) {
+      console.error('Error al guardar el evento:', error);
+      // Aquí podrías agregar un manejo de errores más robusto
     }
   };
 
   const upcomingEvents = localEvents
     .filter((event) => {
-      const eventDate = new Date(event.date);
+      if (!event.start) return false;
+
+      const eventDate = new Date(event.start);
       eventDate.setHours(0, 0, 0, 0);
+
       const todayDate = new Date();
       todayDate.setHours(0, 0, 0, 0);
+
       return eventDate >= todayDate;
     })
     .sort((a, b) => {
-      const dateComparison =
-        new Date(a.date).getTime() - new Date(b.date).getTime();
+      // Ordenar por fecha de inicio (start)
+      const dateA = a.start ? new Date(a.start) : new Date(0);
+      const dateB = b.start ? new Date(b.start) : new Date(0);
+
+      const dateComparison = dateA.getTime() - dateB.getTime();
       if (dateComparison !== 0) return dateComparison;
-      if (a.time && b.time) {
-        const [hA, mA] = a.time.split(':').map(Number);
-        const [hB, mB] = b.time.split(':').map(Number);
-        return hA * 60 + mA - (hB * 60 + mB);
-      }
-      return 0;
+
+      // Si las fechas son iguales, ordenar por hora si está disponible
+      const timeA = a.time || '00:00';
+      const timeB = b.time || '00:00';
+
+      const [hA, mA] = timeA.split(':').map(Number);
+      const [hB, mB] = timeB.split(':').map(Number);
+
+      return hA * 60 + mA - (hB * 60 + mB);
     });
 
   return (
