@@ -61,6 +61,7 @@ interface StudyPlan {
   progress: number;
   createdAt: string;
   expanded: boolean;
+  dailyTasks?: Array<{ day: number; task: string; completed: boolean }>;
 }
 
 const AIPlanner = () => {
@@ -78,7 +79,6 @@ const AIPlanner = () => {
   const [topics, setTopics] = useState<TopicLocal[]>([]);
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([]);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
-  const [nextPlanId, setNextPlanId] = useState(1);
   const [materials, setMaterials] = useState<unknown[]>([]);
 
   const {
@@ -330,12 +330,11 @@ const AIPlanner = () => {
       setGeneratedStudyPlan(studyPlan);
 
       try {
+        const eventTitle = `${selectedEvent.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())} - ${selectedSubject.name}`;
         const planId = await createStudyPlan({
           materialId: selectedSubject.id.toString(),
           generatedPlan: {
-            title:
-              structuredPlan?.title ||
-              `Plan de Estudio - ${selectedSubject.name}`,
+            title: eventTitle,
             summary:
               structuredPlan?.summary || 'Plan de estudio generado con IA',
             durationDays: generatedStudyDates.length,
@@ -343,25 +342,7 @@ const AIPlanner = () => {
             selectedWeekDays: selectedWeekDays,
             topics: topics.map((t) => ({ id: t.id, title: t.name })),
             studyDates: generatedStudyDates,
-            structuredPlan: structuredPlan as
-              | {
-                  title: string;
-                  summary: string;
-                  days: Array<{
-                    date: string;
-                    dayNumber: number;
-                    topics: Array<{
-                      name: string;
-                      summary: string;
-                      estimatedTime: string;
-                    }>;
-                    totalTime: string;
-                    recommendations: string;
-                    completed: boolean;
-                  }>;
-                  finalRecommendations: string;
-                }
-              | undefined,
+            structuredPlan: structuredPlan,
             dailyTasks: structuredPlan?.days
               ? structuredPlan.days.map((day: StudyPlanDay, index: number) => ({
                   day: index + 1,
@@ -378,29 +359,48 @@ const AIPlanner = () => {
 
         if (planId) {
           console.log('✅ Plan completo guardado en Firebase con ID:', planId);
+          // After saving successfully, reload plans from Firebase
+          const studyPlans = await getUserStudyPlans();
+          const convertedPlans = studyPlans.map((plan, index) => {
+            const planId = plan.id || `plan-${Date.now()}-${index}`;
+            return {
+              id: planId,
+              subjectName: plan.generatedPlan.title || 'Plan de Estudio',
+              eventName: plan.generatedPlan.title.split(' - ')[0] || 'Examen',
+              examDate: plan.generatedPlan.examDate || '',
+              topics: Array.isArray(plan.generatedPlan.topics)
+                ? plan.generatedPlan.topics.map((topic) =>
+                    typeof topic === 'string'
+                      ? {
+                          id: `topic-${planId}`,
+                          title: topic,
+                          description: '',
+                        }
+                      : topic,
+                  )
+                : [],
+              studyDays: plan.generatedPlan.studyDates || [],
+              content: JSON.stringify(plan.generatedPlan.structuredPlan || {}),
+              structuredPlan: plan.generatedPlan.structuredPlan || null,
+              progress: 0,
+              createdAt: plan.createdAt
+                ? typeof plan.createdAt === 'object' &&
+                  'toDate' in plan.createdAt
+                  ? plan.createdAt.toDate().toISOString()
+                  : typeof plan.createdAt === 'string'
+                    ? plan.createdAt
+                    : new Date().toISOString()
+                : new Date().toISOString(),
+              expanded: false,
+            };
+          });
+          setStudyPlans(convertedPlans);
         }
       } catch (firebaseError: unknown) {
         console.error('❌ Error guardando plan en Firebase:', firebaseError);
       }
 
-      const newPlan: StudyPlan = {
-        id: nextPlanId,
-        subjectName: selectedSubject.name,
-        eventName: selectedEvent
-          .replace(/-/g, ' ')
-          .replace(/\b\w/g, (l) => l.toUpperCase()),
-        examDate: examDate || '',
-        topics: topics.map((t) => ({ id: t.id, title: t.name })),
-        studyDays: generatedStudyDates,
-        content: studyPlan,
-        structuredPlan: structuredPlan,
-        progress: 0,
-        createdAt: new Date().toISOString(),
-        expanded: false,
-      };
-
-      setStudyPlans((prevPlans) => [...prevPlans, newPlan]);
-      setNextPlanId(nextPlanId + 1);
+      // Plans are already updated from Firebase above
 
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
     } catch (error: unknown) {

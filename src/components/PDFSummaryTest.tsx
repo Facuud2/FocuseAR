@@ -1,4 +1,3 @@
-/*
 //importaciones
 import React, { useState } from 'react';
 import * as _pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
@@ -137,4 +136,3 @@ const PDFSummaryTest: React.FC = () => {
 };
 
 export default PDFSummaryTest;
-*/
