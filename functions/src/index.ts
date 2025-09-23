@@ -1,49 +1,3 @@
-/**
- * Instrucciones para geminiResponse (resumen con Gemini API)
- *
- * 1. Instala dependencias:
- *    npm install @google/genai
- *
- * 2. Configura el secreto de la API Key:
- *    firebase functions:secrets:set GEMINI_API_KEY
- *
- * 3. Compila el código:
- *    npm run build
- *
- * 4. Prueba localmente con el emulador:
- *    firebase emulators:start --only functions
- *
- * 5. Haz un POST a la función:
- *    Invoke-WebRequest -Uri "GEMINI_ENDPOINT"
- *    -Method POST
- *    -Headers @{"Content-Type"="application/json"}
- *    -Body '{"text": "Tu texto aquí"}'
- *    -OutFile "respuesta_gemini.json" (en caso de que se saque así)
- * 6. Despliega a la nube:
- *    firebase deploy --only functions
- *
- * 7. Prueba en la nube usando la URL pública que te da Firebase.
- *
- * 8. Ejemplo de uso desde cualquier lugar (PowerShell):
- *    Invoke-WebRequest -Uri "GEMINI_ENDPOINT" \
- *      -Method POST \
- *      -Headers @{"Content-Type"="application/json"} \
- *      -Body '{"text": "Tu texto aquí"}' \
- *      -OutFile "respuesta_gemini_nube.json"
- *    # Luego puedes ver la respuesta con:
- *    Get-Content .\respuesta_gemini_nube.json
- *
- *
- */
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
 import * as functions from 'firebase-functions';
 import cors from 'cors';
 import { onRequest } from 'firebase-functions/https';
@@ -51,6 +5,12 @@ import { defineSecret } from 'firebase-functions/params';
 import { GoogleGenAI } from '@google/genai';
 import { db } from './firebaseAdmin';
 import crypto from 'crypto';
+
+interface RawQuestion {
+  questionText: string;
+  options: string[];
+  correctAnswerIndex: number;
+}
 
 const GEMINI_API_KEY = defineSecret('GEMINI_API_KEY');
 const corsHandler = cors({ origin: true });
@@ -268,9 +228,9 @@ export const askGeminiBot = onRequest(
           return str
             .toLowerCase()
             .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '') // quitar tildes
+            .replace(/[̀-ͤ]/g, '') // quitar tildes
             .replace(/[^a-z0-9áéíóúüñ\s]/gi, '') // quitar signos
-            .replace(/\s+/g, ' ') // espacios múltiples a uno
+            .replace(/\s+/g, ' ')
             .trim();
         }
         const normalizedQuestion = normalize(question);
@@ -295,9 +255,9 @@ export const askGeminiBot = onRequest(
         }
         // Si no hay caché, llamar a Gemini
         const prompt = `Responde de forma breve, clara y sencilla, como si explicaras a un estudiante universitario. No uses formato Markdown, títulos, ni listas largas. Limítate a 3-4 frases simples. Si no sabes la respuesta, dilo de forma amable.
-        Materia: ${material}
-        Tema: ${topic}
-        Pregunta: ${question}`;
+Materia: ${material}
+Tema: ${topic}
+Pregunta: ${question}`;
         const response = await callGeminiWithRetry(prompt, 3, 1000);
         // Guardar en caché
         await cacheRef.set({
@@ -450,8 +410,8 @@ INSTRUCCIONES (optimiza, usa días y permite descansos):
   - date: 'YYYY-MM-DD'
   - dayNumber: número (1 = primer día del plan)
   - topics: lista de objetos { name, summary, estimatedTime } donde:
-     - summary: máximo 1 frase, máximo 20 palabras
-     - estimatedTime: tiempo estimado EN HORAS (puede ser decimal con 1 cifra, p.ej. 1.5) — NO en minutos
+    - summary: máximo 1 frase, máximo 20 palabras
+    - estimatedTime: tiempo estimado EN HORAS (puede ser decimal con 1 cifra, p.ej. 1.5) — NO en minutos
   - totalTime: suma de estimatedTime del día (EN HORAS, decimal posible)
   - recommendations: texto breve, máximo 3 frases
   - completed: false
@@ -468,7 +428,7 @@ RESTRICCIONES CLARAS:
 
 SALIDA:
 - Devuelve SOLO un JSON válido con ESTA ESTRUCTURA EXACTA:
-{"title":"...","summary":"...","days":[{"date":"YYYY-MM-DD","dayNumber":1,"topics":[{"name":"","summary":"","estimatedTime":1.5}],"totalTime":2.0,"recommendations":"","completed":false}],"finalRecommendations":"..."}
+{"title":"...","summary":"...","days":[{"date":"YYYY-MM-DD","dayNumber":1,"topics":[{"name":"","summary":"","estimatedTime":1.5}],"totalTime":2.0,"recommendations":"","completed":false}],"finalRecommendations":""}
 
 - No agregues texto fuera del JSON, ni explicaciones, ni etiquetas de código ni listas adicionales.
 
@@ -493,7 +453,7 @@ Genera el JSON ahora.`;
 
         try {
           const parsed = JSON.parse(textResp);
-          res.json({ plan: parsed, source: 'gemini' });
+          res.json({ parsed, source: 'gemini' });
         } catch {
           res.json({ raw_response: textResp, source: 'gemini' });
         }
@@ -502,6 +462,182 @@ Genera el JSON ahora.`;
         res.status(500).json({
           error: error instanceof Error ? error.message : 'Error interno',
         });
+      }
+    });
+  },
+);
+
+// -----------------------------
+// Función: generateQuizFromMaterial
+// Recibe: { materialId: string, userId: string }
+// Responde: { success: true, quizId: string } o { error: string }
+// -----------------------------
+export const generateQuizFromMaterial = onRequest(
+  { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 180 },
+  async (req, res) => {
+    // Reutilizamos tu manejador de CORS
+    corsHandler(req, res, async () => {
+      addCorsHeaders(res); // Y tus cabeceras personalizadas
+
+      if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Método no permitido. Usa POST.' });
+        return;
+      }
+
+      try {
+        // 1. Validar los datos de entrada del frontend
+        const { materialId, userId } = req.body;
+        if (!materialId || !userId) {
+          console.error('Faltan materialId o userId en la solicitud');
+          res.status(400).json({ error: 'Faltan materialId o userId.' });
+          return;
+        }
+
+        console.log(
+          `Iniciando generación de quiz para material: ${materialId}`,
+        );
+
+        // 2. Obtener el documento de la materia desde Firestore usando tu 'db' importada
+        const materialRef = db.collection('materials').doc(materialId);
+        const materialDoc = await materialRef.get();
+
+        if (!materialDoc.exists) {
+          console.error(`Material con ID ${materialId} no encontrado.`);
+          res.status(404).json({ error: 'Material no encontrado.' });
+          return;
+        }
+
+        const materialData = materialDoc.data();
+        const topics = materialData?.extractedTopics;
+
+        if (!topics || !Array.isArray(topics) || topics.length === 0) {
+          console.error(`El material ${materialId} no tiene temas extraídos.`);
+          res.status(400).json({
+            error: 'El material no contiene temas para generar un quiz.',
+          });
+          return;
+        }
+
+        // Definir la interfaz para los temas
+        interface Topic {
+          id?: string;
+          name: string;
+          // Agrega otras propiedades si son necesarias
+        }
+
+        // 3. Crear el prompt para la IA (Gemini)
+        const topicList = topics.map((t: Topic) => `- ${t.name}`).join('\n');
+        const prompt = `
+          Eres un asistente experto en crear evaluaciones educativas.
+          Basado en la siguiente lista de temas de la materia "${materialData?.subjectName || 'una materia'}", genera un quiz de 5 preguntas de opción múltiple.
+
+          Temas:
+          ${topicList}
+
+          INSTRUCCIONES:
+          - Cada pregunta debe tener 4 opciones de respuesta (A, B, C, D).
+          - Solo una opción debe ser la correcta.
+          - Las preguntas deben ser claras, relevantes y desafiantes a nivel universitario.
+          - Devuelve la respuesta ÚNICAMENTE en formato JSON válido, sin texto adicional, explicaciones ni markdown.
+
+          FORMATO JSON REQUERIDO:
+          {
+            "title": "Quiz de ${materialData?.subjectName || 'la Materia'}",
+            "questions": [
+              {
+                "questionText": "Texto de la pregunta 1...",
+                "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
+                "correctAnswerIndex": 2
+              },
+              {
+                "questionText": "Texto de la pregunta 2...",
+                "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
+                "correctAnswerIndex": 0
+              }
+            ]
+          }
+        `;
+
+        console.log('Enviando prompt a Gemini para generar quiz...');
+
+        // 4. Llamar a la API de Gemini usando tu instancia de GoogleGenAI
+        const ai = new GoogleGenAI({}); // Ya tienes la API Key como secreto
+        let response;
+        try {
+          response = await ai.models.generateContent({
+            model: 'gemini-1.5-flash', // Usamos flash para velocidad
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          });
+        } catch (geminiApiError) {
+          console.error(
+            'Error calling Gemini API for quiz generation:',
+            geminiApiError,
+          );
+          throw new Error(
+            'Error al comunicarse con la API de Gemini para generar el quiz.',
+          );
+        }
+
+        const responseText = response.text || '';
+        if (!responseText) {
+          console.error(
+            'Gemini API returned an empty response for quiz generation.',
+          );
+          throw new Error('La respuesta de la IA para el quiz estaba vacía.');
+        }
+
+        // 5. Limpiar y parsear la respuesta JSON de la IA
+        const cleanedJson = responseText
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+
+        let rawQuizData;
+        try {
+          rawQuizData = JSON.parse(cleanedJson);
+        } catch (jsonError) {
+          console.error('Error parsing JSON from Gemini response:', jsonError);
+          console.error('Raw Gemini response:', cleanedJson);
+          throw new Error('Error al parsear la respuesta JSON de Gemini.');
+        }
+
+        // Transform quizData to match the frontend's Quiz interface
+        const quizData = {
+          questions: rawQuizData.questions.map((q: RawQuestion) => ({
+            question: q.questionText,
+            options: q.options,
+            correctAnswer: q.options[q.correctAnswerIndex],
+          })),
+          subjectName: materialData?.subjectName || 'Materia Desconocida',
+          materialId: materialId,
+          userId: userId,
+          createdAt: new Date().toISOString(),
+        };
+
+        // 6. Guardar el nuevo quiz en una colección "quizzes" en Firestore
+        const quizRef = db.collection('quizzes').doc(); // Genera un ID automático
+        await quizRef.set({
+          ...quizData,
+          materialId: materialId,
+          userId: userId,
+          createdAt: new Date().toISOString(),
+        });
+
+        console.log(`Quiz guardado exitosamente con ID: ${quizRef.id}`);
+
+        // 7. Enviar una respuesta de éxito al frontend
+        res.status(200).json({
+          success: true,
+          quizId: quizRef.id,
+          quizData: { ...quizData, id: quizRef.id },
+        });
+      } catch (error) {
+        console.error('Error inesperado en generateQuizFromMaterial:', error);
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Error interno del servidor.';
+        res.status(500).json({ error: message });
       }
     });
   },

@@ -110,15 +110,20 @@ export interface AIConversation {
   updatedAt: Timestamp;
 }
 
-export interface UserEvent {
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+
+export interface Quiz {
   id?: string;
+  questions: QuizQuestion[];
+  subjectName: string;
+  materialId: string;
   userId: string;
-  title: string;
-  type: 'study' | 'exam' | 'task';
-  date: string;
-  time: string;
-  color?: string;
   createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export class DatabaseService {
@@ -312,7 +317,7 @@ export class DatabaseService {
     try {
       const plansQuery = query(
         collection(db, 'studyPlans'),
-        where('userId', '==', userId),
+        where('materialId', '==', userId),
       );
 
       const plansSnap = await getDocs(plansQuery);
@@ -542,46 +547,52 @@ export class DatabaseService {
     }
   }
 
-  // 15. Crear un nuevo evento de usuario
-  static async createUserEvent(
-    event: Omit<UserEvent, 'id' | 'createdAt'>,
-  ): Promise<string> {
+  // 15. Get all quizzes for a user
+  static async getQuizzes(userId: string): Promise<Quiz[]> {
     try {
-      console.log('📅 Creando evento de usuario en Firestore...');
+      const quizzesQuery = query(
+        collection(db, 'quizzes'),
+        where('userId', '==', userId),
+      );
 
-      const eventData: Omit<UserEvent, 'id'> = {
-        ...event,
-        createdAt: Timestamp.now(),
-      };
+      const quizzesSnap = await getDocs(quizzesQuery);
+      const quizzes: Quiz[] = [];
 
-      const eventRef = await addDoc(collection(db, 'userEvents'), eventData);
-      console.log('✅ Evento de usuario creado con ID:', eventRef.id);
+      quizzesSnap.forEach((doc) => {
+        quizzes.push({ id: doc.id, ...doc.data() } as Quiz);
+      });
 
-      return eventRef.id;
+      return quizzes;
     } catch (error) {
-      console.error('❌ Error al crear evento de usuario:', error);
+      console.error('❌ Error al obtener los quizzes del usuario:', error);
       throw error;
     }
   }
 
-  // 16. Obtener eventos de un usuario
-  static async getUserEvents(userId: string): Promise<UserEvent[]> {
+  // 16. Get a single quiz by its ID
+  static async getQuiz(quizId: string): Promise<Quiz | null> {
     try {
-      const eventsQuery = query(
-        collection(db, 'userEvents'),
-        where('userId', '==', userId),
-      );
+      const quizRef = doc(db, 'quizzes', quizId);
+      const quizSnap = await getDoc(quizRef);
 
-      const eventsSnap = await getDocs(eventsQuery);
-      const events: UserEvent[] = [];
-
-      eventsSnap.forEach((doc) => {
-        events.push({ id: doc.id, ...doc.data() } as UserEvent);
-      });
-
-      return events;
+      if (quizSnap.exists()) {
+        return { id: quizSnap.id, ...quizSnap.data() } as Quiz;
+      }
+      return null;
     } catch (error) {
-      console.error('❌ Error al obtener eventos del usuario:', error);
+      console.error('❌ Error al obtener el quiz:', error);
+      throw error;
+    }
+  }
+
+  // 17. Delete a quiz by its ID
+  static async deleteQuiz(quizId: string): Promise<void> {
+    try {
+      const quizRef = doc(db, 'quizzes', quizId);
+      await deleteDoc(quizRef);
+      console.log('✅ Quiz eliminado exitosamente');
+    } catch (error) {
+      console.error('❌ Error al eliminar el quiz:', error);
       throw error;
     }
   }
