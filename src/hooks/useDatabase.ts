@@ -6,6 +6,7 @@ import type {
   StudyPlan,
   AIConversation,
   AIConversationMessage,
+  UserEvent,
   Quiz,
 } from '../services/DatabaseService';
 import type { Topic } from '../types/studyPlan';
@@ -149,7 +150,7 @@ export const useDatabase = () => {
   }, [user]);
 
   // Obtener planes de estudio del usuario
-  const getUserStudyPlans = useCallback(async (): Promise<StudyPlan[]> => {
+  const getUserStudyPlans = useCallback(async () => {
     if (!user) {
       setError('Usuario no autenticado');
       return [];
@@ -160,18 +161,42 @@ export const useDatabase = () => {
 
     try {
       const plans = await DatabaseService.getUserStudyPlans(user.uid);
-      console.log('✅ Planes de estudio obtenidos:', plans.length);
       return plans;
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Error desconocido';
+        err instanceof Error ? err.message : 'Error al obtener planes';
       setError(errorMessage);
-      console.error('❌ Error al obtener planes de estudio:', err);
       return [];
     } finally {
       setLoading(false);
     }
   }, [user]);
+
+  // Actualizar plan de estudio
+  const updateStudyPlan = useCallback(
+    async (planId: string, updatedPlan: Partial<StudyPlan>) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return false;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        await DatabaseService.updateStudyPlan(planId, updatedPlan);
+        return true;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error al actualizar plan';
+        setError(errorMessage);
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
 
   // Actualizar tarea completada
   const updateTaskCompletion = useCallback(
@@ -435,12 +460,71 @@ export const useDatabase = () => {
     setError(null);
   }, []);
 
+  // Crear evento de usuario
+  const createUserEvent = useCallback(
+    async (eventData: Omit<UserEvent, 'id' | 'createdAt' | 'userId'>) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const eventToCreate: Omit<UserEvent, 'id' | 'createdAt'> = {
+          userId: user.uid,
+          ...eventData,
+        };
+        const eventId = await DatabaseService.createUserEvent(eventToCreate);
+
+        console.log('✅ Evento de usuario creado:', eventId);
+        return eventId;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al crear evento de usuario:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
+  // Obtener eventos de usuario
+  const getUserEvents = useCallback(async (): Promise<UserEvent[]> => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return [];
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const events = await DatabaseService.getUserEvents(user.uid);
+      console.log('✅ Eventos de usuario obtenidos:', events.length);
+      return events;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener eventos de usuario:', err);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   return {
     loading,
     error,
     clearError,
     createMaterial,
     createStudyPlan,
+    updateStudyPlan,
     getUserMaterials,
     getUserStudyPlans,
     updateTaskCompletion,
@@ -452,6 +536,8 @@ export const useDatabase = () => {
     getUserAIConversations,
     deleteAIConversation,
     updateConversationTitle,
+    createUserEvent, // Add this line
+    getUserEvents, // Add this line
     getQuizzes,
     getQuiz,
     deleteQuiz,

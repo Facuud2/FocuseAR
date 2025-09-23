@@ -1,0 +1,214 @@
+/* General Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Darker backdrop */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--surface-color); /* Use theme variable */
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  /* Modern Aesthetic: Soft shadows, clean background */
+  background: var(--surface-color);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-color);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border-color); /* Use theme variable */
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--primary-color); /* Use theme variable */
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.close-modal-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary); /* Use theme variable */
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.close-modal-btn:hover {
+  color: var(--primary-color); /* Use theme variable */
+}
+
+.modal-body {
+  padding: 2rem;
+  color: var(--text-primary); /* Use theme variable */
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--border-color); /* Use theme variable */
+}
+
+.modal-footer .btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.modal-footer .btn-primary {
+  background-color: var(--primary-color);
+  color: var(--surface-color);
+  border: none;
+}
+
+.modal-footer .btn-primary:hover {
+  background-color: #1a73e8; /* Darker primary color */
+  transform: translateY(-2px);
+}
+
+.modal-footer .btn-secondary {
+  background-color: var(--background-dark); /* Use theme variable */
+  color: var(--text-primary); /* Use theme variable */
+  border: 1px solid var(--border-color); /* Use theme variable */
+}
+
+.modal-footer .btn-secondary:hover {
+  background-color: var(--border-color); /* Lighter border color */
+  transform: translateY(-2px);
+}
+
+/* Tag input specific styles for EditTagsModal */
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tag-item {
+  background-color: var(--accent-color);
+  color: var(--text-primary);
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.remove-tag-btn {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+  margin-left: 0.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-tag-btn:hover {
+  color: var(--danger-color);
+}
+
+.tag-input-container {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.tag-input-container input {
+  flex-grow: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--background-light); /* Use theme variable */
+  color: var(--text-primary);
+}
+
+.tag-input-container input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(46, 134, 193, 0.1);
+  background: var(--surface-color); /* Solid background on focus */
+}
+
+.tag-input-container .btn {
+  background-color: var(--primary-color);
+  color: var(--surface-color);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tag-input-container .btn:hover {
+  background-color: #1a73e8;
+  transform: translateY(-2px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 1.5rem;
+  }
+  .modal-header {
+    padding: 1rem 1.5rem;
+  }
+  .modal-header h3 {
+    font-size: 1.5rem;
+  }
+  .modal-body {
+    padding: 1.5rem;
+  }
+  .modal-footer {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 1rem;
+  }
+  .modal-header {
+    padding: 0.75rem 1rem;
+  }
+  .modal-header h3 {
+    font-size: 1.3rem;
+  }
+  .modal-body {
+    padding: 1rem;
+  }
+  .modal-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+  .modal-footer .btn {
+    width: 100%;
+  }
+}

@@ -284,7 +284,10 @@ export class DatabaseService {
         updatedAt: Timestamp.now(),
       };
 
-      const planRef = await addDoc(collection(db, 'studyPlans'), studyPlanData);
+      const planRef = await addDoc(
+        collection(db, 'study_plans'),
+        studyPlanData,
+      );
       console.log('✅ Plan de estudio creado exitosamente con ID:', planRef.id);
 
       return planRef.id;
@@ -418,7 +421,7 @@ export class DatabaseService {
     try {
       // Eliminar planes de estudio asociados
       const plansQuery = query(
-        collection(db, 'studyPlans'),
+        collection(db, 'study_plans'),
         where('materialId', '==', materialId),
       );
 
