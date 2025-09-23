@@ -11,6 +11,7 @@ import {
 import { Toaster } from 'react-hot-toast';
 
 import ProtectedRoute from './ProtectedRoute';
+import PublicOnlyRoute from './PublicOnlyRoute';
 import Auth from './components/Auth';
 import Dashboard from './pages/Dashboard';
 //import PDFSummaryTest from './components/PDFSummaryTest'; ELIMINAR MÁS ADELANTE
@@ -54,40 +55,42 @@ function AppRoutes() {
   const currentPath = location.pathname;
 
   return (
-    <AuthProvider>
-      <div className="app-container">
-        {currentPath !== '/' && (
-          <Sidebar
-            activeSection={currentPath}
-            onSectionChange={handleSectionChange}
-            isDarkMode={isDarkMode}
-            onToggleDarkMode={handleToggleDarkMode}
-          />
-        )}
-        <main className="content-area">
-          <Toaster position="top-right" />
-          <Routes>
+    <div className="app-container">
+      {currentPath !== '/' && (
+        <Sidebar
+          activeSection={currentPath}
+          onSectionChange={handleSectionChange}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={handleToggleDarkMode}
+        />
+      )}
+      <main className="content-area">
+        <Toaster position="top-right" />
+        <Routes>
+          {/* Rutas públicas solo para usuarios NO autenticados */}
+          <Route element={<PublicOnlyRoute />}>
             <Route path="/" element={<Auth />} />
-            <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/study-schedule" element={<StudySchedule />} />
-              <Route path="/subjects" element={<Subjects />} />
-              <Route path="/documents" element={<Documents />} />
-              <Route path="/pomodoro" element={<PomodoroTimer />} />
-              <Route path="/ai-planner" element={<AIPlanner />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<AccountSettings />} />
-              <Route path="/progress" element={<Progress />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/quizzes" element={<Quizzes />} />
-              <Route path="/quiz/:quizId" element={<QuizPlayer />} />
-              <Route path="/create-quiz" element={<QuizCreator />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Route>
-          </Routes>
-        </main>
-      </div>
-    </AuthProvider>
+          </Route>
+          {/* Rutas protegidas solo para usuarios autenticados */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/study-schedule" element={<StudySchedule />} />
+            <Route path="/subjects" element={<Subjects />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/pomodoro" element={<PomodoroTimer />} />
+            <Route path="/ai-planner" element={<AIPlanner />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<AccountSettings />} />
+            <Route path="/progress" element={<Progress />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/quizzes" element={<Quizzes />} />
+            <Route path="/quiz/:quizId" element={<QuizPlayer />} />
+            <Route path="/create-quiz" element={<QuizCreator />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Route>
+        </Routes>
+      </main>
+    </div>
   );
 }
 

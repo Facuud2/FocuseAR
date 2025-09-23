@@ -1,4 +1,4 @@
-import { getDocs, collection } from 'firebase/firestore';
+import { getDocs, collection, getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export interface ChatbotMaterial {
@@ -37,9 +37,62 @@ export const getUserMaterialsAndTopics = async (
       materialName = plan.generatedPlan.title;
     }
     // console.log('DEBUG materialName:', materialName, 'plan:', plan);
+    // Normalizar topics para que siempre sean strings (evitar [object Object])
+    const formatTopicToString = (t: unknown): string => {
+      if (typeof t === 'string') return t;
+      if (t === null || t === undefined) return '';
+      if (typeof t === 'object') {
+        const obj = t as Record<string, unknown>;
+        return (
+          (typeof obj.title === 'string' && obj.title) ||
+          (typeof obj.name === 'string' && obj.name) ||
+          (typeof obj.id === 'string' && obj.id) ||
+          JSON.stringify(obj)
+        );
+      }
+      return String(t);
+    };
+
     let topics: string[] = [];
     if (plan.generatedPlan && Array.isArray(plan.generatedPlan.topics)) {
-      topics = plan.generatedPlan.topics;
+      topics = (
+        Array.isArray(plan.generatedPlan.topics)
+          ? plan.generatedPlan.topics
+          : []
+      )
+        .map(formatTopicToString)
+        .filter((s) => s && s.length > 0);
+    }
+
+    // Si no hay topics en el plan, intentar leer extractedTopics desde el material (si existe)
+    if ((!topics || topics.length === 0) && materialId) {
+      try {
+        const materialRef = doc(db, 'materials', materialId);
+        const materialSnap = await getDoc(materialRef);
+        if (materialSnap.exists()) {
+          const materialData = materialSnap.data();
+          const extracted = materialData?.extractedTopics;
+          if (Array.isArray(extracted) && extracted.length > 0) {
+            topics = extracted
+              .map((t: unknown) => {
+                if (typeof t === 'string') return t;
+                if (t && typeof t === 'object') {
+                  const o = t as Record<string, unknown>;
+                  return (
+                    (typeof o.name === 'string' && o.name) ||
+                    (typeof o.title === 'string' && o.title) ||
+                    (typeof o.id === 'string' && o.id) ||
+                    JSON.stringify(o)
+                  );
+                }
+                return '';
+              })
+              .filter((s: string) => s && s.length > 0);
+          }
+        }
+      } catch (e) {
+        console.warn('Error leyendo extractedTopics del material:', e);
+      }
     }
     results.push({ materialId, materialName, topics });
   }

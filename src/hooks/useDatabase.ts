@@ -29,6 +29,12 @@ export const useDatabase = () => {
         date: string;
         type: 'exam' | 'tp' | 'other';
       }>; // CORREGIDO: Parámetro para las fechas importantes
+      extractedTopics?: Array<{
+        id: string;
+        name?: string;
+        description?: string;
+        order?: number;
+      }>;
       storagePath: string;
       fileType: string;
     }) => {
@@ -103,10 +109,36 @@ export const useDatabase = () => {
       setError(null);
 
       try {
+        // Si no vienen selectedWeekDays en el plan, leer la configuración del usuario
+        const generatedPlan = { ...planData.generatedPlan };
+        if (
+          (!generatedPlan.selectedWeekDays ||
+            generatedPlan.selectedWeekDays.length === 0) &&
+          user
+        ) {
+          try {
+            const settings = await DatabaseService.getUserAvailability(
+              user.uid,
+            );
+            if (
+              settings &&
+              Array.isArray(settings.selectedWeekDays) &&
+              settings.selectedWeekDays.length > 0
+            ) {
+              generatedPlan.selectedWeekDays = settings.selectedWeekDays;
+            }
+          } catch (e) {
+            console.warn(
+              'No se pudo leer settings de usuario, se usará lo provisto en el plan o los valores por defecto',
+              e,
+            );
+          }
+        }
+
         const planId = await DatabaseService.createStudyPlan({
           userId: user.uid,
           materialId: planData.materialId,
-          generatedPlan: planData.generatedPlan,
+          generatedPlan,
         });
 
         console.log('✅ Plan de estudio creado:', planId);
@@ -541,5 +573,7 @@ export const useDatabase = () => {
     getQuizzes,
     getQuiz,
     deleteQuiz,
+    saveUserAvailability: DatabaseService.saveUserAvailability,
+    getUserAvailability: DatabaseService.getUserAvailability,
   };
 };
