@@ -56,6 +56,7 @@ export interface StudyPlan {
     durationDays: number;
     examDate?: string;
     selectedWeekDays?: number[];
+    eventName?: string;
     topics?: (string | Topic)[]; // Acepta un array que puede contener strings u objetos Topic
     studyDates?: string[];
     subjectColor?: string; // CORREGIDO: Campo para guardar el color de la materia
@@ -339,7 +340,7 @@ export class DatabaseService {
     try {
       const plansQuery = query(
         collection(db, 'studyPlans'),
-        where('materialId', '==', userId),
+        where('userId', '==', userId),
       );
 
       const plansSnap = await getDocs(plansQuery);
