@@ -14,6 +14,7 @@ import { es } from 'date-fns/locale';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import './StudySchedule.css';
+import type { Topic } from '../types/studyPlan';
 
 // Tipado para los eventos del calendario
 interface CalendarEvent {
@@ -64,7 +65,7 @@ interface StudyPlan {
   subjectName: string;
   eventName: string;
   examDate: string;
-  topics: string[];
+  topics: Topic[];
   studyDays: string[];
   structuredPlan?: {
     title: string;
@@ -118,9 +119,21 @@ const StudySchedule: React.FC = () => {
         subjectName: plan.generatedPlan.title || 'Plan de Estudio',
         eventName: 'Examen',
         examDate: plan.generatedPlan.examDate || '',
-        topics: plan.generatedPlan.topics || [],
+        topics: Array.isArray(plan.generatedPlan.topics)
+          ? plan.generatedPlan.topics.map((topic) =>
+              typeof topic === 'string'
+                ? {
+                    id: `topic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    title: topic,
+                    description: '',
+                  }
+                : topic,
+            )
+          : [],
         studyDays: plan.generatedPlan.studyDates || [],
-        structuredPlan: plan.generatedPlan.structuredPlan || undefined,
+        structuredPlan:
+          (plan.generatedPlan.structuredPlan as StudyPlan['structuredPlan']) ||
+          undefined,
       }));
       setStudyPlans(convertedPlans);
     } catch (error) {
