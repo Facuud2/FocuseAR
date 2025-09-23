@@ -6,6 +6,7 @@ import type {
   StudyPlan,
   AIConversation,
   AIConversationMessage,
+  Quiz,
 } from '../services/DatabaseService';
 import type { Topic } from '../types/studyPlan';
 import { AuthContext } from './authContext';
@@ -365,6 +366,70 @@ export const useDatabase = () => {
     [],
   );
 
+  const getQuizzes = useCallback(async (): Promise<Quiz[]> => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return [];
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const quizzes = await DatabaseService.getQuizzes(user.uid);
+      console.log('✅ Quizzes obtenidos:', quizzes.length);
+      return quizzes;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener quizzes:', err);
+      return [];
+    }
+  }, [user]);
+
+  const getQuiz = useCallback(
+    async (quizId: string): Promise<Quiz | null> => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const quiz = await DatabaseService.getQuiz(quizId);
+        console.log('✅ Quiz obtenido:', quiz);
+        return quiz;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al obtener quiz:', err);
+        return null;
+      }
+    },
+    [user],
+  );
+
+  const deleteQuiz = useCallback(async (quizId: string) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await DatabaseService.deleteQuiz(quizId);
+      console.log('✅ Quiz eliminado:', quizId);
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al eliminar quiz:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Limpiar error
   const clearError = useCallback(() => {
     setError(null);
@@ -387,5 +452,8 @@ export const useDatabase = () => {
     getUserAIConversations,
     deleteAIConversation,
     updateConversationTitle,
+    getQuizzes,
+    getQuiz,
+    deleteQuiz,
   };
 };
