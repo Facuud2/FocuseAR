@@ -12,8 +12,8 @@ import {
   deleteDoc,
   Timestamp,
 } from 'firebase/firestore';
+import type { DocumentData } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
-import type { ExtractedTopic } from './PDFProcessor';
 
 // Interfaces para la estructura de datos
 export interface UserData {
@@ -32,7 +32,6 @@ export interface Material {
   subjectName: string; // CORREGIDO: Campo agregado para preservar el nombre de materia ingresado por el usuario
   examDate?: string; // CORREGIDO: Campo para guardar la fecha del examen
   color?: string; // CORREGIDO: Campo para guardar el color de la materia
-  extractedTopics?: ExtractedTopic[]; // CORREGIDO: Temas extraídos del PDF asociados a la materia
   importantDates?: Array<{
     name: string;
     date: string;
@@ -48,13 +47,14 @@ export interface StudyPlan {
   id?: string;
   userId: string;
   materialId: string;
+  subjectName?: string; // Added subjectName to StudyPlan interface
   generatedPlan: {
     title: string;
     summary?: string;
     durationDays: number;
     examDate?: string;
     selectedWeekDays?: number[];
-    topics?: string[];
+    topics?: (string | Topic)[]; // Acepta un array que puede contener strings u objetos Topic
     studyDates?: string[];
     subjectColor?: string; // CORREGIDO: Campo para guardar el color de la materia
     structuredPlan?: {
@@ -82,6 +82,14 @@ export interface StudyPlan {
   };
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+// Interfaz para temas
+export interface Topic {
+  id: string;
+  title: string;
+  description?: string;
+  order?: number;
 }
 
 // Interfaces para conversaciones de IA
@@ -119,6 +127,41 @@ export interface Quiz {
 }
 
 export class DatabaseService {
+  // Generador de id local (evita añadir dependencia uuid)
+  private static generateId(): string {
+    return `t-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+  }
+  // Ayuda: garantiza que los temas sean objetos (Topic[]). Si se encuentra la cadena heredada string[],
+  // convierte cada cadena en un tema con el ID generado y una descripción vacía.
+  public static normalizeTopics(rawTopics: unknown[] | undefined): Topic[] {
+    if (!rawTopics) return [];
+
+    return rawTopics.map((t) => {
+      // legacy string[] case
+      if (typeof t === 'string') {
+        return { id: this.generateId(), title: t } as Topic;
+      }
+
+      // object-like case: validate keys safely
+      if (t && typeof t === 'object') {
+        const obj = t as Record<string, unknown>;
+        const id = typeof obj.id === 'string' ? obj.id : this.generateId();
+        const title =
+          typeof obj.title === 'string'
+            ? obj.title
+            : typeof obj.name === 'string'
+              ? obj.name
+              : 'Tema';
+        const description =
+          typeof obj.description === 'string' ? obj.description : undefined;
+        const order = typeof obj.order === 'number' ? obj.order : undefined;
+        return { id, title, description, order } as Topic;
+      }
+
+      // fallback for unexpected types
+      return { id: this.generateId(), title: String(t) } as Topic;
+    });
+  }
   // 1. Crear o actualizar usuario cuando se autentica con Google
   static async createOrUpdateUser(user: User): Promise<UserData> {
     try {
@@ -168,8 +211,6 @@ export class DatabaseService {
 
       const materialData: Material = {
         ...material,
-        // preserve extractedTopics if provided
-        extractedTopics: material.extractedTopics || [],
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -194,8 +235,28 @@ export class DatabaseService {
     try {
       console.log('📘 Creando plan de estudio en Firestore...');
 
+      // Crear una copia del plan de estudio para no modificar el original
+      const studyPlanCopy = { ...studyPlan };
+
+      // Normalizar los temas si existen
+      if (studyPlanCopy.generatedPlan.topics) {
+        const topicsToNormalize = Array.isArray(
+          studyPlanCopy.generatedPlan.topics,
+        )
+          ? studyPlanCopy.generatedPlan.topics
+          : [];
+
+        const normalizedTopics = this.normalizeTopics(topicsToNormalize);
+
+        // Actualizar la copia con los temas normalizados
+        studyPlanCopy.generatedPlan = {
+          ...studyPlanCopy.generatedPlan,
+          topics: normalizedTopics,
+        };
+      }
+
       const studyPlanData: StudyPlan = {
-        ...studyPlan,
+        ...studyPlanCopy,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
@@ -238,7 +299,10 @@ export class DatabaseService {
       const materials: Material[] = [];
 
       materialsSnap.forEach((doc) => {
-        materials.push({ id: doc.id, ...doc.data() } as Material);
+        materials.push({
+          id: doc.id,
+          ...(doc.data() as DocumentData),
+        } as Material);
       });
 
       return materials;
@@ -259,9 +323,17 @@ export class DatabaseService {
       const plansSnap = await getDocs(plansQuery);
       const plans: StudyPlan[] = [];
 
-      plansSnap.forEach((doc) => {
-        plans.push({ id: doc.id, ...doc.data() } as StudyPlan);
-      });
+      for (const doc of plansSnap.docs) {
+        const plan = { id: doc.id, ...doc.data() } as StudyPlan;
+        // Fetch associated material to get subjectName
+        if (plan.materialId) {
+          const material = await this.getMaterialById(plan.materialId);
+          if (material) {
+            plan.subjectName = material.subjectName; // Add subjectName to study plan
+          }
+        }
+        plans.push(plan);
+      }
 
       return plans;
     } catch (error) {
@@ -269,6 +341,22 @@ export class DatabaseService {
         '❌ Error al obtener planes de estudio del usuario:',
         error,
       );
+      throw error;
+    }
+  }
+
+  // 6.1. Obtener material por ID
+  static async getMaterialById(materialId: string): Promise<Material | null> {
+    try {
+      const materialRef = doc(db, 'materials', materialId);
+      const materialSnap = await getDoc(materialRef);
+
+      if (materialSnap.exists()) {
+        return { id: materialSnap.id, ...materialSnap.data() } as Material;
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Error al obtener material por ID:', error);
       throw error;
     }
   }

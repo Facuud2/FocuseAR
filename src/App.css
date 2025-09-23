@@ -50,28 +50,6 @@
   --shadow-lg: 0 12px 30px rgba(255, 255, 255, 0.2);
 }
 
-/* Imágenes y medios no desbordan */
-img, video, iframe {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Box sizing seguro */
-*,
-*::before,
-*::after {
-  box-sizing: inherit;
-}
-
-/* Modales / formularios responsivos */
-.modal { width: 90%; max-width: 620px; margin: 0 auto; }
-.form-grid { display: grid; grid-template-columns: 1fr; gap: .75rem; }
-@media (min-width: 768px) { .form-grid { grid-template-columns: 1fr 1fr; } }
-
-/* DatePicker touch-friendly */
-.react-datepicker__day { width:2.2rem; height:2.2rem; margin:.12rem; border-radius:.5rem; }
-/* ...existing code... */
-
 /* ===== ESTILOS GENERALES ===== */
 * {
   box-sizing: border-box;
@@ -828,7 +806,7 @@ h2 i {
 }
 
 .login-box .planify-btn:hover {
-  background-color: #186ad6;
+  background-color: #1a73e8;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -870,10 +848,6 @@ h2 i {
   .login-container {
     flex-direction: column;
   }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 480px) {
@@ -912,21 +886,6 @@ h2 i {
   .ask-input button {
     width: 100%;
     justify-content: center;
-  }
-  
-  /* Ajuste para que el calendario quepa en pantallas muy pequeñas */
-  .calendar-grid {
-      grid-template-columns: repeat(7, 1fr);
-      gap: 3px;
-  }
-
-  .weekday-header, .calendar-cell {
-      padding: 0.2rem;
-      font-size: 0.7rem;
-  }
-
-  .day-number {
-      font-size: 0.8rem;
   }
 }
 

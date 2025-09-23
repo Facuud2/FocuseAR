@@ -1,4 +1,7 @@
-import { getDocument } from 'pdfjs-dist/build/pdf.mjs';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/build/pdf.mjs';
+
+// Configurar el worker de PDF.js
+GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
 
 /**
  * Extrae el texto de todas las páginas de un archivo PDF.
