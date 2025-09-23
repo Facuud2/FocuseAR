@@ -1,4 +1,6 @@
+import './theme.css';
 import './App.css';
+import './glass.css';
 import { useState, useEffect } from 'react';
 import {
   BrowserRouter,

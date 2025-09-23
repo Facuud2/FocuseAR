@@ -1,0 +1,181 @@
+/* === Unified Theme System === */
+:root {
+  /* Base Colors */
+  --primary-light: #4A90E2;
+  --primary-dark: #2563eb;
+  --secondary-light: #74ACDF;
+  --secondary-dark: #3B82F6;
+  --accent-light: #A9D0F5;
+  --accent-dark: #60A5FA;
+  
+  /* Neon Colors */
+  --neon-blue: #4A90E2;
+  --neon-purple: #8B5CF6;
+  --neon-pink: #EC4899;
+  --neon-green: #10B981;
+  
+  /* Glass Effects */
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --glass-gradient: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
+  
+  /* Light Mode */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --border-color: rgba(226, 232, 240, 0.8);
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.8);
+  
+  /* Animations */
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --glow-effect: 0 0 10px var(--neon-blue),
+                 0 0 20px var(--neon-blue),
+                 0 0 30px var(--neon-blue);
+}
+
+/* Dark Mode Variables */
+[data-theme='dark'] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --border-color: rgba(51, 65, 85, 0.8);
+  --input-bg: rgba(30, 41, 59, 0.9);
+  --card-bg: rgba(30, 41, 59, 0.8);
+  --glass-bg: rgba(0, 0, 0, 0.2);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* === Neon Text Effects === */
+.neon-text {
+  color: var(--neon-blue);
+  text-shadow: 0 0 5px var(--neon-blue),
+               0 0 10px var(--neon-blue),
+               0 0 20px var(--neon-blue);
+  animation: neonPulse 2s infinite;
+}
+
+@keyframes neonPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* === Glass Morphism === */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-input {
+  background: var(--glass-bg);
+  border: var(--glass-border);
+  color: var(--text-primary);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+/* === Modern Button Styles === */
+.modern-button {
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.modern-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+/* === Card Styles === */
+.modern-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: var(--glass-border);
+  transition: var(--transition-smooth);
+}
+
+.modern-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--glass-shadow);
+}
+
+/* === Form Controls === */
+.modern-input {
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  transition: var(--transition-smooth);
+}
+
+.modern-input:focus {
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  outline: none;
+}
+
+/* === Sidebar Enhancements === */
+.modern-sidebar {
+  background: var(--bg-secondary);
+  border-right: var(--glass-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.sidebar-item {
+  color: var(--text-secondary);
+  transition: var(--transition-smooth);
+}
+
+.sidebar-item:hover, .sidebar-item.active {
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+  color: white;
+  box-shadow: var(--glow-effect);
+}
+
+/* === Custom Scrollbar === */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neon-blue);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-purple);
+}
+
+/* === Responsive Design === */
+@media (max-width: 768px) {
+  :root {
+    --glow-effect: 0 0 5px var(--neon-blue),
+                   0 0 10px var(--neon-blue);
+  }
+  
+  .modern-card {
+    margin: 0.5rem;
+  }
+}
