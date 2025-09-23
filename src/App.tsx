@@ -27,6 +27,7 @@ import Analytics from './components/Analytics';
 import Quizzes from './pages/Quizzes';
 import QuizPlayer from './pages/QuizPlayer';
 import QuizCreator from './pages/QuizCreator';
+import PDFSummaryTest from './components/PDFSummaryTest.tsx';
 
 import { AuthProvider } from './context/AuthContext';
 import { PlannerProvider } from './context/PlannerProvider';
@@ -79,6 +80,7 @@ function AppRoutes() {
               <Route path="/settings" element={<AccountSettings />} />
               <Route path="/progress" element={<Progress />} />
               <Route path="/analytics" element={<Analytics />} />
+              <Route path="/pdf-summary-test" element={<PDFSummaryTest />} />
               <Route path="/quizzes" element={<Quizzes />} />
               <Route path="/quiz/:quizId" element={<QuizPlayer />} />
               <Route path="/create-quiz" element={<QuizCreator />} />

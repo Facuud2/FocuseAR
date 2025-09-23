@@ -11,6 +11,8 @@ import {
   getDocs,
   deleteDoc,
   Timestamp,
+  orderBy,
+  limit,
 } from 'firebase/firestore';
 import type { DocumentData } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
@@ -126,6 +128,20 @@ export interface Quiz {
   updatedAt: Timestamp;
 }
 
+export interface Activity {
+  id: string;
+  userId: string;
+  type:
+    | 'material_upload'
+    | 'study_plan_created'
+    | 'study_plan_task_completed'
+    | 'ai_chat_started'
+    | 'quiz_created';
+  description: string;
+  timestamp: Timestamp;
+  link?: string; // Optional link to the specific item
+}
+
 export class DatabaseService {
   // Generador de id local (evita añadir dependencia uuid)
   private static generateId(): string {
@@ -143,8 +159,14 @@ export class DatabaseService {
       }
 
       // object-like case: validate keys safely
-      if (t && typeof t === 'object') {
-        const obj = t as Record<string, unknown>;
+      if (t && typeof t === 'object' && t !== null) {
+        const obj = t as {
+          id?: unknown;
+          title?: unknown;
+          name?: unknown;
+          description?: unknown;
+          order?: unknown;
+        };
         const id = typeof obj.id === 'string' ? obj.id : this.generateId();
         const title =
           typeof obj.title === 'string'
@@ -593,6 +615,128 @@ export class DatabaseService {
       console.log('✅ Quiz eliminado exitosamente');
     } catch (error) {
       console.error('❌ Error al eliminar el quiz:', error);
+      throw error;
+    }
+  }
+
+  // 18. Get recent activities for a user
+  static async getRecentActivities(
+    userId: string,
+    activitiesLimit: number = 5,
+  ): Promise<Activity[]> {
+    try {
+      const activities: Activity[] = [];
+
+      // Fetch recent materials
+      const materialsQuery = query(
+        collection(db, 'materials'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(activitiesLimit),
+      );
+      const materialsSnap = await getDocs(materialsQuery);
+      materialsSnap.forEach((doc) => {
+        const material = doc.data() as Material;
+        activities.push({
+          id: doc.id,
+          userId: userId,
+          type: 'material_upload',
+          description: `Subiste el documento: ${material.fileName}`,
+          timestamp: material.createdAt,
+          link: `/materials/${doc.id}`,
+        });
+      });
+
+      // Fetch recent study plans
+      const studyPlansQuery = query(
+        collection(db, 'studyPlans'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(activitiesLimit),
+      );
+      const studyPlansSnap = await getDocs(studyPlansQuery);
+      studyPlansSnap.forEach((doc) => {
+        const plan = doc.data() as StudyPlan;
+        activities.push({
+          id: doc.id,
+          userId: userId,
+          type: 'study_plan_created',
+          description: `Creaste un plan de estudio para: ${plan.subjectName || 'Materia sin nombre'}`,
+          timestamp: plan.createdAt,
+          link: `/study-plans/${doc.id}`,
+        });
+      });
+
+      // Fetch recent AI conversations
+      const aiConversationsQuery = query(
+        collection(db, 'ai_conversations'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(activitiesLimit),
+      );
+      const aiConversationsSnap = await getDocs(aiConversationsQuery);
+      aiConversationsSnap.forEach((doc) => {
+        const conversation = doc.data() as AIConversation;
+        activities.push({
+          id: doc.id,
+          userId: userId,
+          type: 'ai_chat_started',
+          description: `Iniciaste una conversación de IA: ${conversation.title || 'Sin título'}`,
+          timestamp: conversation.createdAt,
+          link: `/ai-chat/${doc.id}`,
+        });
+      });
+
+      // Fetch recent quizzes
+      const quizzesQuery = query(
+        collection(db, 'quizzes'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(activitiesLimit),
+      );
+      const quizzesSnap = await getDocs(quizzesQuery);
+      quizzesSnap.forEach((doc) => {
+        const quiz = doc.data() as Quiz;
+        activities.push({
+          id: doc.id,
+          userId: userId,
+          type: 'quiz_created',
+          description: `Creaste un quiz de: ${quiz.subjectName}`,
+          timestamp: quiz.createdAt,
+          link: `/quizzes/${doc.id}`,
+        });
+      });
+
+      // Sort all activities by timestamp in descending order and limit the total results
+      activities.sort((a, b) => {
+        let timestampA = 0;
+        if (a.timestamp instanceof Timestamp) {
+          timestampA = a.timestamp.toMillis();
+        } else if (
+          a.timestamp &&
+          typeof a.timestamp === 'object' &&
+          'seconds' in a.timestamp
+        ) {
+          timestampA = (a.timestamp as { seconds: number }).seconds * 1000;
+        }
+
+        let timestampB = 0;
+        if (b.timestamp instanceof Timestamp) {
+          timestampB = b.timestamp.toMillis();
+        } else if (
+          b.timestamp &&
+          typeof b.timestamp === 'object' &&
+          'seconds' in b.timestamp
+        ) {
+          timestampB = (b.timestamp as { seconds: number }).seconds * 1000;
+        }
+
+        return timestampB - timestampA;
+      });
+
+      return activities.slice(0, activitiesLimit);
+    } catch (error) {
+      console.error('❌ Error al obtener actividades recientes:', error);
       throw error;
     }
   }
