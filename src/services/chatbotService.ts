@@ -21,8 +21,8 @@ interface StudyPlan {
 export const getUserMaterialsAndTopics = async (
   userId: string,
 ): Promise<ChatbotMaterial[]> => {
-  // 1. Obtener todos los planes de estudio del usuario
-  const studyPlansSnap = await getDocs(collection(db, 'study_plans'));
+  // 1. Obtener todos los planes de estudio del usuario (colección unificada: 'studyPlans')
+  const studyPlansSnap = await getDocs(collection(db, 'studyPlans'));
   const studyPlans = studyPlansSnap.docs
     .map((doc) => ({ id: doc.id, ...doc.data() }))
     .filter((plan) => (plan as StudyPlan).userId === userId) as StudyPlan[];
@@ -37,30 +37,23 @@ export const getUserMaterialsAndTopics = async (
       materialName = plan.generatedPlan.title;
     }
     // console.log('DEBUG materialName:', materialName, 'plan:', plan);
-    // Normalizar topics para que siempre sean strings (evitar [object Object])
-    const formatTopicToString = (t: unknown): string => {
-      if (typeof t === 'string') return t;
-      if (t === null || t === undefined) return '';
-      if (typeof t === 'object') {
-        const obj = t as Record<string, unknown>;
-        return (
-          (typeof obj.title === 'string' && obj.title) ||
-          (typeof obj.name === 'string' && obj.name) ||
-          (typeof obj.id === 'string' && obj.id) ||
-          JSON.stringify(obj)
-        );
-      }
-      return String(t);
-    };
 
     let topics: string[] = [];
     if (plan.generatedPlan && Array.isArray(plan.generatedPlan.topics)) {
-      topics = (
-        Array.isArray(plan.generatedPlan.topics)
-          ? plan.generatedPlan.topics
-          : []
-      )
-        .map(formatTopicToString)
+      topics = plan.generatedPlan.topics
+        .map((t: unknown) => {
+          if (typeof t === 'string') return t;
+          if (t && typeof t === 'object') {
+            const o = t as Record<string, unknown>;
+            return (
+              (typeof o.title === 'string' && o.title) ||
+              (typeof o.name === 'string' && o.name) ||
+              (typeof o.id === 'string' && o.id) ||
+              JSON.stringify(o)
+            );
+          }
+          return '';
+        })
         .filter((s) => s && s.length > 0);
     }
 

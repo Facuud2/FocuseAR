@@ -66,6 +66,7 @@ interface StudyPlan {
   progress: number;
   createdAt: string;
   expanded: boolean;
+  dailyTasks?: Array<{ day: number; task: string; completed: boolean }>;
 }
 
 const AIPlanner = () => {
@@ -84,8 +85,9 @@ const AIPlanner = () => {
   const [userAvailability, setUserAvailability] =
     useState<UserAvailability | null>(null);
   const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
-  const [nextPlanId, setNextPlanId] = useState(1);
   const [materials, setMaterials] = useState<unknown[]>([]);
+  // Contador local para generar IDs temporales para planes creados en sesión
+  const [nextPlanId, setNextPlanId] = useState<number>(Date.now());
 
   const {
     getUserStudyPlans,
@@ -368,14 +370,17 @@ const AIPlanner = () => {
           ? structuredPlan.days.map((d: StudyPlanDay) => normalizeDate(d.date))
           : [];
 
+      // Construir un título legible para el plan (ej: "Final - Materia")
+      const eventTitle = `${selectedEvent
+        .replace(/-/g, ' ')
+        .replace(/\b\w/g, (l) => l.toUpperCase())} - ${selectedSubject.name}`;
+
       let savedPlanId: string | undefined = undefined;
       try {
         const planId = await createStudyPlan({
           materialId: selectedSubject.id.toString(),
           generatedPlan: {
-            title:
-              structuredPlan?.title ||
-              `Plan de Estudio - ${selectedSubject.name}`,
+            title: eventTitle,
             summary:
               structuredPlan?.summary || 'Plan de estudio generado con IA',
             durationDays: generatedStudyDates.length,
@@ -401,6 +406,42 @@ const AIPlanner = () => {
         if (planId) {
           savedPlanId = planId;
           console.log('✅ Plan completo guardado en Firebase con ID:', planId);
+          // After saving successfully, reload plans from Firebase
+          const studyPlans = await getUserStudyPlans();
+          const convertedPlans = studyPlans.map((plan, index) => {
+            const planId = plan.id || `plan-${Date.now()}-${index}`;
+            return {
+              id: planId,
+              subjectName: plan.generatedPlan.title || 'Plan de Estudio',
+              eventName: plan.generatedPlan.title.split(' - ')[0] || 'Examen',
+              examDate: plan.generatedPlan.examDate || '',
+              topics: Array.isArray(plan.generatedPlan.topics)
+                ? plan.generatedPlan.topics.map((topic) =>
+                    typeof topic === 'string'
+                      ? {
+                          id: `topic-${planId}`,
+                          title: topic,
+                          description: '',
+                        }
+                      : topic,
+                  )
+                : [],
+              studyDays: plan.generatedPlan.studyDates || [],
+              content: JSON.stringify(plan.generatedPlan.structuredPlan || {}),
+              structuredPlan: plan.generatedPlan.structuredPlan || null,
+              progress: 0,
+              createdAt: plan.createdAt
+                ? typeof plan.createdAt === 'object' &&
+                  'toDate' in plan.createdAt
+                  ? plan.createdAt.toDate().toISOString()
+                  : typeof plan.createdAt === 'string'
+                    ? plan.createdAt
+                    : new Date().toISOString()
+                : new Date().toISOString(),
+              expanded: false,
+            };
+          });
+          setStudyPlans(convertedPlans);
         }
       } catch (firebaseError: unknown) {
         console.error('❌ Error guardando plan en Firebase:', firebaseError);

@@ -166,7 +166,6 @@
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
-  background-color: var(--bg-secondary);
 }
 
 .content-section {

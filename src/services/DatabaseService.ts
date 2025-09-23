@@ -12,6 +12,7 @@ import {
   deleteDoc,
   Timestamp,
   orderBy,
+  limit,
 } from 'firebase/firestore';
 import type { DocumentData } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
@@ -65,6 +66,7 @@ export interface StudyPlan {
     durationDays: number;
     examDate?: string;
     selectedWeekDays?: number[];
+    eventName?: string;
     topics?: (string | Topic)[]; // Acepta un array que puede contener strings u objetos Topic
     studyDates?: string[];
     subjectColor?: string; // CORREGIDO: Campo para guardar el color de la materia
@@ -143,12 +145,27 @@ export interface UserEvent {
   title: string;
   description?: string;
   type: 'study' | 'exam' | 'task' | 'reminder';
-  start: Date | string;
-  end?: Date | string;
+  start: string | Date;
+  end?: string | Date;
   allDay?: boolean;
   color?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  time?: string;
+}
+
+export interface Activity {
+  id: string;
+  userId: string;
+  type:
+    | 'material_upload'
+    | 'study_plan_created'
+    | 'study_plan_task_completed'
+    | 'ai_chat_started'
+    | 'quiz_created';
+  description: string;
+  timestamp: Timestamp;
+  link?: string; // Optional link to the specific item
 }
 
 export class DatabaseService {
@@ -168,8 +185,14 @@ export class DatabaseService {
       }
 
       // object-like case: validate keys safely
-      if (t && typeof t === 'object') {
-        const obj = t as Record<string, unknown>;
+      if (t && typeof t === 'object' && t !== null) {
+        const obj = t as {
+          id?: unknown;
+          title?: unknown;
+          name?: unknown;
+          description?: unknown;
+          order?: unknown;
+        };
         const id = typeof obj.id === 'string' ? obj.id : this.generateId();
         const title =
           typeof obj.title === 'string'
@@ -289,9 +312,7 @@ export class DatabaseService {
   }
 
   // 2.2 Obtener la disponibilidad del usuario
-  static async getUserAvailability(
-    userId: string,
-  ): Promise<{
+  static async getUserAvailability(userId: string): Promise<{
     availability?: Record<string, boolean>;
     selectedWeekDays?: number[];
   } | null> {
@@ -383,7 +404,7 @@ export class DatabaseService {
       // Sanitizar el objeto removiendo keys con valor `undefined` (Firestore no acepta `undefined`)
       const sanitized = this.sanitizeForFirestore(studyPlanData);
 
-      const planRef = await addDoc(collection(db, 'study_plans'), sanitized);
+      const planRef = await addDoc(collection(db, 'studyPlans'), sanitized);
       console.log('✅ Plan de estudio creado exitosamente con ID:', planRef.id);
 
       return planRef.id;
@@ -470,7 +491,7 @@ export class DatabaseService {
   static async getUserStudyPlans(userId: string): Promise<StudyPlan[]> {
     try {
       const plansQuery = query(
-        collection(db, 'study_plans'),
+        collection(db, 'studyPlans'),
         where('userId', '==', userId),
       );
 
@@ -522,7 +543,7 @@ export class DatabaseService {
     completed: boolean,
   ): Promise<void> {
     try {
-      const planRef = doc(db, 'study_plans', planId);
+      const planRef = doc(db, 'studyPlans', planId);
       const planSnap = await getDoc(planRef);
 
       if (planSnap.exists()) {
@@ -571,7 +592,7 @@ export class DatabaseService {
 
       // Eliminar planes de estudio asociados
       const plansQuery = query(
-        collection(db, 'study_plans'),
+        collection(db, 'studyPlans'),
         where('materialId', '==', materialId),
       );
 
@@ -594,7 +615,7 @@ export class DatabaseService {
   // 9. Eliminar un plan de estudio específico
   static async deleteStudyPlan(planId: string): Promise<void> {
     try {
-      const planRef = doc(db, 'study_plans', planId);
+      const planRef = doc(db, 'studyPlans', planId);
       await deleteDoc(planRef);
       console.log('✅ Plan de estudio eliminado');
     } catch (error) {
@@ -773,63 +794,38 @@ export class DatabaseService {
     }
   }
 
-  // 18. Crear un nuevo evento de usuario
+  // 18. Create a user event
   static async createUserEvent(
     event: Omit<UserEvent, 'id' | 'createdAt' | 'updatedAt'>,
   ): Promise<string> {
     try {
       console.log('📅 Creando evento de usuario en Firestore...');
-
-      const eventData: Omit<UserEvent, 'id'> = {
+      const eventData = {
         ...event,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
       };
-
-      const eventRef = await addDoc(collection(db, 'userEvents'), eventData);
-      console.log('✅ Evento de usuario creado con ID:', eventRef.id);
-
+      const eventRef = await addDoc(collection(db, 'events'), eventData);
+      console.log('✅ Evento creado exitosamente con ID:', eventRef.id);
       return eventRef.id;
     } catch (error) {
-      console.error('❌ Error al crear evento de usuario:', error);
+      console.error('❌ Error al crear evento:', error);
       throw error;
     }
   }
 
-  // 19. Obtener eventos de un usuario
+  // 19. Get user events
   static async getUserEvents(userId: string): Promise<UserEvent[]> {
     try {
-      console.log(`📅 Obteniendo eventos para el usuario: ${userId}`);
-
       const eventsQuery = query(
-        collection(db, 'userEvents'),
+        collection(db, 'events'),
         where('userId', '==', userId),
-        orderBy('start', 'asc'),
       );
-
-      const eventsSnapshot = await getDocs(eventsQuery);
+      const eventsSnap = await getDocs(eventsQuery);
       const events: UserEvent[] = [];
-
-      eventsSnapshot.forEach((doc) => {
-        const eventData = doc.data();
-        events.push({
-          id: doc.id,
-          ...eventData,
-          // Asegurarse de que las fechas sean objetos Date
-          start: eventData.start?.toDate
-            ? eventData.start.toDate()
-            : eventData.start,
-          end: eventData.end?.toDate ? eventData.end.toDate() : eventData.end,
-          createdAt: eventData.createdAt?.toDate
-            ? eventData.createdAt.toDate()
-            : eventData.createdAt,
-          updatedAt: eventData.updatedAt?.toDate
-            ? eventData.updatedAt.toDate()
-            : eventData.updatedAt,
-        } as UserEvent);
+      eventsSnap.forEach((doc) => {
+        events.push({ id: doc.id, ...doc.data() } as UserEvent);
       });
-
-      console.log(`✅ Se obtuvieron ${events.length} eventos para el usuario`);
       return events;
     } catch (error) {
       console.error('❌ Error al obtener eventos del usuario:', error);
@@ -837,63 +833,142 @@ export class DatabaseService {
     }
   }
 
-  // 15. Actualizar plan de estudio
+  // 20. Update study plan
   static async updateStudyPlan(
     planId: string,
     updatedPlan: Partial<StudyPlan>,
   ): Promise<void> {
     try {
-      const planRef = doc(db, 'study_plans', planId);
-
-      // Primero obtenemos el documento actual
-      const currentDoc = await getDoc(planRef);
-      if (!currentDoc.exists()) {
-        throw new Error(`Plan de estudio ${planId} no existe`);
-      }
-
-      const currentData = currentDoc.data();
-
-      // Hacemos un merge profundo de los datos
-      const mergedData = {
-        ...currentData,
+      const planRef = doc(db, 'studyPlans', planId);
+      await updateDoc(planRef, {
         ...updatedPlan,
         updatedAt: Timestamp.now(),
-      };
-
-      // Si estamos actualizando generatedPlan, hacemos merge profundo
-      if (updatedPlan.generatedPlan) {
-        mergedData.generatedPlan = {
-          ...currentData.generatedPlan,
-          ...updatedPlan.generatedPlan,
-        };
-
-        // Merge profundo para structuredPlan si existe
-        if (
-          updatedPlan.generatedPlan.structuredPlan &&
-          mergedData.generatedPlan
-        ) {
-          mergedData.generatedPlan.structuredPlan = {
-            ...currentData.generatedPlan?.structuredPlan,
-            ...updatedPlan.generatedPlan.structuredPlan,
-          };
-        }
-
-        // Merge profundo para dailyTasks si existe
-        if (updatedPlan.generatedPlan.dailyTasks && mergedData.generatedPlan) {
-          mergedData.generatedPlan.dailyTasks =
-            updatedPlan.generatedPlan.dailyTasks;
-        }
-      }
-
-      console.log(
-        '🔄 [DatabaseService] Guardando datos actualizados:',
-        JSON.stringify(mergedData, null, 2),
-      );
-
-      await setDoc(planRef, mergedData);
-      console.log('✅ Plan de estudio actualizado');
+      });
+      console.log('✅ Plan de estudio actualizado exitosamente');
     } catch (error) {
       console.error('❌ Error al actualizar plan de estudio:', error);
+      throw error;
+    }
+  }
+
+  // 21. Get recent activities for a user
+  static async getRecentActivities(
+    userId: string,
+    activitiesLimit: number = 5,
+  ): Promise<Activity[]> {
+    try {
+      const activities: Activity[] = [];
+
+      // Fetch recent materials
+      const materialsQuery = query(
+        collection(db, 'materials'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(activitiesLimit),
+      );
+      const materialsSnap = await getDocs(materialsQuery);
+      materialsSnap.forEach((doc) => {
+        const material = doc.data() as Material;
+        activities.push({
+          id: doc.id,
+          userId: userId,
+          type: 'material_upload',
+          description: `Subiste el documento: ${material.fileName}`,
+          timestamp: material.createdAt,
+          link: `/materials/${doc.id}`,
+        });
+      });
+
+      // Fetch recent study plans
+      const studyPlansQuery = query(
+        collection(db, 'studyPlans'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(activitiesLimit),
+      );
+      const studyPlansSnap = await getDocs(studyPlansQuery);
+      studyPlansSnap.forEach((doc) => {
+        const plan = doc.data() as StudyPlan;
+        activities.push({
+          id: doc.id,
+          userId: userId,
+          type: 'study_plan_created',
+          description: `Creaste un plan de estudio para: ${plan.subjectName || 'Materia sin nombre'}`,
+          timestamp: plan.createdAt,
+          link: `/study-plans/${doc.id}`,
+        });
+      });
+
+      // Fetch recent AI conversations
+      const aiConversationsQuery = query(
+        collection(db, 'ai_conversations'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(activitiesLimit),
+      );
+      const aiConversationsSnap = await getDocs(aiConversationsQuery);
+      aiConversationsSnap.forEach((doc) => {
+        const conversation = doc.data() as AIConversation;
+        activities.push({
+          id: doc.id,
+          userId: userId,
+          type: 'ai_chat_started',
+          description: `Iniciaste una conversación de IA: ${conversation.title || 'Sin título'}`,
+          timestamp: conversation.createdAt,
+          link: `/ai-chat/${doc.id}`,
+        });
+      });
+
+      // Fetch recent quizzes
+      const quizzesQuery = query(
+        collection(db, 'quizzes'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc'),
+        limit(activitiesLimit),
+      );
+      const quizzesSnap = await getDocs(quizzesQuery);
+      quizzesSnap.forEach((doc) => {
+        const quiz = doc.data() as Quiz;
+        activities.push({
+          id: doc.id,
+          userId: userId,
+          type: 'quiz_created',
+          description: `Creaste un quiz de: ${quiz.subjectName}`,
+          timestamp: quiz.createdAt,
+          link: `/quizzes/${doc.id}`,
+        });
+      });
+
+      // Sort all activities by timestamp in descending order and limit the total results
+      activities.sort((a, b) => {
+        let timestampA = 0;
+        if (a.timestamp instanceof Timestamp) {
+          timestampA = a.timestamp.toMillis();
+        } else if (
+          a.timestamp &&
+          typeof a.timestamp === 'object' &&
+          'seconds' in a.timestamp
+        ) {
+          timestampA = (a.timestamp as { seconds: number }).seconds * 1000;
+        }
+
+        let timestampB = 0;
+        if (b.timestamp instanceof Timestamp) {
+          timestampB = b.timestamp.toMillis();
+        } else if (
+          b.timestamp &&
+          typeof b.timestamp === 'object' &&
+          'seconds' in b.timestamp
+        ) {
+          timestampB = (b.timestamp as { seconds: number }).seconds * 1000;
+        }
+
+        return timestampB - timestampA;
+      });
+
+      return activities.slice(0, activitiesLimit);
+    } catch (error) {
+      console.error('❌ Error al obtener actividades recientes:', error);
       throw error;
     }
   }

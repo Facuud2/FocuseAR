@@ -6,6 +6,8 @@ import NotesAndChecklist from '../components/NotesAndChecklist';
 import './Dashboard.css';
 import { Settings } from 'lucide-react';
 import type { Topic } from '../types/studyPlan';
+import { DatabaseService, type Activity } from '../services/DatabaseService';
+import { Timestamp } from 'firebase/firestore';
 
 export type StudyPlanDay = {
   date: string;
@@ -41,11 +43,18 @@ interface StudyPlanData {
   subjectColor?: string;
 }
 
+// Type guard to safely check for a Firestore Timestamp object
+function isFirestoreTimestamp(value: unknown): value is Timestamp {
+  return value instanceof Timestamp;
+}
+
 const Dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
   const { getUserStudyPlans } = useDatabase();
   const navigate = useNavigate();
   const [studyPlans, setStudyPlans] = useState<StudyPlanData[]>([]);
+  const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [loadingActivities, setLoadingActivities] = useState<boolean>(true);
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<
@@ -72,6 +81,7 @@ const Dashboard: React.FC = () => {
     const loadUserData = async () => {
       if (!user) return;
       try {
+        // Load Study Plans
         const studyPlansData = await getUserStudyPlans();
         const convertedPlans = studyPlansData.map((plan, index) => {
           const planId = plan.id || `plan-${Date.now()}-${index}`;
@@ -109,8 +119,18 @@ const Dashboard: React.FC = () => {
           };
         });
         setStudyPlans(convertedPlans);
+
+        // Load Recent Activities
+        setLoadingActivities(true);
+        const activities = await DatabaseService.getRecentActivities(
+          user.uid,
+          5,
+        );
+        setRecentActivities(activities);
       } catch (error: unknown) {
-        console.error('Error al cargar planes de estudio:', error);
+        console.error('Error al cargar datos del usuario:', error);
+      } finally {
+        setLoadingActivities(false);
       }
     };
     loadUserData();
@@ -300,19 +320,26 @@ const Dashboard: React.FC = () => {
           <h3 className="panel-title">Actividad reciente</h3>
         </div>
         <div className="activity-content">
-          {studyPlans.length === 0 ? (
-            <p>No hay planes de estudio recientes</p>
+          {loadingActivities ? (
+            <p>Cargando actividades...</p>
+          ) : recentActivities.length === 0 ? (
+            <p>No hay actividad reciente.</p>
           ) : (
-            <ul className="recent-plans">
-              {studyPlans.slice(0, 3).map((plan) => (
-                <li key={plan.id} className="recent-plan-item">
-                  <div
-                    className="plan-color"
-                    style={{ backgroundColor: plan.subjectColor || '#4285F4' }}
-                  ></div>
-                  <div className="plan-details">
-                    <h4>{plan.subjectName}</h4>
-                    <p>Progreso: {plan.progress}%</p>
+            <ul className="recent-activities-list">
+              {recentActivities.map((activity) => (
+                <li key={activity.id} className="recent-activity-item">
+                  <div className="activity-icon"></div>{' '}
+                  {/* Placeholder for icon */}
+                  <div className="activity-details">
+                    <p>{activity.description}</p>
+                    <span className="activity-time">
+                      {isFirestoreTimestamp(activity.timestamp)
+                        ? activity.timestamp.toDate().toLocaleString()
+                        : new Date(
+                            (activity.timestamp as { seconds: number })
+                              .seconds * 1000,
+                          ).toLocaleString()}
+                    </span>
                   </div>
                 </li>
               ))}

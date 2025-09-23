@@ -1072,6 +1072,56 @@ header {
     text-align: center;
 }
 
+.recent-activities-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.recent-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-alt-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: var(--transition-ease);
+}
+
+.recent-activity-item:hover {
+  transform: translateX(5px);
+  border-color: var(--primary-neon-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.activity-icon {
+  width: 24px;
+  height: 24px;
+  background-color: var(--primary-neon-color); /* Placeholder color */
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.activity-details {
+  flex-grow: 1;
+}
+
+.activity-details p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.activity-time {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+
 /* =========================================================================
  * 6.0 - ASSISTANT CHAT STYLING
  * ========================================================================= */
