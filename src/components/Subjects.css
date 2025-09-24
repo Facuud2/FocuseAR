@@ -161,6 +161,37 @@ select {
   flex-grow: 1; /* Permite que la cuadrícula crezca dentro del panel */
 }
 
+/* =========================
+   Ajustes responsive para móviles muy pequeños (<= 360px)
+   - Fuerza una sola columna en el grid de materias
+   - Reduce gaps/padding para evitar desbordes horizontales
+   - Ajusta padding lateral del contenedor para dejar espacio seguro
+   ========================= */
+@media (max-width: 360px) {
+  /* Apila las tarjetas en una sola columna y reduce separación */
+  .subjects-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem; /* espacio más compacto entre tarjetas */
+  }
+
+  /* Reduce padding interno de cada tarjeta para aprovechar el ancho */
+  .subject-card {
+    padding: 0.9rem;
+  }
+
+  /* Ajusta el layout padre (convertir dos columnas en una sola) */
+  .subjects-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Ajustes visuales menores para mantener legibilidad */
+  .panel h2 { font-size: 1.05rem; }
+  .subject-icon { width: 40px; height: 40px; font-size: 1rem; }
+}
+/* ...existing code... */
 .subject-card {
   background: var(--surface-color);
   border-radius: var(--radius-md);
