@@ -477,6 +477,7 @@ const AccountSettings = () => {
           </button>
           <button
             className={`tab-button ${activeTab === 'planner' ? 'active' : ''}`}
+            data-tab="planner"
             onClick={() => setActiveTab('planner')}
           >
             Planificador IA
