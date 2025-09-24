@@ -463,8 +463,16 @@ const AIPlanner = () => {
         expanded: false,
       };
 
-      setStudyPlans((prevPlans) => [...prevPlans, newPlan]);
-      setNextPlanId((prev) => prev + 1);
+      // Si el plan ya fue guardado en Firebase (savedPlanId), entonces
+      // ya recargamos la lista `studyPlans` desde el servidor y no
+      // debemos volver a agregarlo localmente (provoca claves duplicadas).
+      if (!savedPlanId) {
+        setStudyPlans((prevPlans) => [...prevPlans, newPlan]);
+        setNextPlanId((prev) => prev + 1);
+      } else {
+        // No incrementamos nextPlanId ni agregamos el plan localmente
+        // porque la lista ya fue actualizada desde Firebase.
+      }
 
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
     } catch (error: unknown) {
@@ -670,14 +678,29 @@ const AIPlanner = () => {
                                 t.name.toLowerCase() ===
                                 extractedTopic.name.toLowerCase(),
                             );
+                            // Key única por tema: combina id de materia, id del tema (o índice) y nombre estandar.
+                            const safeTopicId = extractedTopic.id
+                              ? String(extractedTopic.id)
+                              : `idx-${index}`;
+                            const subjectKeyPart = selectedSubjectForPlanning
+                              ? String(selectedSubjectForPlanning)
+                              : 'no-subject';
+                            const sanitizedName = String(extractedTopic.name)
+                              .replace(/\s+/g, '-')
+                              .replace(/[^a-zA-Z0-9-_]/g, '')
+                              .slice(0, 40);
+
+                            const itemKey = `planning-topic-${subjectKeyPart}-${safeTopicId}-${sanitizedName}`;
+
                             return (
                               <div
-                                key={`planning-topic-${extractedTopic.id || index}`}
+                                key={itemKey}
                                 className={`topic-item ${isAlreadyAdded ? 'added' : ''}`}
                                 onClick={() => {
                                   if (!isAlreadyAdded) {
                                     const newTopic = {
-                                      id: `topic-${selectedSubjectForPlanning}-${topicCounter}`,
+                                      // id único por materia + contador local
+                                      id: `topic-${selectedSubjectForPlanning}-${Date.now()}-${topicCounter}`,
                                       name: extractedTopic.name,
                                     };
                                     setTopics([...topics, newTopic]);
@@ -707,6 +730,7 @@ const AIPlanner = () => {
                         </div>
                         <button
                           onClick={() => {
+                            const timestamp = Date.now();
                             const newTopics = extractedTopics
                               .filter((extractedTopic) => {
                                 const isAlreadyAdded = topics.some(
@@ -716,8 +740,9 @@ const AIPlanner = () => {
                                 );
                                 return !isAlreadyAdded;
                               })
-                              .map((extractedTopic, index) => ({
-                                id: `topic-${selectedSubjectForPlanning}-${topicCounter + index}`,
+                              .map((extractedTopic, idx) => ({
+                                // id único con timestamp para evitar colisiones
+                                id: `topic-${selectedSubjectForPlanning}-${timestamp}-${topicCounter + idx}`,
                                 name: extractedTopic.name,
                               }));
                             setTopics([...topics, ...newTopics]);
@@ -763,7 +788,13 @@ const AIPlanner = () => {
                         <div className="topic-list">
                           {topics.map((topic, index) => (
                             <div
-                              key={`topic-${topic.id || index}`}
+                              // Usar el id del topic si existe (es estable), sino
+                              // un fallback con índice y nombre para mantener unicidad
+                              key={
+                                topic.id
+                                  ? String(topic.id)
+                                  : `topic-fallback-${index}-${String(topic.name).replace(/\s+/g, '-')}`
+                              }
                               className="topic-tag"
                             >
                               <span>{topic.name}</span>
