@@ -172,11 +172,16 @@ select {
   .subjects-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem; /* espacio más compacto entre tarjetas */
+    width: 100%;
   }
 
   /* Reduce padding interno de cada tarjeta para aprovechar el ancho */
   .subject-card {
-    padding: 0.9rem;
+    padding: 0.8rem;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   /* Ajusta el layout padre (convertir dos columnas en una sola) */
@@ -185,6 +190,11 @@ select {
     gap: 1rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
+  }
+
+  /* Reduce padding de paneles en móviles para evitar desbordes */
+  .panel {
+    padding: 1rem;
   }
 
   /* Ajustes visuales menores para mantener legibilidad */
