@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import './AIPlanner.css';
 import { AuthContext } from '../hooks/authContext';
@@ -74,6 +75,7 @@ interface StudyPlan {
 const AIPlanner = () => {
   const { user } = useContext(AuthContext);
   const { extractedTopics, setExtractedTopics } = usePlanner();
+  const navigate = useNavigate();
 
   const [topicCounter, setTopicCounter] = useState(1);
   const [generatingPlan, setGeneratingPlan] = useState(false);
@@ -375,8 +377,11 @@ const AIPlanner = () => {
 
       let savedPlanId: string | undefined = undefined;
       try {
+        // Crear un materialId único que incluya la materia y el evento para evitar duplicados
+        const uniqueMaterialId = `${selectedSubject.id}_${selectedEvent}_${examDate.replace(/-/g, '')}`;
+
         const planId = await createStudyPlan({
-          materialId: selectedSubject.id.toString(),
+          materialId: uniqueMaterialId,
           generatedPlan: {
             title: eventTitle,
             summary:
@@ -488,7 +493,6 @@ const AIPlanner = () => {
       setTopics([]);
       setExtractedTopics([]);
       setTopicCounter(1);
-      setGeneratedStudyPlan('');
 
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
     } catch (error: unknown) {
@@ -683,7 +687,7 @@ const AIPlanner = () => {
                     {extractedTopics.length > 0 && (
                       <div className="form-group">
                         <h4 className="label-heading">
-                          🤖 Temas extraídos por IA del PDF (
+                          Temas extraídos por IA del PDF (
                           {extractedTopics.length} temas encontrados):
                         </h4>
                         <div className="topic-list-container">
@@ -772,9 +776,8 @@ const AIPlanner = () => {
                     <div className="form-group">
                       <label>📅 Días de estudio</label>
                       <div className="info-box">
-                        Los días de estudio se tomarán desde tu configuración
-                        (Configuración de cuenta). No es necesario seleccionar
-                        días aquí.
+                        Los días de estudio se tomarán desde tu configuración de
+                        cuenta.
                       </div>
                       {userAvailability &&
                       Array.isArray(userAvailability.selectedWeekDays) &&
@@ -790,6 +793,36 @@ const AIPlanner = () => {
                           días de estudio antes de generar un plan.
                         </div>
                       )}
+                      <button
+                        className="button-secondary"
+                        onClick={() => {
+                          navigate('/settings');
+                          // Usar setTimeout para asegurar que la navegación se complete antes de cambiar la pestaña
+                          setTimeout(() => {
+                            // Buscar el botón de la pestaña 'planner' y hacer clic en él
+                            const plannerTab = document.querySelector(
+                              '[data-tab="planner"]',
+                            ) as HTMLButtonElement;
+                            if (plannerTab) {
+                              plannerTab.click();
+                            } else {
+                              // Fallback: buscar por texto del botón
+                              const buttons =
+                                document.querySelectorAll('button');
+                              const plannerButton = Array.from(buttons).find(
+                                (btn) =>
+                                  btn.textContent?.includes('Planificador IA'),
+                              ) as HTMLButtonElement;
+                              if (plannerButton) {
+                                plannerButton.click();
+                              }
+                            }
+                          }, 100);
+                        }}
+                        style={{ marginTop: '8px' }}
+                      >
+                        Editar en Configuración
+                      </button>
                     </div>
                     {topics.length > 0 && (
                       <div>
