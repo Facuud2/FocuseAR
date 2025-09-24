@@ -85,7 +85,6 @@ const AIPlanner = () => {
   const [topics, setTopics] = useState<TopicLocal[]>([]);
   const [userAvailability, setUserAvailability] =
     useState<UserAvailability | null>(null);
-  const [generatedStudyPlan, setGeneratedStudyPlan] = useState<string>('');
   const [materials, setMaterials] = useState<unknown[]>([]);
   // Contador local para generar IDs temporales para planes creados en sesión
   const [nextPlanId, setNextPlanId] = useState<number>(Date.now());
@@ -361,9 +360,6 @@ const AIPlanner = () => {
           completed: false,
         }));
       }
-
-      setGeneratedStudyPlan(studyPlan);
-
       // Extraer studyDates desde el structuredPlan recibido
       const generatedStudyDates: string[] =
         structuredPlan && Array.isArray(structuredPlan.days)
@@ -670,7 +666,6 @@ const AIPlanner = () => {
                     onChange={(e) => {
                       setSelectedEvent(e.target.value || null);
                       setTopics([]);
-                      // availability is read from server; no local weekday selection
                     }}
                   >
                     <option value="">-- Selecciona un evento --</option>
@@ -848,34 +843,6 @@ const AIPlanner = () => {
                           </button>
                         </div>
                       )}
-                    {generatedStudyPlan && (
-                      <div className="generated-plan-container">
-                        <h4 className="generated-plan-title">
-                          <span>🎯</span>
-                          Plan de Estudio Generado
-                        </h4>
-                        <div className="generated-plan-content">
-                          <pre>{generatedStudyPlan}</pre>
-                        </div>
-                        <div className="generated-plan-actions">
-                          <button
-                            onClick={() => setGeneratedStudyPlan('')}
-                            className="button-secondary"
-                          >
-                            Cerrar plan
-                          </button>
-                          <button
-                            onClick={generateStudyPlan}
-                            disabled={generatingPlan}
-                            className="button-primary"
-                          >
-                            {generatingPlan
-                              ? 'Regenerando...'
-                              : 'Regenerar plan'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
