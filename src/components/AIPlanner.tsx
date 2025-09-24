@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import toast from 'react-hot-toast';
 import './AIPlanner.css';
 import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
@@ -288,24 +289,23 @@ const AIPlanner = () => {
         examDate = segundoParcial?.date || '';
       }
 
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateStudyPlan',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            subjectName: selectedSubject.name,
-            eventName: selectedEvent
-              .replace(/-/g, ' ')
-              .replace(/\b\w/g, (l) => l.toUpperCase()),
-            examDate: examDate,
-            topics: topics.map((topic) => topic.name),
-            userId: user.uid,
-          }),
+      const endpoint = import.meta.env.VITE_GENERATE_PLAN_ENDPOINT;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          subjectName: selectedSubject.name,
+          eventName: selectedEvent
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, (l) => l.toUpperCase()),
+          examDate: examDate,
+          topics: topics.map((topic) => topic.name),
+          userId: user.uid,
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`Error en la función Gemini: ${response.status}`);
@@ -406,6 +406,7 @@ const AIPlanner = () => {
         if (planId) {
           savedPlanId = planId;
           console.log('✅ Plan completo guardado en Firebase con ID:', planId);
+          toast.success('Plan guardado correctamente');
           // After saving successfully, reload plans from Firebase
           const studyPlans = await getUserStudyPlans();
           const convertedPlans = studyPlans.map((plan, index) => {
@@ -442,9 +443,15 @@ const AIPlanner = () => {
             };
           });
           setStudyPlans(convertedPlans);
+        } else {
+          // If we couldn't get a planId from the backend, notify the user
+          toast('Plan creado en la sesión (no guardado en servidor)', {
+            icon: 'ℹ️',
+          });
         }
       } catch (firebaseError: unknown) {
         console.error('❌ Error guardando plan en Firebase:', firebaseError);
+        toast.error('Error guardando plan en Firebase');
       }
 
       const newPlan: StudyPlan = {
@@ -474,10 +481,18 @@ const AIPlanner = () => {
         // porque la lista ya fue actualizada desde Firebase.
       }
 
+      // Reset para tener que elegir una nueva materia
+      setSelectedSubjectForPlanning(null);
+      setSelectedEvent(null);
+      setTopics([]);
+      setExtractedTopics([]);
+      setTopicCounter(1);
+      setGeneratedStudyPlan('');
+
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
     } catch (error: unknown) {
       console.error('❌ Error generando plan de estudio:', error);
-      alert('Error generando el plan de estudio. Inténtalo de nuevo.');
+      toast.error('Error generando el plan de estudio. Inténtalo de nuevo.');
     } finally {
       setGeneratingPlan(false);
     }
