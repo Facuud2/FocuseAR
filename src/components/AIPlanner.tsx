@@ -43,6 +43,7 @@ interface StudyPlan {
   topics: Topic[];
   studyDays: string[];
   content: string;
+  subjectColor?: string; // CORREGIDO: Agregar campo para el color de la materia
   structuredPlan:
     | {
         title: string;
@@ -190,6 +191,7 @@ const AIPlanner = () => {
               : [],
             studyDays: plan.generatedPlan.studyDates || [],
             content: JSON.stringify(structuredPlan || {}),
+            subjectColor: plan.generatedPlan.subjectColor || '#4285F4', // CORREGIDO: Agregar el color de la materia
             structuredPlan: structuredPlan,
             progress: 0,
             createdAt: plan.createdAt
@@ -388,6 +390,7 @@ const AIPlanner = () => {
             selectedWeekDays: userSettings.selectedWeekDays,
             topics: topics.map((t) => ({ id: t.id, title: t.name })),
             studyDates: generatedStudyDates,
+            subjectColor: selectedSubject.color, // CORREGIDO: Agregar el color de la materia
             structuredPlan: structuredPlan ?? undefined,
             dailyTasks: structuredPlan?.days
               ? structuredPlan.days.map((day: StudyPlanDay, index: number) => ({
@@ -428,6 +431,7 @@ const AIPlanner = () => {
                 : [],
               studyDays: plan.generatedPlan.studyDates || [],
               content: JSON.stringify(plan.generatedPlan.structuredPlan || {}),
+              subjectColor: plan.generatedPlan.subjectColor || '#4285F4', // CORREGIDO: Agregar el color de la materia
               structuredPlan: plan.generatedPlan.structuredPlan || null,
               progress: 0,
               createdAt: plan.createdAt
@@ -457,6 +461,7 @@ const AIPlanner = () => {
         topics: topics.map((t) => ({ id: t.id, title: t.name })),
         studyDays: generatedStudyDates,
         content: studyPlan,
+        subjectColor: selectedSubject.color, // CORREGIDO: Agregar el color de la materia
         structuredPlan: structuredPlan,
         progress: 0,
         createdAt: new Date().toISOString(),
