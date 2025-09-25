@@ -493,3 +493,41 @@ body {
     font-size: 0.7rem;
   }
 }
+
+/* ===== Overrides: StudySchedule sin transparencia ni glossy ===== */
+
+/* Contenedores principales: sólidos y planos */
+.schedule-container .panel,
+.schedule-container .schedule-calendar-panel,
+.schedule-container .upcoming-item,
+.schedule-container .add-event-btn {
+  background-color: var(--surface-color) !important; /* sólido según tema */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+/* Hover de contenedores = igual que estado normal */
+.schedule-container .panel:hover,
+.schedule-container .schedule-calendar-panel:hover,
+.schedule-container .upcoming-item:hover,
+.schedule-container .add-event-btn:hover {
+  background-color: var(--surface-color) !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: inherit !important;
+}
+
+/* Botones de navegación del calendario sin zoom ni transparencia */
+.schedule-container .calendar-nav-btn,
+.schedule-container .calendar-nav-btn:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}

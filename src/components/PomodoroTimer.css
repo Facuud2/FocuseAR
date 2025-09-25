@@ -746,3 +746,33 @@ body {
     font-size: 1.8rem;
   }
 }
+
+/* ===== Estilos claros para modos activos ===== */
+.mode-btn {
+  background-color: var(--surface-color) !important; /* estado normal, neutro */
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Foco corto activo */
+.mode-btn.short-focus.active {
+  background-color: #4caf50 !important; /* verde */
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Foco largo activo */
+.mode-btn.long-focus.active {
+  background-color: #2196f3 !important; /* azul */
+  color: #fff !important;
+  border: none !important;
+}
+
+/* Descanso activo (si aplica) */
+.mode-btn.break-focus.active {
+  background-color: #f44336 !important; /* rojo */
+  color: #fff !important;
+  border: none !important;
+}
+

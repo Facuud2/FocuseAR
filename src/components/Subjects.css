@@ -372,3 +372,27 @@ select {
   color: var(--text-muted);
   margin-top: 1.5rem;
 }
+
+/* ===== Overrides: Subjects planos, sin sombras ni zoom ===== */
+
+/* Paneles principales */
+.subjects-container .panel,
+.subjects-container .subject-card {
+  background-color: var(--surface-color) !important; /* sólido según tema */
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+/* Hover igual al estado normal */
+.subjects-container .panel:hover,
+.subjects-container .subject-card:hover {
+  background-color: var(--surface-color) !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: inherit !important;
+}

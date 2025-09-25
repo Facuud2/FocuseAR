@@ -1740,3 +1740,50 @@ header {
   }
 }
 
+/* ===== Quitar animaciones y glossy solo en Dashboard ===== */
+.dashboard-container .panel,
+.dashboard-container .calendar-cell,
+.dashboard-container .calendar-day,
+.dashboard-container .event-item,
+.dashboard-container .note-item,
+.dashboard-container .recent-activity-item,
+.dashboard-container .stats-panel .stat-item,
+.dashboard-container .message-bubble,
+.dashboard-container .bar-item,
+.dashboard-container .line-chart-path,
+.dashboard-container .panel-title {
+  animation: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Eliminar overlay glossy */
+.dashboard-container .panel::before {
+  content: none !important;
+}
+
+/* Desactivar efectos hover */
+.dashboard-container .panel:hover,
+.dashboard-container .calendar-cell:hover,
+.dashboard-container .calendar-day:hover,
+.dashboard-container .event-item:hover,
+.dashboard-container .note-item:hover,
+.dashboard-container .recent-activity-item:hover,
+.dashboard-container .stats-panel .stat-item:hover,
+.dashboard-container .message-bubble:hover,
+.dashboard-container .bar-item:hover,
+.dashboard-container .line-chart-path:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: inherit !important;
+  border-color: inherit !important;
+}
+
+/* ===== Quitar zoom/hover del contenedor de notas ===== */
+.dashboard-container .notes-panel,
+.dashboard-container .notes-panel:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+

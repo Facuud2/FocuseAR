@@ -732,3 +732,34 @@ select:focus {
     gap: 0.5rem;
   }
 }
+
+/* ===== Overrides solo para AI Planner ===== */
+.ai-planner-container .panel,
+.ai-planner-container .topic-item,
+.ai-planner-container .study-day-card,
+.ai-planner-container .summary-box,
+.ai-planner-container .info-box,
+.ai-planner-container .warning-box,
+.ai-planner-container .saved-days-box,
+.ai-planner-container .generated-plan-content,
+.ai-planner-container .history-item {
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  animation: none !important; /* evita animaciones globales */
+}
+
+/* También quitar efectos en hover */
+.ai-planner-container .panel:hover,
+.ai-planner-container .topic-item:hover,
+.ai-planner-container .study-day-card:hover,
+.ai-planner-container .summary-box:hover,
+.ai-planner-container .info-box:hover,
+.ai-planner-container .warning-box:hover,
+.ai-planner-container .saved-days-box:hover,
+.ai-planner-container .generated-plan-content:hover,
+.ai-planner-container .history-item:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: inherit !important; /* respeta claro/oscuro */
+}

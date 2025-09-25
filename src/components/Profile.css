@@ -682,3 +682,22 @@ body {
     margin-top: 1rem;
   }
 }
+
+/* ===== Overrides: Hero Panel azul fijo ===== */
+.profile-container .profile-hero-panel {
+  background: var(--primary-color) !important; /* Azul sólido */
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+/* Hover igual al estado normal */
+.profile-container .profile-hero-panel:hover {
+  background: var(--primary-color) !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
