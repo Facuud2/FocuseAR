@@ -145,3 +145,114 @@
   color: var(--modal-secondary-text);
   font-style: italic;
 }
+
+/* =========================
+   RESPONSIVE DESIGN PARA PANTALLAS MÓVILES
+   Optimizaciones específicas para resolución de 360px
+   ========================= */
+
+/* Media query para pantallas muy pequeñas (360px y menores) */
+@media (max-width: 360px) {
+  .analysis-modal-content {
+    padding: 1.5rem; /* Reducir padding para aprovechar mejor el espacio */
+    width: 80%; /* Mantener centrado como en desktop */
+    max-width: 400px; /* Límite más amplio que el original pero centrado */
+    margin: 1rem auto; /* Centrado horizontalmente con margen vertical */
+    border-radius: 8px; /* Radio más pequeño para móviles */
+    left: 50%; /* Asegurar centrado */
+    transform: translateX(-50%) scale(0.95); /* Centrado y escala inicial */
+  }
+
+  .analysis-modal-content::after {
+    transform: translateX(-50%) scale(1); /* Animación centrada */
+  }
+
+  .modal-header {
+    margin-bottom: 1.5rem; /* Reducir margen inferior */
+  }
+
+  .modal-header .modal-icon {
+    font-size: 2.5rem; /* Icono más pequeño para ahorrar espacio */
+    margin-bottom: 0.75rem; /* Reducir margen inferior */
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem; /* Título más pequeño */
+    line-height: 1.3; /* Línea más compacta */
+  }
+
+  .modal-header p {
+    font-size: 0.8rem; /* Texto secundario más pequeño */
+    line-height: 1.4;
+  }
+
+  .modal-body {
+    margin-bottom: 1.5rem; /* Reducir margen */
+  }
+
+  .status-message {
+    font-size: 0.9rem; /* Texto de estado ligeramente más pequeño */
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .progress-container {
+    height: 12px; /* Barra de progreso más delgada */
+    border-radius: 25px; /* Radio proporcional */
+  }
+
+  .progress-text {
+    font-size: 0.75rem; /* Texto de progreso más pequeño */
+    right: 0.75rem; /* Posición ajustada */
+  }
+
+  .modal-footer {
+    margin-top: 0.75rem; /* Reducir margen superior */
+  }
+
+  .note-text {
+    font-size: 0.75rem; /* Nota más pequeña */
+    line-height: 1.3;
+  }
+}
+
+/* Media query adicional para pantallas extra pequeñas (320px y menores) */
+@media (max-width: 320px) {
+  .analysis-modal-content {
+    padding: 1.25rem; /* Padding aún más compacto */
+    width: 90%; /* Mantener centrado */
+    max-width: 350px; /* Límite más amplio pero centrado */
+    margin: 0.5rem auto; /* Centrado con márgenes mínimos */
+    left: 50%; /* Asegurar centrado */
+    transform: translateX(-50%) scale(0.95); /* Centrado y escala inicial */
+  }
+
+  .modal-header .modal-icon {
+    font-size: 2rem; /* Icono aún más pequeño */
+  }
+
+  .modal-header h3 {
+    font-size: 1.1rem; /* Título compacto */
+  }
+
+  .modal-header p {
+    font-size: 0.75rem;
+  }
+
+  .status-message {
+    font-size: 0.85rem;
+  }
+
+  .progress-container {
+    height: 10px; /* Barra de progreso muy delgada */
+  }
+
+  .progress-text {
+    font-size: 0.7rem;
+    right: 0.5rem;
+  }
+
+  .note-text {
+    font-size: 0.7rem;
+  }
+}
