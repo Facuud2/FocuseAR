@@ -754,21 +754,30 @@ const Subjects: React.FC = () => {
                       </div>
                       <div className="subject-info">
                         <h3 className="subject-name">{subject.name}</h3>
-                        <p className="subject-date">
-                          <i className="fas fa-calendar-alt"></i>
-                          {subject.examDate && subject.examDate !== ''
-                            ? new Date(subject.examDate).toLocaleDateString(
-                                'es-ES',
-                              )
-                            : 'Fecha no definida'}
-                        </p>
+                        <div className="meta">
+                          <p className="subject-date">
+                            <i className="fas fa-calendar-alt"></i>
+                            {subject.examDate && subject.examDate !== ''
+                              ? new Date(subject.examDate).toLocaleDateString(
+                                  'es-ES',
+                                )
+                              : 'Fecha no definida'}
+                          </p>
+
+                          <span className="pdf-count">
+                            <i className="fas fa-file-pdf"></i>
+                            {subject.pdfs.length} PDF(s)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="subject-header-right">
+                        <span className="header-progress">
+                          {subject.pdfs.length}/5
+                        </span>
                       </div>
                     </div>
                     <div className="subject-footer">
-                      <span className="pdf-count">
-                        <i className="fas fa-file-pdf"></i>
-                        {subject.pdfs.length} PDF(s)
-                      </span>
                       <div className="subject-progress">
                         <div className="progress-bar">
                           <div
@@ -778,68 +787,39 @@ const Subjects: React.FC = () => {
                               backgroundColor: subject.color,
                             }}
                           ></div>
+                          <span className="progress-text">
+                            {subject.pdfs.length}/5
+                          </span>
                         </div>
-                        <span className="progress-text">
-                          {subject.pdfs.length}/5
-                        </span>
                       </div>
-                      <button
-                        onClick={() => handleGenerateQuiz(subject)}
-                        style={{
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '6px 10px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          marginTop: '8px',
-                          transition: 'background-color 0.2s',
-                        }}
-                      >
-                        <i className="fas fa-question-circle"></i>
-                        Generar Quiz
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (
-                            confirm(
-                              `¿Estás seguro de que quieres eliminar la materia "${subject.name}" y todos sus planes de estudio asociados?`,
-                            )
-                          ) {
-                            deleteSubject(subject.id);
-                          }
-                        }}
-                        style={{
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '6px 10px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          marginTop: '8px',
-                          transition: 'background-color 0.2s',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#dc2626';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#ef4444';
-                        }}
-                      >
-                        <i className="fas fa-trash"></i>
-                        Eliminar
-                      </button>
+                      <div className="subject-actions">
+                        <button
+                          className="btn btn-quiz"
+                          onClick={() => handleGenerateQuiz(subject)}
+                          aria-label={`Generar quiz para ${subject.name}`}
+                        >
+                          <i className="fas fa-question-circle"></i>
+                          Generar Quiz
+                        </button>
+
+                        <button
+                          className="btn btn-danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (
+                              confirm(
+                                `¿Estás seguro de que quieres eliminar la materia "${subject.name}" y todos sus planes de estudio asociados?`,
+                              )
+                            ) {
+                              deleteSubject(subject.id);
+                            }
+                          }}
+                          aria-label={`Eliminar ${subject.name}`}
+                        >
+                          <i className="fas fa-trash"></i>
+                          Eliminar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
