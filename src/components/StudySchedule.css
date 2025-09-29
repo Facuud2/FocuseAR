@@ -531,3 +531,149 @@ body {
   box-shadow: none !important;
   opacity: 1 !important;
 }
+
+/* Añade esto al final de tu CSS, después de los media queries existentes */
+
+/* Mejoras adicionales para responsive */
+@media (max-width: 1200px) {
+  .schedule-main-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .schedule-container {
+    padding: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .schedule-main-content {
+    gap: 1.5rem;
+    width: 100%;
+  }
+  
+  .calendar-grid {
+    gap: 1px; /* Reducir gap para móviles */
+  }
+  
+  .calendar-cell {
+    min-height: 70px; /* Ajuste más conservador */
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .flex-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .schedule-container {
+    padding: 0.75rem;
+    overflow-x: hidden; /* Prevenir scroll horizontal */
+  }
+  
+  .schedule-title {
+    font-size: 1.75rem;
+    word-wrap: break-word;
+  }
+  
+  .schedule-main-content {
+    gap: 1rem;
+  }
+  
+  .schedule-sidebar {
+    gap: 1rem;
+  }
+  
+  .schedule-calendar-panel,
+  .panel {
+    padding: 1.25rem;
+    margin: 0;
+    width: calc(100% - 2.5rem); /* Asegurar que no se salga */
+  }
+  
+  .calendar-grid {
+    gap: 1px;
+  }
+  
+  .calendar-cell {
+    min-height: 60px;
+    padding: 0.4rem 0.2rem;
+    font-size: 0.75rem;
+  }
+  
+  .weekday-header {
+    padding: 0.5rem 0.1rem;
+    font-size: 0.75rem;
+  }
+  
+  .day-number {
+    font-size: 0.7rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .event {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.2rem;
+    margin-bottom: 0.1rem;
+    line-height: 1.1;
+  }
+}
+
+@media (max-width: 360px) {
+  .schedule-container {
+    padding: 0.5rem;
+  }
+  
+  .schedule-calendar-panel,
+  .panel {
+    padding: 1rem;
+    width: calc(100% - 2rem);
+  }
+  
+  .calendar-cell {
+    min-height: 55px;
+    padding: 0.3rem 0.15rem;
+  }
+  
+  .event {
+    font-size: 0.55rem;
+    padding: 0.08rem 0.15rem;
+  }
+  
+  .panel-title {
+    font-size: 1rem;
+  }
+}
+
+/* Asegurar que todos los elementos respeten el ancho del contenedor */
+.schedule-container * {
+  box-sizing: border-box;
+}
+
+/* Prevenir desbordamiento horizontal global */
+body {
+  overflow-x: hidden;
+}
+
+/* Asegurar que el calendario no cause overflow horizontal */
+.calendar-grid {
+  width: 100%;
+}
+
+/* Para pantallas muy pequeñas, ajustar el header del calendario */
+@media (max-width: 320px) {
+  .calendar-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .calendar-month-year {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+  }
+}
