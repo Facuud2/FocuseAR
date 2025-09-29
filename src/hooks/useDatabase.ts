@@ -550,6 +550,87 @@ export const useDatabase = () => {
     }
   }, [user]);
 
+  // Obtener conteo de ciclos Pomodoro
+  const getPomodoroCyclesCount = useCallback(async (): Promise<number> => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return 0;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const count = await DatabaseService.getPomodoroCyclesCount(user.uid);
+      return count;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener conteo de ciclos:', err);
+      return 0;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Obtener cantidad de materias activas
+  const getActiveSubjectsCount = useCallback(async (): Promise<number> => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return 0;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const count = await DatabaseService.getActiveSubjectsCount(user.uid);
+      return count;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener materias activas:', err);
+      return 0;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Guardar registro de ciclo Pomodoro
+  const savePomodoroCycle = useCallback(
+    async (
+      completed: boolean = true,
+      mode: 'pomodoro' | 'short-break' | 'long-break' = 'pomodoro',
+      completedAt?: Timestamp,
+    ) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const id = await DatabaseService.recordPomodoroCycle(
+          user.uid,
+          completed,
+          mode,
+          completedAt,
+        );
+        console.log('✅ Ciclo Pomodoro guardado:', id);
+        return id;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al guardar ciclo Pomodoro:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
   return {
     loading,
     error,
@@ -573,6 +654,9 @@ export const useDatabase = () => {
     getQuizzes,
     getQuiz,
     deleteQuiz,
+    savePomodoroCycle,
+    getPomodoroCyclesCount,
+    getActiveSubjectsCount,
     saveUserAvailability: DatabaseService.saveUserAvailability,
     getUserAvailability: DatabaseService.getUserAvailability,
   };

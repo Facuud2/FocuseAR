@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Store from './Store';
 import StudyArea from './StudyArea';
+import { useDatabase } from '../hooks/useDatabase';
 
 // Define the interfaces for store items, achievements, and rewards
 interface StoreItem {
@@ -116,6 +117,8 @@ const PomodoroTimer = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const notificationSound = useRef<HTMLAudioElement | null>(null);
 
+  const { savePomodoroCycle } = useDatabase();
+
   // Load state from local storage on component mount
   useEffect(() => {
     const savedState = localStorage.getItem('pomodoroState');
@@ -187,10 +190,14 @@ const PomodoroTimer = () => {
       setFocusPoints((prev) => prev + pointsEarned);
       setConsecutiveCycles((prev) => prev + 1); // Increment consecutive cycles
       setCycles((prev) => prev + 1); // Increment total cycles
+      // Registrar ciclo en la base de datos
+      savePomodoroCycle?.(true, 'pomodoro').catch((e) =>
+        console.warn('No se pudo guardar ciclo Pomodoro:', e),
+      );
     } else {
       setConsecutiveCycles(0); // Reset consecutive cycles on break
     }
-  }, [mode, consecutiveCycles]);
+  }, [mode, consecutiveCycles, savePomodoroCycle]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;

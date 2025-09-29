@@ -833,6 +833,47 @@ export class DatabaseService {
     }
   }
 
+  // 23. Obtener conteo de ciclos Pomodoro de un usuario
+  static async getPomodoroCyclesCount(userId: string): Promise<number> {
+    try {
+      const cyclesQuery = query(
+        collection(db, 'pomodoroCycles'),
+        where('userId', '==', userId),
+      );
+      const snap = await getDocs(cyclesQuery);
+      return snap.size;
+    } catch (error) {
+      console.error(
+        '\u274c Error al obtener conteo de ciclos Pomodoro:',
+        error,
+      );
+      throw error;
+    }
+  }
+
+  // 24. Obtener cantidad de materias activas (basado en materials.subjectName)
+  static async getActiveSubjectsCount(userId: string): Promise<number> {
+    try {
+      const materialsQuery = query(
+        collection(db, 'materials'),
+        where('userId', '==', userId),
+      );
+      const snap = await getDocs(materialsQuery);
+      const subjects = new Set<string>();
+      snap.forEach((d) => {
+        const data = d.data() as DocumentData;
+        const name = data?.subjectName;
+        if (typeof name === 'string' && name.trim().length > 0) {
+          subjects.add(name.trim());
+        }
+      });
+      return subjects.size;
+    } catch (error) {
+      console.error('\u274c Error al obtener materias activas:', error);
+      throw error;
+    }
+  }
+
   // 20. Update study plan
   static async updateStudyPlan(
     planId: string,
@@ -850,7 +891,6 @@ export class DatabaseService {
       throw error;
     }
   }
-
   // 21. Get recent activities for a user
   static async getRecentActivities(
     userId: string,
@@ -969,6 +1009,38 @@ export class DatabaseService {
       return activities.slice(0, activitiesLimit);
     } catch (error) {
       console.error('❌ Error al obtener actividades recientes:', error);
+      throw error;
+    }
+  }
+
+  // 22. Registrar ciclo de Pomodoro
+  /**
+   * Guarda un registro de un ciclo de Pomodoro completado por el usuario.
+   * @param userId id del usuario
+   * @param completed true si el ciclo fue completado (tiempo llegó a 0)
+   * @param mode 'pomodoro'|'short-break'|'long-break' (útil para distinguir eventos)
+   * @param completedAt Timestamp opcional cuando ocurrió
+   */
+  static async recordPomodoroCycle(
+    userId: string,
+    completed: boolean = true,
+    mode: 'pomodoro' | 'short-break' | 'long-break' = 'pomodoro',
+    completedAt?: Timestamp,
+  ): Promise<string> {
+    try {
+      const payload = {
+        userId,
+        completed,
+        mode,
+        completedAt: completedAt || Timestamp.now(),
+        createdAt: Timestamp.now(),
+      };
+
+      const docRef = await addDoc(collection(db, 'pomodoroCycles'), payload);
+      console.log('\u2705 Ciclo de Pomodoro registrado con ID:', docRef.id);
+      return docRef.id;
+    } catch (error) {
+      console.error('\u274c Error al registrar ciclo de Pomodoro:', error);
       throw error;
     }
   }

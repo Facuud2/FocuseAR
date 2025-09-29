@@ -1,6 +1,8 @@
 // src/components/Profile.tsx
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../hooks/authContext';
+import { useDatabase } from '../hooks/useDatabase';
+import { Link } from 'react-router-dom';
 // Importamos iconos adicionales para un look más futurista
 import {
   User,
@@ -20,14 +22,39 @@ const Profile = () => {
   const { user } = useContext(AuthContext);
 
   // Datos de ejemplo para el rediseño
-  const studyStats = {
-    streakDays: 7,
-    totalHoursThisMonth: 45,
-    activeSubjects: 5,
-    mostStudiedSubject: 'Matemáticas Avanzadas',
-    // ¡NUEVO! Datos para el gráfico holográfico
-    weeklyProgress: [0.2, 0.5, 0.7, 0.8, 0.6, 0.9, 0.75], // Progreso ficticio
-  };
+  const [streakDays] = useState(7);
+  const [totalHoursThisMonth, setTotalHoursThisMonth] = useState<number>(0);
+  const [activeSubjectsCount, setActiveSubjectsCount] = useState<number>(0);
+  const [weeklyProgress] = useState<number[]>([
+    0.2, 0.5, 0.7, 0.8, 0.6, 0.9, 0.75,
+  ]);
+  const [mostStudiedSubject] = useState('Matemáticas Avanzadas');
+
+  const { getPomodoroCyclesCount, getActiveSubjectsCount } = useDatabase();
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const cycles = await getPomodoroCyclesCount();
+        // Cada ciclo = 25 minutos
+        const totalMinutes = cycles * 25;
+        const hours = totalMinutes / 60;
+        if (mounted) {
+          setTotalHoursThisMonth(hours);
+        }
+
+        const subjects = await getActiveSubjectsCount();
+        if (mounted) setActiveSubjectsCount(subjects);
+      } catch (e) {
+        console.warn('Error cargando métricas del perfil:', e);
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [getPomodoroCyclesCount, getActiveSubjectsCount]);
 
   const aiInsight = {
     title: 'Análisis Predictivo de Rendimiento',
@@ -80,7 +107,7 @@ const Profile = () => {
                 {/* ¡MÁS SPICY! Efecto glow */}
                 <Award size={24} className="streak-icon" />
                 <span className="streak-text">
-                  Racha: **{studyStats.streakDays} días**
+                  Racha: <strong>{streakDays} días</strong>
                 </span>
               </div>
             </div>
@@ -91,7 +118,7 @@ const Profile = () => {
               Dominio Semanal <Zap size={16} />
             </h4>
             <div className="progress-graph">
-              {studyStats.weeklyProgress.map((value, index) => (
+              {weeklyProgress.map((value: number, index: number) => (
                 <div
                   key={index}
                   className="progress-bar"
@@ -118,10 +145,10 @@ const Profile = () => {
               </div>
               <div className="stat-info">
                 <span className="stat-value">
-                  {studyStats.totalHoursThisMonth}
+                  {Math.round((totalHoursThisMonth + Number.EPSILON) * 10) / 10}
                   <small>h</small>
                 </span>
-                <span className="stat-label">En órbita este mes</span>
+                <span className="stat-label">Horas de estudio (estimadas)</span>
               </div>
             </div>
             <div className="stat-card stat-card-neumorphic">
@@ -129,7 +156,7 @@ const Profile = () => {
                 <Globe size={32} />
               </div>
               <div className="stat-info">
-                <span className="stat-value">{studyStats.activeSubjects}</span>
+                <span className="stat-value">{activeSubjectsCount}</span>
                 <span className="stat-label">Materias en curso</span>
               </div>
             </div>
@@ -138,9 +165,7 @@ const Profile = () => {
                 <BookOpen size={32} />
               </div>
               <div className="stat-info">
-                <span className="stat-value">
-                  {studyStats.mostStudiedSubject}
-                </span>
+                <span className="stat-value">{mostStudiedSubject}</span>
                 <span className="stat-label">Estrella principal</span>
               </div>
             </div>
@@ -169,7 +194,7 @@ const Profile = () => {
       </div>
 
       {/* Panel de Acceso a Configuración, con diseño más agresivo */}
-      <a href="/settings" className="settings-access-link interactive-btn">
+      <Link to="/settings" className="settings-access-link interactive-btn">
         {' '}
         {/* ¡MÁS SPICY! Botón interactivo */}
         <div className="settings-access-panel">
@@ -188,7 +213,7 @@ const Profile = () => {
           <div className="button-glare-effect"></div>{' '}
           {/* ¡NUEVO! Efecto de luz */}
         </div>
-      </a>
+      </Link>
     </div>
   );
 };
