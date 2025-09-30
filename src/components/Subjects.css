@@ -74,7 +74,7 @@ select {
   border-radius: var(--radius-sm);
 }
 
-/* ===== SELECTOR DE COLOR (COMPACTADO) ===== */
+/* SELECTOR DE COLOR (COMPACTADO) */
 .color-options {
   gap: 0.5rem;
 }
@@ -85,7 +85,7 @@ select {
   border-radius: var(--radius-sm);
 }
 
-/* ===== SECCIÓN PDF (COMPACTADA) ===== */
+/*SECCIÓN PDF (COMPACTADA) */
 .pdf-section {
   padding-top: 1rem;
   margin-top: 1rem;
@@ -161,6 +161,47 @@ select {
   flex-grow: 1; /* Permite que la cuadrícula crezca dentro del panel */
 }
 
+/* =========================
+   Ajustes responsive para móviles muy pequeños (<= 360px)
+   - Fuerza una sola columna en el grid de materias
+   - Reduce gaps/padding para evitar desbordes horizontales
+   - Ajusta padding lateral del contenedor para dejar espacio seguro
+   ========================= */
+@media (max-width: 360px) {
+  /* Apila las tarjetas en una sola columna y reduce separación */
+  .subjects-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem; /* espacio más compacto entre tarjetas */
+    width: 100%;
+  }
+
+  /* Reduce padding interno de cada tarjeta para aprovechar el ancho */
+  .subject-card {
+    padding: 0.8rem;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Ajusta el layout padre (convertir dos columnas en una sola) */
+  .subjects-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Reduce padding de paneles en móviles para evitar desbordes */
+  .panel {
+    padding: 1rem;
+  }
+
+  /* Ajustes visuales menores para mantener legibilidad */
+  .panel h2 { font-size: 1.05rem; }
+  .subject-icon { width: 40px; height: 40px; font-size: 1rem; }
+}
+/* ...existing code... */
 .subject-card {
   background: var(--surface-color);
   border-radius: var(--radius-md);
@@ -182,6 +223,31 @@ select {
   align-items: center;
   gap: 1rem;
   margin-bottom: 1rem;
+  justify-content: space-between; /* separa izquierda (icon+info) y derecha (contador) */
+}
+
+.subject-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+.header-progress {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+@media (max-width: 420px) {
+  .subject-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .subject-header-right {
+    margin-left: 0;
+  }
 }
 
 .subject-icon {
@@ -205,19 +271,140 @@ select {
   word-break: break-word;
 }
 
-.subject-info p {
+.subject-info .meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.subject-info p,
+.subject-info .meta .subject-date {
   margin: 0.3rem 0 0 0;
   font-size: 0.85rem;
   color: var(--text-secondary);
 }
 
-.subject-footer {
+.subject-info .pdf-count {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border-color);
-  margin-top: auto; /* Mantiene el footer alineado en la parte inferior */
+  gap: 0.4rem;
+}
+
+/* Responsive: en pantallas pequeñas apila la fecha y el contador de PDFs */
+@media (max-width: 420px) {
+  .subject-info .meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
+
+
+/* Botones de acción en tarjeta (generar quiz / eliminar)
+   - Compacta tamaño, gap consistente y evita amontonamiento
+   - Usa flex-wrap para que no se desborden en pantallas pequeñas*/
+
+.subject-footer .subject-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;            /* separación entre botones */
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;      /* empuja los botones al extremo derecho */
+  flex-wrap: wrap;        /* permitir que pasen a la siguiente línea si hace falta */
+  z-index: 1;             /* mantener botones por debajo del texto de progreso si se superponen */
+}
+
+.subject-footer .subject-actions button,
+.subject-footer .subject-actions .btn {
+    padding: 0.28rem 0.6rem;    /* tamaño compacto pero accesible */
+    font-size: 0.86rem;         /* texto proporcional */
+  border-radius: 8px;         /* apariencia moderna */
+  height: 34px;               /* altura fija para uniformidad */
+  line-height: 1;             /* evitar alturas extra */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;                /* espacio entre icono y texto */
+  white-space: nowrap;        /* evitar cortes raros en los textos */
+  border: 1px solid transparent;
+  cursor: pointer;
+  margin-top: 0;              /* asegurar que no empujen hacia abajo */
+  max-width: 110px;          /* evita que botones sean excesivamente anchos (mobile) */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Estilo específico para botón eliminar (más visible, tamaño compacto) */
+.subject-footer .subject-actions .btn-danger,
+.subject-footer .subject-actions button.delete {
+  background: var(--danger-color);
+  color: #fff;
+  border: none;
+  padding: 0.34rem 0.58rem;
+}
+
+/* Estilo específico para botón generar quiz (primario, compacto) */
+.subject-footer .subject-actions .btn-quiz,
+.subject-footer .subject-actions button.quiz {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+}
+
+/* Desktop / tablet-large: botones más cómodos y visuales */
+@media (min-width: 900px) {
+  .subject-footer .subject-actions {
+    gap: 0.75rem;            /* más separación en pantallas grandes */
+    justify-content: flex-end;
+  }
+
+  .subject-footer .subject-actions button,
+  .subject-footer .subject-actions .btn {
+    padding: 0.5rem 1rem; /* mayor padding en desktop */
+    font-size: 1rem;
+    height: 42px;
+    border-radius: 10px;
+    min-width: 96px;       /* ancho mínimo para equilibrio visual */
+    max-width: none;       /* permitir texto completo en escritorio */
+    box-shadow: 0 6px 14px rgba(2,6,23,0.06);
+    overflow: visible;     /* evitar recortes inesperados */
+    text-overflow: clip;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .subject-footer .subject-actions .btn-quiz:hover {
+    filter: brightness(0.95);
+    box-shadow: 0 8px 20px rgba(16,24,40,0.08);
+  }
+
+  .subject-footer .subject-actions .btn-danger:hover {
+    filter: brightness(0.95);
+    box-shadow: 0 8px 20px rgba(16,24,40,0.08);
+  }
+
+  /* Mejor foco para teclado */
+  .subject-footer .subject-actions button:focus,
+  .subject-footer .subject-actions .btn:focus {
+    outline: 3px solid rgba(59,130,246,0.18);
+    outline-offset: 2px;
+  }
+}
+
+/* Ajustes para pantallas muy pequeñas (evita que queden pegados) */
+@media (max-width: 420px) {
+  .subject-footer .subject-actions {
+    gap: 0.4rem;
+  }
+  .subject-footer .subject-actions button,
+  .subject-footer .subject-actions .btn {
+    padding: 0.32rem 0.5rem;
+    font-size: 0.82rem;
+    min-height: 32px;
+  }
 }
 
 .pdf-count {
@@ -239,324 +426,41 @@ select {
   gap: 0.75rem;
 }
 
+/* Evita que el progreso o los botones se encojan y se superpongan */
+.pdf-count,
+.subject-progress {
+  flex: 0 0 auto; /* no crecer ni encoger automáticamente */
+  position: relative;
+  z-index: 2; /* asegurar que el texto de progreso quede por encima */
+}
+
+.subject-footer .subject-actions {
+  flex: 0 0 auto; /* asegurar que los botones permanezcan en su espacio y no se encojan */
+  margin-left: 0.5rem; /* espacio extra para que no toquen el progress-text */
+}
+
 .progress-bar {
   width: 80px;
-  height: 6px;
+  height: 18px; /* aumentar altura para que el texto quepa dentro */
   background: var(--border-color);
-  border-radius: 3px;
+  border-radius: 6px;
   overflow: hidden;
+  position: relative; /* para posicionar el texto dentro */
 }
 
 .progress-fill {
   height: 100%;
-  border-radius: 3px;
+  border-radius: 6px;
   transition: var(--transition);
 }
 
 .progress-text {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--text-on-surface, #fff);
   font-weight: 600;
 }
 
-/* Estilos para el modal de análisis */
-.analysis-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  transition: opacity 0.3s ease;
-}
-
-.analysis-modal.hidden {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.analysis-modal-content {
-  background-color: #ffffff;
-  padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  max-width: 450px;
-  width: 90%;
-  text-align: center;
-  position: relative;
-  transform: scale(0.95);
-  animation: modal-fade-in 0.3s forwards;
-}
-
-@keyframes modal-fade-in {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.modal-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.modal-header .modal-icon {
-  font-size: 3rem;
-  color: var(--primary-color);
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.modal-header h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.modal-status-message {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  min-height: 20px;
-}
-
-.progress-container {
-  width: 100%;
-  background-color: var(--border-color);
-  border-radius: 50px;
-  height: 12px;
-  overflow: hidden;
-  margin: 1rem 0;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 50px;
-  background-image: linear-gradient(to right, #4285F4, #A1C4FD);
-  transition: width 0.4s ease-in-out;
-  animation: loading-pulse 1.5s infinite;
-}
-
-@keyframes loading-pulse {
-  0% { transform: scaleX(0); }
-  50% { transform: scaleX(1); }
-  100% { transform: scaleX(0); }
-}
-
-.modal-progress-text {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: right;
-  margin-top: 0.5rem;
-}
-
-.modal-footer {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  margin-top: 1.5rem;
-}
-
-/* ===== Overrides: Subjects planos, sin sombras ni zoom ===== */
-
-/* Paneles principales */
-.subjects-container .panel,
-.subjects-container .subject-card {
-  background-color: var(--surface-color) !important; /* sólido según tema */
-  border: none !important;
-  box-shadow: none !important;
-  transform: none !important;
-  transition: none !important;
-  animation: none !important;
-  opacity: 1 !important;
-}
-
-/* Hover igual al estado normal */
-.subjects-container .panel:hover,
-.subjects-container .subject-card:hover {
-  background-color: var(--surface-color) !important;
-  opacity: 1 !important;
-  transform: none !important;
-  box-shadow: none !important;
-  border-color: inherit !important;
-}
-
-
-/* Añade esto al final de tu Subjects.css, después de los estilos existentes */
-
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 1024px) {
-  .subjects-container {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .subjects-left-column,
-  .subjects-right-column {
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .subjects-container {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-    padding: 0.5rem;
-  }
-  
-  .subjects-left-column,
-  .subjects-right-column {
-    gap: 1rem;
-  }
-  
-  .panel {
-    padding: 1.25rem;
-  }
-  
-  .subjects-grid {
-    grid-template-columns: 1fr; /* Una sola columna en móviles */
-    gap: 0.875rem;
-  }
-  
-  .subject-card {
-    padding: 1rem;
-  }
-  
-  .subject-header {
-    gap: 0.75rem;
-  }
-  
-  .subject-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-  }
-  
-  .subject-info h3 {
-    font-size: 1rem;
-  }
-  
-  .subject-info p {
-    font-size: 0.8rem;
-  }
-  
-  .flex-group {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .subjects-container {
-    padding: 0.25rem;
-    gap: 0.75rem;
-  }
-  
-  .panel {
-    padding: 1rem;
-  }
-  
-  .panel h2 {
-    font-size: 1.1rem;
-    margin-bottom: 0.875rem;
-  }
-  
-  .form-group {
-    margin-bottom: 0.875rem;
-  }
-  
-  .form-group input,
-  .date-picker-input,
-  select {
-    padding: 0.6rem 0.875rem;
-    font-size: 0.85rem;
-  }
-  
-  .color-option {
-    width: 30px;
-    height: 30px;
-  }
-  
-  .planify-btn {
-    padding: 0.8rem 1rem;
-    font-size: 0.9rem;
-    margin-top: 1rem;
-  }
-  
-  .subject-card {
-    padding: 0.875rem;
-  }
-  
-  .subject-footer {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-start;
-  }
-  
-  .subject-progress {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .progress-bar {
-    flex-grow: 1;
-    margin: 0 0.5rem;
-  }
-}
-
-@media (max-width: 360px) {
-  .subjects-container {
-    padding: 0.125rem;
-  }
-  
-  .panel {
-    padding: 0.875rem;
-  }
-  
-  .form-group input,
-  .date-picker-input,
-  select {
-    padding: 0.5rem 0.75rem;
-  }
-  
-  .subject-card {
-    padding: 0.75rem;
-  }
-  
-  .subject-header {
-    flex-direction: column;
-    text-align: center;
-    gap: 0.5rem;
-  }
-  
-  .subject-info p {
-    text-align: center;
-  }
-}
-
-/* Asegurar que el contenedor principal ocupe el ancho completo */
-.subjects-container {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* Prevenir desbordamiento horizontal */
-.subjects-container * {
-  box-sizing: border-box;
-}
