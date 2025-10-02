@@ -1,5 +1,5 @@
 // src/components/Sidebar.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import CompleteChat from './CompleteChat';
 
@@ -18,7 +18,7 @@ import {
   Moon,
   Sun,
   Menu,
-  Bot, //importa el icono del bot
+  Bot, // icono del bot
   HelpCircle,
 } from 'lucide-react';
 
@@ -37,6 +37,17 @@ export default function Sidebar({
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // 👇 Este useEffect conecta el estado con clases en <body>
+  useEffect(() => {
+    if (isCollapsed) {
+      document.body.classList.add('with-sidebar-collapsed');
+      document.body.classList.remove('with-sidebar-open');
+    } else {
+      document.body.classList.add('with-sidebar-open');
+      document.body.classList.remove('with-sidebar-collapsed');
+    }
+  }, [isCollapsed]);
 
   const menuSections = [
     {
@@ -165,7 +176,7 @@ export default function Sidebar({
           ))}
         </nav>
 
-        {/* Botón de modo oscuro que solo aparece cuando el sidebar está abierto */}
+        {/* Botón de modo oscuro */}
         {!isCollapsed && (
           <div className="dark-mode-toggle-section">
             <button
@@ -187,8 +198,6 @@ export default function Sidebar({
             </button>
           </div>
         )}
-
-        {/* Sección de ayuda con el botón para abrir el chat */}
 
         {/* Sección de ayuda con el botón para abrir el chat */}
         {!isCollapsed ? (
