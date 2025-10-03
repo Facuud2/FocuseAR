@@ -75,16 +75,16 @@ const Subjects: React.FC = () => {
   const handleGenerateQuiz = async (subject: Subject) => {
     if (!user) return;
     try {
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateQuizFromMaterial',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ materialId: subject.id, userId: user.uid }),
+      const endpoint = import.meta.env
+        .VITE_GENERATE_QUIZ_FROM_MATERIAL_ENDPOINT;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({ materialId: subject.id, userId: user.uid }),
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate quiz');
