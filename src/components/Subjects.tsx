@@ -727,9 +727,25 @@ const Subjects: React.FC = () => {
       {/* ===== COLUMNA DERECHA ===== */}
       <div className="subjects-right-column">
         <div className="panel subjects-list-panel">
-          <h2>
-            <i className="fas fa-list"></i> Mis Materias
-          </h2>
+          <h1
+            className="subjects-title"
+            style={{
+              fontSize: '2.2rem',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              margin: 0,
+              letterSpacing: '-0.5px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+            }}
+          >
+            <i
+              className="fas fa-book-open"
+              style={{ marginRight: '0.6rem', color: '#4285F4' }}
+            ></i>
+            Mis Materias
+          </h1>
           {subjects.length === 0 ? (
             <div className="empty-state">
               <i className="fas fa-book-open"></i>

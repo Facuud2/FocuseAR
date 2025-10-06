@@ -1,3 +1,23 @@
+/* ===== HEADER PRINCIPAL DE LA SECCIÓN SUBJECTS ===== */
+.subjects-header {
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px dashed var(--border-color);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.subjects-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
 /*
   ==========================================
   ESTILOS ESPECÍFICOS PARA EL COMPONENTE SUBJECTS
