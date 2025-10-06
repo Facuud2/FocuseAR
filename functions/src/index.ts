@@ -1,3 +1,5 @@
+//posiblemente se borre
+
 import cors from 'cors';
 import { onRequest } from 'firebase-functions/https';
 import { defineSecret } from 'firebase-functions/params';
