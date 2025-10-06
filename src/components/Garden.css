@@ -115,3 +115,68 @@
 /* Puedes definir posiciones para cada elemento del jardín individualmente */
 .garden-item:nth-child(1) { left: 10%; width: 80px; }
 .garden-item:nth-child(2) { right: 15%; width: 100px; }
+
+/* Garden responsive tweaks for very small screens (<=360px) */
+@media (max-width: 360px) {
+  .garden-container {
+    padding: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .garden-overlay {
+    padding: 1rem !important;
+    width: 100% !important;
+    max-width: 360px !important;
+    margin: 0 auto !important;
+    gap: 0.6rem !important;
+  }
+
+  .top-controls {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    gap: 0.5rem !important;
+  }
+
+  .focus-points, .store-btn {
+    padding: 0.5rem 0.8rem !important;
+    font-size: 0.95rem !important;
+    border-radius: 999px !important;
+  }
+
+  .avatar-container {
+    width: 120px !important;
+    height: 120px !important;
+    margin: 0 auto !important;
+  }
+
+  .avatar-image, .avatar-item {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .garden-item {
+    max-width: 80px !important;
+  }
+
+  .bottom-controls {
+    gap: 0.6rem !important;
+    align-items: center !important;
+  }
+
+  .timer-controls .control-btn, .timer-controls-container .control-btn {
+    height: 56px !important;
+    font-size: 0.95rem !important;
+    padding: 0.45rem 0.6rem !important;
+  }
+
+  .timer-countdown-video {
+    font-size: 48px !important;
+    font-weight: 700 !important;
+    color: var(--highlight-color) !important;
+  }
+}
