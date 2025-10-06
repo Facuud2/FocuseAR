@@ -594,6 +594,28 @@ export const useDatabase = () => {
     }
   }, [user]);
 
+  // Obtener cantidad de planes de estudio generados
+  const getStudyPlansCount = useCallback(async (): Promise<number> => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return 0;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const plans = await DatabaseService.getUserStudyPlans(user.uid);
+      return plans.length;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener conteo de planes:', err);
+      return 0;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   // Guardar registro de ciclo Pomodoro
   const savePomodoroCycle = useCallback(
     async (
@@ -657,6 +679,7 @@ export const useDatabase = () => {
     savePomodoroCycle,
     getPomodoroCyclesCount,
     getActiveSubjectsCount,
+    getStudyPlansCount,
     saveUserAvailability: DatabaseService.saveUserAvailability,
     getUserAvailability: DatabaseService.getUserAvailability,
   };

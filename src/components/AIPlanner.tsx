@@ -280,16 +280,38 @@ const AIPlanner = () => {
     try {
       let examDate = '';
       const importantDates = selectedSubject.importantDates || [];
+
       if (selectedEvent === 'primer-parcial') {
         const primerParcial = importantDates.find(
           (d) => d.name === 'Primer Parcial',
         );
         examDate = primerParcial?.date || '';
       } else if (selectedEvent === 'final') {
-        const segundoParcial = importantDates.find(
-          (d) => d.name === 'Segundo Parcial',
+        const finalDate = importantDates.find((d) => d.name === 'Final');
+        examDate = finalDate?.date || '';
+      }
+
+      // Validar que tengamos una fecha válida
+      if (!examDate) {
+        const eventDisplayName =
+          selectedEvent === 'primer-parcial' ? 'Primer Parcial' : 'Final';
+        toast.error(
+          `No se encontró la fecha para ${eventDisplayName}. Por favor agrega las fechas importantes en la materia.`,
         );
-        examDate = segundoParcial?.date || '';
+        return;
+      }
+
+      // Verificar si la fecha del examen ya pasó
+      const today = new Date();
+      const examDateTime = new Date(examDate);
+
+      if (examDateTime < today) {
+        const eventDisplayName =
+          selectedEvent === 'primer-parcial' ? 'Primer Parcial' : 'Final';
+        toast.error(
+          `No se puede generar un plan: la fecha del ${eventDisplayName} (${formatDate(examDate)}) ya pasó. Por favor selecciona un examen futuro.`,
+        );
+        return;
       }
 
       const endpoint = import.meta.env.VITE_GENERATE_PLAN_ENDPOINT;
@@ -311,7 +333,47 @@ const AIPlanner = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Error en la función Gemini: ${response.status}`);
+        let errorMessage = 'Error generando el plan de estudio.';
+
+        try {
+          const errorData = await response.json();
+
+          if (response.status === 400) {
+            if (
+              errorData.error &&
+              errorData.error.includes('días de estudio')
+            ) {
+              errorMessage =
+                '⚠️ No hay suficientes días de estudio disponibles entre hoy y la fecha del examen según tu configuración. Intenta con una fecha más lejana o ajusta tus días disponibles.';
+            } else if (
+              errorData.error &&
+              errorData.error.includes('examDate')
+            ) {
+              errorMessage =
+                '❌ La fecha del examen no es válida o ya pasó. Verifica que la fecha esté configurada correctamente.';
+            } else {
+              errorMessage = `❌ ${errorData.error || 'Error en los datos enviados. Verifica que todos los campos estén completos.'}`;
+            }
+          } else if (response.status === 500) {
+            errorMessage =
+              '🔧 Error interno del servidor. Intenta nuevamente en unos momentos.';
+          } else {
+            errorMessage = `❌ Error ${response.status}: ${errorData.error || 'Error desconocido del servidor.'}`;
+          }
+        } catch {
+          // Si no se puede parsear el error, usar mensajes por código de estado
+          if (response.status === 400) {
+            errorMessage =
+              '❌ Datos inválidos. Verifica que la fecha del examen sea válida y no haya pasado.';
+          } else if (response.status === 500) {
+            errorMessage = '🔧 Error del servidor. Intenta nuevamente.';
+          } else {
+            errorMessage = `❌ Error ${response.status}. Intenta nuevamente.`;
+          }
+        }
+
+        toast.error(errorMessage);
+        return;
       }
 
       const result = await response.json();
@@ -497,7 +559,23 @@ const AIPlanner = () => {
       console.log('🎉 Plan de estudio generado y guardado exitosamente');
     } catch (error: unknown) {
       console.error('❌ Error generando plan de estudio:', error);
-      toast.error('Error generando el plan de estudio. Inténtalo de nuevo.');
+
+      // Manejar errores específicos si es posible
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch')) {
+          toast.error(
+            '🌐 Error de conexión. Verifica tu conexión a internet e intenta nuevamente.',
+          );
+        } else if (error.message.includes('400')) {
+          toast.error(
+            '❌ Error en los datos. Verifica que la fecha del examen sea válida y futura.',
+          );
+        } else {
+          toast.error(`❌ ${error.message}`);
+        }
+      } else {
+        toast.error('❌ Error inesperado. Intenta nuevamente.');
+      }
     } finally {
       setGeneratingPlan(false);
     }

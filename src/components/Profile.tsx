@@ -25,12 +25,13 @@ const Profile = () => {
   const [streakDays] = useState(7);
   const [totalHoursThisMonth, setTotalHoursThisMonth] = useState<number>(0);
   const [activeSubjectsCount, setActiveSubjectsCount] = useState<number>(0);
+  const [studyPlansCount, setStudyPlansCount] = useState<number>(0);
   const [weeklyProgress] = useState<number[]>([
     0.2, 0.5, 0.7, 0.8, 0.6, 0.9, 0.75,
   ]);
-  const [mostStudiedSubject] = useState('Matemáticas Avanzadas');
 
-  const { getPomodoroCyclesCount, getActiveSubjectsCount } = useDatabase();
+  const { getPomodoroCyclesCount, getActiveSubjectsCount, getStudyPlansCount } =
+    useDatabase();
 
   useEffect(() => {
     let mounted = true;
@@ -46,6 +47,9 @@ const Profile = () => {
 
         const subjects = await getActiveSubjectsCount();
         if (mounted) setActiveSubjectsCount(subjects);
+
+        const plansCount = await getStudyPlansCount();
+        if (mounted) setStudyPlansCount(plansCount);
       } catch (e) {
         console.warn('Error cargando métricas del perfil:', e);
       }
@@ -54,7 +58,7 @@ const Profile = () => {
     return () => {
       mounted = false;
     };
-  }, [getPomodoroCyclesCount, getActiveSubjectsCount]);
+  }, [getPomodoroCyclesCount, getActiveSubjectsCount, getStudyPlansCount]);
 
   const aiInsight = {
     title: 'Análisis Predictivo de Rendimiento',
@@ -165,8 +169,8 @@ const Profile = () => {
                 <BookOpen size={32} />
               </div>
               <div className="stat-info">
-                <span className="stat-value">{mostStudiedSubject}</span>
-                <span className="stat-label">Estrella principal</span>
+                <span className="stat-value">{studyPlansCount}</span>
+                <span className="stat-label">Planes generados</span>
               </div>
             </div>
           </div>
