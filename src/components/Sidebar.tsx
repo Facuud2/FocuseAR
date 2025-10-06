@@ -6,7 +6,6 @@ import CompleteChat from './CompleteChat';
 import './Sidebar.css';
 import {
   Home,
-  Clock,
   BookOpen,
   FileText,
   Timer,
@@ -54,12 +53,6 @@ export default function Sidebar({
       title: 'Dashboard',
       items: [
         { id: 'overview', label: 'Overview', icon: Home, path: '/dashboard' },
-        {
-          id: 'schedule',
-          label: 'Study Schedule',
-          icon: Clock,
-          path: '/study-schedule',
-        },
       ],
     },
     {

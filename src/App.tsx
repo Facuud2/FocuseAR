@@ -19,7 +19,6 @@ import Dashboard from './pages/Dashboard';
 //import PDFSummaryTest from './components/PDFSummaryTest'; ELIMINAR MÁS ADELANTE
 import Sidebar from './components/Sidebar';
 import AccountSettings from './components/AccountSettings';
-import StudySchedule from './components/StudySchedule';
 import Subjects from './components/Subjects';
 import Documents from './components/Documents';
 import PomodoroTimer from './components/PomodoroTimer';
@@ -76,7 +75,6 @@ function AppRoutes() {
           {/* Rutas protegidas solo para usuarios autenticados */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/study-schedule" element={<StudySchedule />} />
             <Route path="/subjects" element={<Subjects />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/pomodoro" element={<PomodoroTimer />} />
