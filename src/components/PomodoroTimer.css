@@ -968,33 +968,207 @@ body {
 /* Móviles muy pequeños */
 @media (max-width: 360px) {
   .cottagecore-container {
-    padding: 0.5rem;
-    margin: 0.25rem auto;
-  }
-  
-  .timer-countdown {
-    font-size: 2.5rem !important;
-  }
-  
-  .mode-selection {
+    padding: 1rem;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
     flex-direction: column;
+    justify-content: center;
   }
-  
-  .mode-btn {
+
+  .cottagecore-header {
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cottagecore-header .cottagecore-title {
+    font-size: 1.05rem;
+    text-align: center;
+    margin: 0;
+  }
+
+  /* Hide user controls to reduce distractions */
+  .cottagecore-header .user-info {
+    display: none !important;
+  }
+
+  .main-content-wrapper {
+    grid-template-columns: 1fr;
+    gap: 0;
+    height: auto;
+  }
+
+  /* Focus the view on the timer only */
+  .study-content-area {
+    display: none !important;
+  }
+
+  .timer-sidebar {
     width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 0.5rem 0;
+    margin: 0;
   }
-  
-  .items-list {
-    grid-template-columns: 1fr 1fr !important;
+
+  .timer-panel {
+    width: 100%;
+    max-width: 360px;
+    padding: 1.5rem 1rem;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: none;
+    background: var(--glass-bg);
+    backdrop-filter: var(--blur);
   }
-  
-  .item-card {
+
+  .timer-panel .mode-selection {
+    margin-bottom: 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .mode-btn {
+    padding: 0.45rem 0.6rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    min-width: 0;
+  }
+
+  .timer-countdown {
+    font-size: 72px !important;
+    line-height: 1;
+    letter-spacing: 1px;
+    padding: 0;
+    margin: 0;
+    font-weight: 800;
+    color: var(--highlight-color);
+    text-shadow: none;
+  }
+
+  .timer-controls {
+    width: 100%;
+    display: flex;
+    gap: 0.6rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .control-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 64px;
+    padding: 0.6rem 0.75rem;
+    font-size: 1.05rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  /* Make play/pause especially prominent */
+  .control-btn.play-pause {
+    height: 72px;
+    font-size: 1.1rem;
     padding: 0.75rem;
   }
-  
-  .item-image {
-    width: 50px;
-    height: 50px;
+
+  /* Hide less used actions to keep UI minimal */
+  .control-btn.reset {
+    display: none !important;
+  }
+
+  .cycle-info {
+    display: none !important;
+  }
+
+  /* Hide ambient visuals that could distract */
+  .ambient-section,
+  .video-window-compact,
+  .avatar-section-compact {
+    display: none !important;
+  }
+
+  /* Ensure modals still cover screen correctly */
+  .store-overlay,
+  .store-modal {
+    z-index: 1100;
+  }
+}
+
+/* Extra small-screen overrides to ensure perfect centering at 360px */
+@media (max-width: 360px) {
+  /* Ensure main grid stacks and centers */
+  .main-content-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    height: auto !important;
+  }
+
+  /* Sidebar becomes full width and centered */
+  .timer-sidebar {
+    width: 100% !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  /* Make sure timer-panel is visually centered on the page */
+  .timer-panel {
+    margin: 0 auto !important;
+    transform: none !important;
+  }
+
+  /* Reduce any outer spacing that might push content off-screen */
+  .cottagecore-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 1rem !important;
+    border-radius: 12px !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    overflow: visible !important; /* Allow modals to escape this container */
+  }
+
+  /* Ensure modals placed inside the container still cover viewport */
+  .store-overlay, .store-modal, .store-overlay * {
+    z-index: 99999 !important;
+  }
+
+  .store-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    left: 0 !important;
+    top: 0 !important;
+    background: rgba(0,0,0,0.5) !important;
+  }
+
+  .store-modal {
+    position: relative !important;
+    max-width: 94% !important;
+    width: 360px !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    transform: none !important;
+    border-radius: 14px !important;
   }
 }
 
