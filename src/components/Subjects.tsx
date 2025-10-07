@@ -210,7 +210,7 @@ const Subjects: React.FC = () => {
 
         if (materialId) {
           const newSubject: Subject = {
-            id: Date.now(),
+            id: materialId,
             name: subjectName,
             examDate:
               importantDates.length > 0

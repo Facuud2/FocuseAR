@@ -46,40 +46,19 @@ const QuizPlayer: React.FC = () => {
   };
 
   // Type predicate to check if data is a valid Quiz
+  // Nota: los quizzes en Firestore pueden tener distintos shapes según
+  // la función que los creó. Aquí validamos de forma tolerante y
+  // normalizamos posteriormente.
   const isValidQuiz = (data: unknown): data is Quiz => {
-    // Check if data is an object and not null
     if (!data || typeof data !== 'object') return false;
-
-    // Type assertion with proper type checking
-    const hasQuestions =
-      'questions' in data &&
-      Array.isArray((data as { questions: unknown }).questions);
-    const hasSubjectName =
-      'subjectName' in data &&
-      typeof (data as { subjectName: unknown }).subjectName === 'string';
-    const hasMaterialId =
-      'materialId' in data &&
-      typeof (data as { materialId: unknown }).materialId === 'string';
-    const hasUserId =
-      'userId' in data &&
-      typeof (data as { userId: unknown }).userId === 'string';
-
-    // Check createdAt field (can be string, Date, or Timestamp)
-    const hasValidCreatedAt =
-      'createdAt' in data &&
-      (typeof (data as { createdAt: unknown }).createdAt === 'string' ||
-        (data as { createdAt: unknown }).createdAt instanceof Date ||
-        (typeof (data as { createdAt: unknown }).createdAt === 'object' &&
-          (data as { createdAt: object }).createdAt !== null &&
-          'toDate' in (data as { createdAt: { toDate?: unknown } }).createdAt));
-
-    return (
-      hasQuestions &&
-      hasSubjectName &&
-      hasMaterialId &&
-      hasUserId &&
-      hasValidCreatedAt
-    );
+    if (
+      !('questions' in data) ||
+      !Array.isArray((data as { questions?: unknown }).questions)
+    )
+      return false;
+    if (!('createdAt' in data)) return false;
+    // userId y materialId pueden faltar en algunas versiones; lo toleramos
+    return true;
   };
 
   useEffect(() => {
@@ -97,15 +76,89 @@ const QuizPlayer: React.FC = () => {
           throw new Error('Datos del quiz inválidos');
         }
 
+        // Normalizar preguntas: soportar legacy shapes
+        const normalizeQuestion = (q: unknown): QuizQuestion | null => {
+          if (!q || typeof q !== 'object') return null;
+          const obj = q as Record<string, unknown>;
+
+          // Caso 1: nuevo formato (frontend espera esto)
+          if (
+            typeof obj.question === 'string' &&
+            Array.isArray(obj.options) &&
+            typeof obj.correctAnswer === 'string'
+          ) {
+            return {
+              question: obj.question as string,
+              options: obj.options as string[],
+              correctAnswer: obj.correctAnswer as string,
+            };
+          }
+
+          // Caso 2: formato con questionText y correctAnswerIndex
+          if (
+            typeof obj.questionText === 'string' &&
+            Array.isArray(obj.options) &&
+            typeof obj.correctAnswerIndex === 'number'
+          ) {
+            const idx = obj.correctAnswerIndex as number;
+            const options = obj.options as string[];
+            const correct = options && options[idx] ? options[idx] : '';
+            return {
+              question: obj.questionText as string,
+              options: options,
+              correctAnswer: correct,
+            };
+          }
+
+          // Caso 3: mix (questionText + correctAnswer)
+          if (
+            typeof obj.questionText === 'string' &&
+            Array.isArray(obj.options) &&
+            typeof obj.correctAnswer === 'string'
+          ) {
+            return {
+              question: obj.questionText as string,
+              options: obj.options as string[],
+              correctAnswer: obj.correctAnswer as string,
+            };
+          }
+
+          // Caso 4: question + correctAnswerIndex
+          if (
+            typeof obj.question === 'string' &&
+            Array.isArray(obj.options) &&
+            typeof obj.correctAnswerIndex === 'number'
+          ) {
+            const idx = obj.correctAnswerIndex as number;
+            const options = obj.options as string[];
+            const correct = options && options[idx] ? options[idx] : '';
+            return {
+              question: obj.question as string,
+              options: options,
+              correctAnswer: correct,
+            };
+          }
+
+          // No se pudo normalizar
+          return null;
+        };
+
+        const normalizedQuestions: QuizQuestion[] = (quizData.questions || [])
+          .map(normalizeQuestion)
+          .filter(Boolean) as QuizQuestion[];
+
+        if (!normalizedQuestions || normalizedQuestions.length === 0) {
+          throw new Error('El quiz no contiene preguntas válidas');
+        }
+
         // Create a properly typed quiz object
         const formattedQuiz: Quiz = {
-          ...quizData,
-          questions: quizData.questions || [],
+          id: quizData.id,
+          questions: normalizedQuestions,
           subjectName: quizData.subjectName || 'Sin título',
           materialId: quizData.materialId || '',
           userId: quizData.userId || '',
           createdAt: formatDate(quizData.createdAt),
-          id: quizData.id,
         };
 
         setQuiz(formattedQuiz);
