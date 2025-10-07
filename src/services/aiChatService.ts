@@ -19,9 +19,7 @@ export async function askGeminiBot({
   question,
 }: AskGeminiBotParams): Promise<AskGeminiBotResponse> {
   // Cambia esta URL por la de tu función en producción si es necesario
-  const endpoint =
-    import.meta.env.VITE_GEMINI_ENDPOINT_BOT ||
-    'http://localhost:5001/focusear/us-central1/askGeminiBot';
+  const endpoint = import.meta.env.VITE_GEMINI_ENDPOINT_BOT;
 
   // Log de depuración
   console.log('[askGeminiBot] endpoint:', endpoint);

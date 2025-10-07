@@ -1,3 +1,5 @@
+//posiblemente se borre
+
 import cors from 'cors';
 import { onRequest } from 'firebase-functions/https';
 import { defineSecret } from 'firebase-functions/params';
@@ -411,12 +413,10 @@ export const generateStudyPlan = onRequest(
       const settingsRef = db.collection('user_settings').doc(String(userId));
       const settingsSnap = await settingsRef.get();
       if (!settingsSnap.exists) {
-        res
-          .status(400)
-          .json({
-            error:
-              'No se encontró configuración de usuario (user_settings) para este userId.',
-          });
+        res.status(400).json({
+          error:
+            'No se encontró configuración de usuario (user_settings) para este userId.',
+        });
         return;
       }
       const settings = settingsSnap.data();
@@ -425,12 +425,10 @@ export const generateStudyPlan = onRequest(
           ? settings.selectedWeekDays
           : undefined;
       if (!selectedWeekDays || selectedWeekDays.length === 0) {
-        res
-          .status(400)
-          .json({
-            error:
-              'La configuración de usuario no contiene días de estudio (selectedWeekDays).',
-          });
+        res.status(400).json({
+          error:
+            'La configuración de usuario no contiene días de estudio (selectedWeekDays).',
+        });
         return;
       }
 
@@ -453,12 +451,10 @@ export const generateStudyPlan = onRequest(
         selectedWeekDays,
       );
       if (!studyDates || studyDates.length === 0) {
-        res
-          .status(400)
-          .json({
-            error:
-              'No hay días de estudio disponibles entre hoy y la fecha del examen según la configuración del usuario.',
-          });
+        res.status(400).json({
+          error:
+            'No hay días de estudio disponibles entre hoy y la fecha del examen según la configuración del usuario.',
+        });
         return;
       }
 
@@ -645,7 +641,7 @@ export const generateQuizFromMaterial = onRequest(
         let response;
         try {
           response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash', // Usamos flash para velocidad
+            model: 'gemini-2.5-flash', // Usamos flash para velocidad
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
           });
         } catch (geminiApiError) {

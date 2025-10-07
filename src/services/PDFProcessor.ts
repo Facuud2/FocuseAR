@@ -17,8 +17,7 @@ export interface PDFProcessingResult {
 export class PDFProcessor {
   private static readonly GEMINI_FUNCTION_URL =
     // Nueva función server-side para extraer temas desde el texto del PDF
-    import.meta.env.VITE_PROCESS_PDF_ENDPOINT ||
-    'https://us-central1-proyecto-final-universitario.cloudfunctions.net/processPdfTopics';
+    import.meta.env.VITE_PROCESS_PDF_ENDPOINT;
 
   /**
    * Procesa el texto extraído de un PDF y extrae los temas usando Gemini AI
