@@ -2019,6 +2019,90 @@ header {
   
   /* Asegurar que el calendar panel ocupe todo el ancho */
   .calendar-panel {
+}
+
+/* Modal para añadir eventos */
+.add-event-modal {
+  max-width: 500px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.add-event-modal .modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-neon-color);
+}
+
+.add-event-modal .panel-icon {
+  color: var(--primary-neon-color);
+}
+
+/* Formulario de eventos */
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.event-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.event-form label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.event-form input,
+.event-form select,
+.event-form textarea {
+  padding: 0.75rem;
+  background: var(--surface-alt-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: var(--transition-ease);
+}
+
+.event-form input:focus,
+.event-form select:focus,
+.event-form textarea:focus {
+  outline: none;
+  border-color: var(--primary-neon-color);
+  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
+}
+
+.event-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.flex-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.full-width-input {
+  width: 100% !important;
+  padding: 0.75rem !important;
+  background: var(--surface-alt-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-primary) !important;
+  font-size: 0.875rem !important;
+}
+
+  /* Asegurar que el calendar panel ocupe todo el ancho */
+  .calendar-panel {
     grid-column: 1 / -1 !important;
     width: 100% !important;
   }
@@ -2038,5 +2122,126 @@ header {
   
   .dashboard-container > *:last-child {
     margin-bottom: 0 !important;
+  }
+}
+
+/* =========================================================================
+ * ESTILOS PARA EVENTOS PERSONALIZADOS
+ * ========================================================================= */
+
+/* Botón de añadir evento en el header del calendario */
+.add-event-btn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--primary-neon-color), var(--secondary-neon-color));
+  color: var(--text-inverted);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-ease);
+  box-shadow: var(--shadow-sm);
+}
+
+.add-event-btn-header:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.upcoming-item:hover {
+  background: var(--surface-color);
+  transform: translateX(4px);
+}
+
+.item-icon {
+  display: flex;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--surface-color);
+  color: var(--primary-neon-color);
+}
+
+.item-icon.study {
+  background: rgba(66, 133, 244, 0.1);
+  color: #4285F4;
+}
+
+.item-icon.exam {
+  background: rgba(234, 67, 53, 0.1);
+  color: #EA4335;
+}
+
+.item-icon.task {
+  background: rgba(251, 188, 5, 0.1);
+  color: #FBBC05;
+}
+
+.item-icon.reminder {
+  background: rgba(52, 168, 83, 0.1);
+  color: #34A853;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.item-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.item-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  background: var(--surface-color);
+  border-radius: var(--radius-sm);
+}
+
+.empty-state-text {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 2rem;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .flex-group {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .add-event-modal {
+    width: 95vw;
+    max-height: 90vh;
+  }
+  
+  .upcoming-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .item-details {
+    align-items: center;
   }
 }
