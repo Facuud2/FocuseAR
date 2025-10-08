@@ -487,6 +487,60 @@ export const useDatabase = () => {
     }
   }, []);
 
+  const saveQuizResult = useCallback(
+    async (quizId: string, score: number) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const id = await DatabaseService.saveQuizResult(
+          user.uid,
+          quizId,
+          score,
+        );
+        return id;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al guardar resultado de quiz:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
+  const getBestQuizScore = useCallback(
+    async (
+      quizId: string,
+    ): Promise<{ score: number; createdAt: Timestamp } | null> => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const best = await DatabaseService.getBestQuizScore(user.uid, quizId);
+        return best;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al obtener mejor puntuación:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
   // Limpiar error
   const clearError = useCallback(() => {
     setError(null);
@@ -572,6 +626,8 @@ export const useDatabase = () => {
     getUserEvents, // Add this line
     getQuizzes,
     getQuiz,
+    saveQuizResult,
+    getBestQuizScore,
     deleteQuiz,
     saveUserAvailability: DatabaseService.saveUserAvailability,
     getUserAvailability: DatabaseService.getUserAvailability,

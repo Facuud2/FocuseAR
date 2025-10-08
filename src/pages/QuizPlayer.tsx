@@ -31,7 +31,10 @@ const QuizPlayer: React.FC = () => {
   const [score, setScore] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [completed, setCompleted] = useState(false);
+  const [bestScore, setBestScore] = useState<number | null>(null);
   const navigate = useNavigate(); // Moved to top level
+  const { saveQuizResult, getBestQuizScore } = useDatabase();
 
   // Helper function to convert Firestore timestamp to string
   const formatDate = (date: string | Timestamp | Date | undefined): string => {
@@ -186,6 +189,37 @@ const QuizPlayer: React.FC = () => {
     setSelectedAnswer(null);
     setCurrentQuestionIndex(currentQuestionIndex + 1);
   };
+  // Compute whether the quiz is finished safely (quiz may be null during initial renders)
+  const isFinished = quiz
+    ? currentQuestionIndex >= quiz.questions.length
+    : false;
+
+  // When quiz finishes, save the attempt and fetch the user's best score.
+  useEffect(() => {
+    if (!quiz || !isFinished || completed) return;
+
+    let cancelled = false;
+
+    const doSaveAndFetch = async () => {
+      try {
+        if (quiz.id) await saveQuizResult(quiz.id, score);
+        if (quiz.id) {
+          const best = await getBestQuizScore(quiz.id);
+          if (!cancelled && best) setBestScore(best.score);
+        }
+      } catch (e) {
+        console.error('Error saving/fetching quiz results:', e);
+      } finally {
+        if (!cancelled) setCompleted(true);
+      }
+    };
+
+    doSaveAndFetch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [quiz, isFinished, completed, score, saveQuizResult, getBestQuizScore]);
 
   if (loading) {
     return <div>Cargando quiz...</div>;
@@ -197,14 +231,34 @@ const QuizPlayer: React.FC = () => {
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
 
-  if (!currentQuestion) {
+  if (isFinished) {
     return (
-      <div>
+      <div className="quiz-results-container">
         <h2>¡Quiz completado!</h2>
         <p>
-          Tu puntuación final es: {score} de {quiz.questions.length}
+          Tu puntuación: {score} de {quiz.questions.length}
         </p>
-        <button onClick={() => navigate('/quizzes')}>Volver a Quizzes</button>
+        {bestScore !== null && (
+          <p className="best-score">
+            Mejor puntuación: {bestScore} de {quiz.questions.length}
+          </p>
+        )}
+        <div className="results-actions">
+          <button
+            onClick={() => {
+              // Reset state to retry
+              setScore(0);
+              setCurrentQuestionIndex(0);
+              setShowAnswer(false);
+              setSelectedAnswer(null);
+              setCompleted(false);
+              setBestScore(null);
+            }}
+          >
+            Volver a intentar
+          </button>
+          <button onClick={() => navigate('/quizzes')}>Finalizar</button>
+        </div>
       </div>
     );
   }
