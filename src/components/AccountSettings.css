@@ -451,6 +451,8 @@
   background: #f3f9ff; /* Un color de fondo ligeramente diferente */
   border-color: var(--primary-color);
   box-shadow: 0 6px 15px rgba(66, 133, 244, 0.2);
+}
+
 .plan-card.featured {
   transform: scale(1.05);
   border-color: var(--neon-blue);
@@ -748,6 +750,10 @@
 
   .plan-card {
     padding: 2rem;
+  }
+
+}
+
 @keyframes loading {
   100% {
     left: 100%;
@@ -777,7 +783,6 @@
   .checkout-overlay .container {
     padding: 0;
   }
-}
 
   /* Badge pequeño para usuarios free (usado en Dashboard y en ajustes) */
   .free-badge {

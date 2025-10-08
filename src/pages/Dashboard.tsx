@@ -51,7 +51,6 @@ interface StudyPlanData {
 const Dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
   const { isPremium } = usePremium();
-  const { getUserStudyPlans } = useDatabase();
   const { getUserStudyPlans, createUserEvent, getUserEvents } = useDatabase();
   const navigate = useNavigate();
   const [studyPlans, setStudyPlans] = useState<StudyPlanData[]>([]);
