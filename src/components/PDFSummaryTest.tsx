@@ -1,8 +1,6 @@
 //importaciones
 import React, { useState } from 'react';
-import * as _pdfjsLib from 'pdfjs-dist/build/pdf.mjs';
-const pdfjsLib = _pdfjsLib as typeof import('pdfjs-dist/build/pdf.mjs');
-pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
+// pdfjs is heavy — load it dynamically when the user processes a file
 const CMAP_URL = 'https://unpkg.com/pdfjs-dist@3.4.120/cmaps/';
 const STANDARD_FONT_DATA_URL =
   'https://unpkg.com/pdfjs-dist@3.4.120/standard_fonts/';
@@ -29,6 +27,10 @@ const PDFSummaryTest: React.FC = () => {
 
   const extractTextFromPDF = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
+    // Dynamic import of pdfjs to avoid including it in the initial bundle
+    const _pdfjsLib = await import('pdfjs-dist/build/pdf.mjs');
+    const pdfjsLib = _pdfjsLib as typeof import('pdfjs-dist/build/pdf.mjs');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.js';
     const pdf = await pdfjsLib.getDocument({
       data: arrayBuffer,
       cMapUrl: CMAP_URL,

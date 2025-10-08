@@ -1,5 +1,5 @@
 import { getAuth } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 export type PlanType = 'free' | 'monthly' | 'annual' | 'lifetime';
@@ -97,7 +97,7 @@ export class SubscriptionService {
         startDate,
         endDate,
         active: true,
-        features: Object.keys(PLAN_FEATURES.lifetime) as Array<
+        features: Object.keys(this.PLAN_FEATURES.lifetime) as Array<
           keyof PlanFeatures
         >,
       };
@@ -144,7 +144,7 @@ export class SubscriptionService {
       };
 
       const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, { subscription });
+      await setDoc(userRef, { subscription }, { merge: true });
 
       return true;
     } catch (error) {
@@ -157,7 +157,7 @@ export class SubscriptionService {
     const currentPlan = await this.getCurrentPlan();
     if (!currentPlan || !currentPlan.active) return false;
 
-    return currentPlan.features.includes(feature);
+    return currentPlan.features.includes(feature as string);
   }
 
   async getRemainingQuota(

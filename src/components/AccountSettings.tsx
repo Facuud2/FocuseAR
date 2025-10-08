@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDatabase } from '../hooks/useDatabase';
 import './AccountSettings.css';
+import { usePremium } from '../context/PremiumHooks';
+import type { PlanType } from '../services/SubscriptionService';
+import { toast } from 'react-hot-toast';
+import { useState as useReactState } from 'react';
 
 // Mueve la definición del estado inicial fuera del componente.
 const initialAvailability: { [key: string]: boolean } = {
@@ -72,6 +76,9 @@ const AccountSettings = () => {
   const [selectedPlan, setSelectedPlan] = useState<PlanKey | null>(null);
   const [showBenefitsModal, setShowBenefitsModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const { upgradePlan, currentPlan, activateTemporaryPremium } = usePremium();
+  const [activatingTemp, setActivatingTemp] = useReactState(false);
+  const [processingUpgrade, setProcessingUpgrade] = useReactState(false);
   const { logout, user } = useAuth();
   const { saveUserAvailability } = useDatabase();
 
@@ -409,12 +416,20 @@ const AccountSettings = () => {
           <>
             <div className="settings-section">
               <h3 className="settings-section-title">Membresía Premium</h3>
+              <p style={{ fontWeight: 700, marginTop: 6 }}>
+                Plan actual:{' '}
+                <span style={{ textTransform: 'capitalize' }}>
+                  {currentPlan}
+                </span>
+              </p>
               <p className="settings-section-subtitle">
                 Accede a funciones exclusivas, analíticas avanzadas y soporte
                 prioritario.
               </p>
               <div className="membership-plans-container">
-                <div className="plan-card">
+                <div
+                  className={`plan-card ${selectedPlan === 'monthly' ? 'selected' : ''}`}
+                >
                   <h4>{plans.monthly.title}</h4>
                   <p className="plan-price">{plans.monthly.price}</p>
                   <p className="plan-description">
@@ -423,22 +438,68 @@ const AccountSettings = () => {
                   <button
                     className="plan-btn"
                     onClick={() => handleSelectPlan('monthly')}
+                    aria-pressed={selectedPlan === 'monthly'}
+                    aria-label="Seleccionar plan mensual"
                   >
                     Seleccionar
                   </button>
                 </div>
-                <div className="plan-card featured-plan">
+                <div
+                  className={`plan-card featured-plan ${selectedPlan === 'annual' ? 'selected' : ''}`}
+                >
                   <h4>{plans.annual.title}</h4>
                   <p className="plan-price">{plans.annual.price}</p>
                   <p className="plan-description">{plans.annual.description}</p>
                   <button
                     className="plan-btn"
                     onClick={() => handleSelectPlan('annual')}
+                    aria-pressed={selectedPlan === 'annual'}
+                    aria-label="Seleccionar plan anual"
                   >
                     Seleccionar
                   </button>
+                  {/* Botón temporal para activar premium */}
+                  <button
+                    className="plan-btn activate-premium-btn"
+                    onClick={async () => {
+                      if (activatingTemp) return;
+                      setActivatingTemp(true);
+                      try {
+                        if (!activateTemporaryPremium) {
+                          toast.error('Función no disponible en este entorno');
+                          return;
+                        }
+                        const success = await activateTemporaryPremium();
+                        if (success) {
+                          toast.success('¡Premium activado con éxito!');
+                        } else {
+                          toast.error(
+                            'Error al activar el premium. Por favor, inténtalo de nuevo.',
+                          );
+                        }
+                      } catch (error) {
+                        console.error('Error:', error);
+                        toast.error('Error al activar el premium.');
+                      } finally {
+                        setActivatingTemp(false);
+                      }
+                    }}
+                    disabled={activatingTemp}
+                    aria-busy={activatingTemp}
+                    style={{
+                      marginTop: '10px',
+                      backgroundColor: '#FFD700',
+                      color: 'black',
+                    }}
+                  >
+                    {activatingTemp
+                      ? 'Activando...'
+                      : 'Activar Premium (Temporal)'}
+                  </button>
                 </div>
-                <div className="plan-card">
+                <div
+                  className={`plan-card ${selectedPlan === 'lifetime' ? 'selected' : ''}`}
+                >
                   <h4>{plans.lifetime.title}</h4>
                   <p className="plan-price">{plans.lifetime.price}</p>
                   <p className="plan-description">
@@ -447,6 +508,8 @@ const AccountSettings = () => {
                   <button
                     className="plan-btn"
                     onClick={() => handleSelectPlan('lifetime')}
+                    aria-pressed={selectedPlan === 'lifetime'}
+                    aria-label="Seleccionar plan de por vida"
                   >
                     Seleccionar
                   </button>
@@ -528,7 +591,38 @@ const AccountSettings = () => {
             </button>
             {/* From Uiverse.io by zanina-yassine */}
             <div className="modal">
-              <form className="form">
+              <form
+                className="form"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!selectedPlan) return closeModal();
+                  if (processingUpgrade) return;
+                  setProcessingUpgrade(true);
+
+                  try {
+                    toast.loading('Procesando pago...', { id: 'upgrade' });
+                    const success = await upgradePlan(selectedPlan as PlanType);
+                    if (success) {
+                      toast.success('¡Plan activado correctamente!', {
+                        id: 'upgrade',
+                      });
+                    } else {
+                      toast.error(
+                        'Error al procesar el pago. Intenta de nuevo.',
+                        { id: 'upgrade' },
+                      );
+                    }
+                  } catch (err) {
+                    console.error('Upgrade error', err);
+                    toast.error('Error inesperado al actualizar el plan.', {
+                      id: 'upgrade',
+                    });
+                  } finally {
+                    setProcessingUpgrade(false);
+                    closeModal();
+                  }
+                }}
+              >
                 <div className="payment--options">
                   <button name="paypal" type="button">
                     <svg
@@ -710,11 +804,7 @@ const AccountSettings = () => {
                     </div>
                   </div>
                 </div>
-                <button
-                  className="purchase--btn"
-                  type="submit"
-                  onClick={closeModal}
-                >
+                <button className="purchase--btn" type="submit">
                   Checkout
                 </button>
               </form>

@@ -32,6 +32,7 @@ import QuizCreator from './pages/QuizCreator';
 
 import { AuthProvider } from './context/AuthContext';
 import { PlannerProvider } from './context/PlannerProvider';
+import { PremiumProvider } from './context/PremiumContext';
 
 function AppRoutes() {
   // El Sidebar ahora gestiona su propio estado de colapsado/expandido
@@ -98,9 +99,11 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <PlannerProvider>
-          <AppRoutes />
-        </PlannerProvider>
+        <PremiumProvider>
+          <PlannerProvider>
+            <AppRoutes />
+          </PlannerProvider>
+        </PremiumProvider>
       </AuthProvider>
     </BrowserRouter>
   );
