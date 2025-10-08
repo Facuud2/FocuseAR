@@ -15,6 +15,7 @@ export interface PremiumContextType {
     feature: 'aiChatsPerDay' | 'pdfUploadsPerMonth',
   ) => Promise<number>;
   upgradePlan: (plan: PlanType) => Promise<boolean>;
+  activateTemporaryPremium?: () => Promise<boolean>;
 }
 
 export const PremiumContext = createContext<PremiumContextType | undefined>(

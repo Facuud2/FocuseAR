@@ -64,6 +64,17 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({
     return success;
   };
 
+  const activateTemporaryPremium = async () => {
+    const success = await subscriptionService.activateTemporaryPremium();
+    if (success) {
+      // For testing we set lifetime features locally
+      setCurrentPlan('lifetime');
+      setIsPremium(true);
+      setFeatures(subscriptionService.PLAN_FEATURES.lifetime);
+    }
+    return success;
+  };
+
   return (
     <PremiumContext.Provider
       value={{
@@ -73,6 +84,7 @@ export const PremiumProvider: React.FC<{ children: React.ReactNode }> = ({
         checkFeatureAccess,
         getRemainingQuota,
         upgradePlan,
+        activateTemporaryPremium,
       }}
     >
       {children}

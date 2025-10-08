@@ -425,6 +425,32 @@ header {
   max-width: 150px;
 }
 
+/* Crown emoji styling when user is premium */
+.user-name .crown {
+  margin-left: 0.4rem;
+  display: inline-block;
+  transform-origin: center;
+  animation: crown-bounce 2s infinite ease-in-out;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes crown-bounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-5deg); }
+}
+
+/* Free badge small style (used in Dashboard as well) */
+.user-name .free-badge {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
 .user-avatar {
   width: 50px;
   height: 50px;

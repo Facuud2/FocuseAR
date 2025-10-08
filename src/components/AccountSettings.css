@@ -357,6 +357,13 @@ body.settings-page {
   border-color: var(--primary-color);
 }
 
+/* Selected plan visual state */
+.plan-card.selected {
+  border-color: var(--primary-color);
+  box-shadow: 0 12px 30px rgba(26, 115, 232, 0.18);
+  transform: translateY(-6px) scale(1.02);
+}
+
 /* Plan Destacado */
 .featured-plan {
   background: #f3f9ff; /* Un color de fondo ligeramente diferente */
@@ -633,10 +640,6 @@ body.settings-page {
   .plan-card {
     padding: 2rem;
   }
-  100% {
-    transform: translate(-50%, -50%);
-    clip-path: inset(0 0 0 0);
-  }
 }
 
 @keyframes glitch-anim-text {
@@ -686,3 +689,20 @@ body.settings-page {
     padding: 0;
   }
 }
+
+  /* Badge pequeño para usuarios free (usado en Dashboard y en ajustes) */
+  .free-badge {
+    display: inline-block;
+    background: rgba(0,0,0,0.06);
+    color: var(--text-secondary);
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-left: 0.4rem;
+  }
+
+  .user-name .free-badge {
+    background: transparent;
+    color: var(--text-secondary);
+  }

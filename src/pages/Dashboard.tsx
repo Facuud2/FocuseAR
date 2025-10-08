@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
+import { usePremium } from '../context/PremiumHooks';
 import { useNavigate } from 'react-router-dom';
 import NotesAndChecklist from '../components/NotesAndChecklist';
 import './Dashboard.css';
@@ -50,6 +51,7 @@ function isFirestoreTimestamp(value: unknown): value is Timestamp {
 
 const Dashboard: React.FC = () => {
   const { user } = useContext(AuthContext);
+  const { isPremium } = usePremium();
   const { getUserStudyPlans } = useDatabase();
   const navigate = useNavigate();
   const [studyPlans, setStudyPlans] = useState<StudyPlanData[]>([]);
@@ -273,7 +275,12 @@ const Dashboard: React.FC = () => {
             </div>
           )}
           <span className="user-name">
-            {user?.displayName || user?.email || 'Usuario'}
+            {user?.displayName || user?.email || 'Usuario'}{' '}
+            {isPremium ? (
+              <span title="Premium">👑</span>
+            ) : (
+              <span className="free-badge">free</span>
+            )}
           </span>
           <button className="settings-btn" onClick={handleSettingsClick}>
             <Settings size={24} />
