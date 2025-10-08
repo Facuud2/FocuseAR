@@ -972,4 +972,98 @@ export class DatabaseService {
       throw error;
     }
   }
+
+  // 22. Obtener study sessions de un usuario en los últimos N días (por defecto 7)
+  static async getUserStudySessions(
+    userId: string,
+    days: number = 7,
+  ): Promise<
+    Array<{
+      id: string;
+      userId: string;
+      completedAt: Timestamp;
+      durationMinutes?: number;
+    }>
+  > {
+    try {
+      const since = Timestamp.fromDate(
+        new Date(Date.now() - days * 24 * 60 * 60 * 1000),
+      );
+
+      // Se asume que las sesiones pueden estar guardadas en una colección top-level 'studySessions'
+      // con campo userId y completedAt (Timestamp). También soporta estructura como subcolección
+      // users/{uid}/studySessions; intentamos consultar la colección global primero y si está vacía,
+      // intentamos leer la subcolección del usuario.
+
+      const sessions: Array<{
+        id: string;
+        userId: string;
+        completedAt: Timestamp;
+        durationMinutes?: number;
+      }> = [];
+
+      // Intento 1: colección global 'studySessions'
+      try {
+        const sessionsQuery = query(
+          collection(db, 'studySessions'),
+          where('userId', '==', userId),
+          where('completedAt', '>=', since),
+          orderBy('completedAt', 'desc'),
+        );
+        const sessionsSnap = await getDocs(sessionsQuery);
+        sessionsSnap.forEach((d) => {
+          const data = d.data() as DocumentData;
+          sessions.push({
+            id: d.id,
+            userId: data.userId,
+            completedAt: data.completedAt,
+            durationMinutes: data.durationMinutes,
+          });
+        });
+      } catch (globalErr) {
+        // ignore and try subcollection next
+        console.warn(
+          '⚠️ No se pudo leer colección global studySessions o no existe, intentando subcolección del usuario',
+          globalErr,
+        );
+      }
+
+      if (sessions.length === 0) {
+        // Intento 2: subcolección users/{uid}/studySessions
+        try {
+          const userSessionsCol = collection(
+            db,
+            'users',
+            userId,
+            'studySessions',
+          );
+          const sessionsQuery = query(
+            userSessionsCol,
+            where('completedAt', '>=', since),
+            orderBy('completedAt', 'desc'),
+          );
+          const sessionsSnap = await getDocs(sessionsQuery);
+          sessionsSnap.forEach((d) => {
+            const data = d.data() as DocumentData;
+            sessions.push({
+              id: d.id,
+              userId: userId,
+              completedAt: data.completedAt,
+              durationMinutes: data.durationMinutes,
+            });
+          });
+        } catch (subErr) {
+          console.warn(
+            '⚠️ No se pudo leer subcolección users/{uid}/studySessions:',
+            subErr,
+          );
+        }
+      }
+
+      return sessions;
+    } catch (error) {
+      console.error('❌ Error al obtener study sessions del usuario:', error);
+      throw error;
+    }
+  }
 }

@@ -15,6 +15,7 @@ import {
   Globe,
 } from 'lucide-react';
 import './Profile.css';
+import StudyProgress from './StudyProgress';
 
 const Profile = () => {
   const { user } = useContext(AuthContext);
@@ -146,6 +147,9 @@ const Profile = () => {
             </div>
           </div>
         </div>
+
+        {/* Nueva sección: Progreso de Estudio */}
+        <StudyProgress />
 
         {/* Panel de Insights de la IA con interfaz de comando futurista */}
         <div className="ai-insights-panel glow-border">

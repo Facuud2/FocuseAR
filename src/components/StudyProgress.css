@@ -1,0 +1,39 @@
+.study-progress {
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 8px;
+  margin-top: 16px;
+}
+.study-progress h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.05rem;
+}
+.sp-loading {
+  padding: 20px;
+  color: var(--muted, #888);
+}
+.sp-cards {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.sp-card {
+  flex: 1;
+  background: var(--card-bg, #0f1724);
+  padding: 10px;
+  border-radius: 8px;
+}
+.sp-card-title { font-size: 0.85rem; color: var(--muted, #aaa); }
+.sp-card-value { font-size: 1.6rem; font-weight: 700; }
+.sp-card-sub { font-size: 0.85rem; color: var(--muted, #bbb); margin-top:6px }
+.sp-card-small { max-width: 220px; }
+.sp-day-list { list-style: none; padding: 6px 0 0 0; margin:0; }
+.sp-day-list li { display:flex; justify-content:space-between; padding:4px 0; font-size:0.9rem }
+.p-chart-wrapper { width:100%; }
+.sp-chart { height:200px; }
+
+@media (max-width: 720px) {
+  .sp-cards { flex-direction: column; }
+  .sp-card-small { max-width: 100%; }
+  .sp-chart { height:160px; }
+}
