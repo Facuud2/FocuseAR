@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import './Login.css'; // Asegúrate de que esta ruta sea correcta
+import styles from './Login.module.css';
+import './Login.css'; // keep existing for any remaining global utilities
 
 interface LoginProps {
   onLogin: (email: string, pass: string) => void;
@@ -63,52 +64,54 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
   };
 
   return (
-    <div className="login-container">
+    <div id="login-root" className={styles.container}>
       {/* Video de fondo */}
-      <video
-        autoPlay
-        loop
-        muted
-        className="video-background"
-        playsInline // Importante para la reproducción en móviles
-      >
+      <video autoPlay loop muted className={styles.video} playsInline>
         <source src="/videolofi.mp4" type="video/mp4" />
         Tu navegador no soporta el tag de video.
       </video>
 
       {/* Contenido del formulario */}
-      <div className="login-box">
-        <div className="text-center">
-          <img src="/logo.png" alt="FocuseAR Logo" className="logo-img" />
-          <h2>Inicia Sesión</h2>
+      <div className={styles.box}>
+        <div>
+          <img src="/logo.png" alt="FocuseAR Logo" className={styles.logo} />
+          <h2 className={styles.title}>Inicia Sesión</h2>
         </div>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            Email
-            <i className="input-icon fas fa-envelope"></i>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Email</label>
+            <i className={`${styles.icon} fas fa-envelope`} aria-hidden />
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
+              aria-label="Email"
+              className={styles.input}
             />
           </div>
-          <div className="form-group">
-            contraseña
-            <i className="input-icon fas fa-lock"></i>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Contraseña</label>
+            <i className={`${styles.icon} fas fa-lock`} aria-hidden />
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Contraseña"
+              aria-label="Contraseña"
+              className={styles.input}
             />
           </div>
-          <button type="submit" className="planify-btn">
+          <button type="submit" className={styles.btn}>
             Entrar
           </button>
         </form>
         <div className="mt-4">
-          <button onClick={onGoogleLogin} type="button" className="google-btn">
+          <button
+            onClick={onGoogleLogin}
+            type="button"
+            className={styles.googleBtn}
+          >
             <img src="https://www.google.com/favicon.ico" alt="Google logo" />
             Continuar con Google
           </button>
@@ -117,31 +120,21 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
         <div className="mt-4">
           <button
             type="button"
-            className="planify-btn"
+            className={styles.btn}
             onClick={() => setShowRegister(true)}
-            style={{ marginTop: '1rem' }}
           >
             ¿No tienes cuenta? Regístrate
           </button>
         </div>
         {/* Botón que abre drawer lateral para recuperación de contraseña */}
-        <div
-          style={{ width: '100%', marginTop: '0.5rem', textAlign: 'center' }}
-        >
+        <div className="recover-link-wrap">
           <button
             type="button"
+            className={styles.linkButton}
             onClick={() => {
               setShowRecover(true);
               setRecoverMessage(null);
               setRecoverEmail('');
-            }}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--primary-color)',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              marginTop: '0.75rem',
             }}
           >
             ¿Olvidaste tu contraseña?
@@ -151,126 +144,63 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
 
       {/* Modal/popup de registro moderno */}
       {showRegister && (
-        <div className="drawer-overlay">
-          <div className="side-drawer">
+        <div className={styles.drawerOverlay}>
+          <div className={styles.sideDrawer}>
             <button
               className="drawer-close-btn"
               onClick={() => setShowRegister(false)}
             >
               &times;
             </button>
-            <div className="text-center">
-              <img src="/logo.png" alt="FocuseAR Logo" className="logo-img" />
-              <h2 className="drawer-title">Crear cuenta</h2>
+            <div className={styles.drawerHeader}>
+              <img
+                src="/logo.png"
+                alt="FocuseAR Logo"
+                className={styles.drawerLogo}
+              />
+              <h2 className={styles.drawerTitle}>Crear cuenta</h2>
             </div>
-            <form onSubmit={handleRegister} style={{ width: '100%' }}>
-              <div
-                className="form-group"
-                style={{
-                  background: 'var(--background-light)',
-                  color: 'var(--primary-color)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '0.75rem',
-                  width: '100%',
-                }}
-              >
-                <label
-                  style={{
-                    color: 'var(--text-primary)',
-                    marginBottom: '0.5rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  Email
-                </label>
-                <i className="input-icon fas fa-envelope"></i>
+            <form onSubmit={handleRegister} className={styles.drawerForm}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Email</label>
+                <i className={`${styles.icon} fas fa-envelope`} aria-hidden />
                 <input
                   type="email"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
                   placeholder="Email"
                   disabled={regLoading}
-                  style={{
-                    background: 'var(--surface-color)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className={styles.input}
                 />
               </div>
-              <div
-                className="form-group"
-                style={{
-                  background: 'var(--background-light)',
-                  color: 'var(--primary-color)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '0.75rem',
-                  width: '100%',
-                }}
-              >
-                <label
-                  style={{
-                    color: 'var(--text-primary)',
-                    marginBottom: '0.5rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  Contraseña
-                </label>
-                <i className="input-icon fas fa-lock"></i>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Contraseña</label>
+                <i className={`${styles.icon} fas fa-lock`} aria-hidden />
                 <input
                   type="password"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
                   placeholder="Contraseña"
                   disabled={regLoading}
-                  style={{
-                    background: 'var(--surface-color)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className={styles.input}
                 />
               </div>
-              <div
-                className="form-group"
-                style={{
-                  background: 'var(--background-light)',
-                  color: 'var(--primary-color)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '0.75rem',
-                  width: '100%',
-                }}
-              >
-                <label
-                  style={{
-                    color: 'var(--text-primary)',
-                    marginBottom: '0.5rem',
-                    fontWeight: 600,
-                  }}
-                >
-                  Repetir contraseña
-                </label>
-                <i className="input-icon fas fa-lock"></i>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Repetir contraseña</label>
+                <i className={`${styles.icon} fas fa-lock`} aria-hidden />
                 <input
                   type="password"
                   value={regConfirm}
                   onChange={(e) => setRegConfirm(e.target.value)}
                   placeholder="Repetir contraseña"
                   disabled={regLoading}
-                  style={{
-                    background: 'var(--surface-color)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                  }}
+                  className={styles.input}
                 />
               </div>
               <button
                 type="submit"
-                className="planify-btn"
+                className={styles.btn}
                 disabled={regLoading}
-                style={{ marginTop: '2rem' }}
               >
                 {regLoading ? 'Creando cuenta...' : 'Registrarse'}
               </button>
@@ -281,40 +211,37 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
 
       {/* Drawer lateral para recuperación de contraseña */}
       {showRecover && (
-        <div className="drawer-overlay">
-          <div className="side-drawer small">
+        <div className={styles.drawerOverlay}>
+          <div className={`${styles.sideDrawer} small`}>
             <button
               className="drawer-close-btn"
               onClick={() => setShowRecover(false)}
             >
               &times;
             </button>
-            <div
-              className="text-center"
-              style={{ width: '100%', marginTop: '1.5rem' }}
-            >
+            <div className={styles.drawerHeader}>
               <img
                 src="/logo.png"
                 alt="FocuseAR Logo"
-                className="drawer-logo"
+                className={styles.drawerLogo}
               />
-              <h2 className="drawer-title">Recuperar contraseña</h2>
-              <p className="drawer-desc">
+              <h2 className={styles.drawerTitle}>Recuperar contraseña</h2>
+              <p className={styles.drawerDesc}>
                 Ingresa tu correo y te enviaremos un enlace para restablecerla.
               </p>
             </div>
-            <div className="drawer-form">
+            <div className={styles.drawerForm}>
               <input
-                className="drawer-input"
+                className={styles.input}
                 type="email"
                 placeholder="Tu email"
                 value={recoverEmail}
                 onChange={(e) => setRecoverEmail(e.target.value)}
                 disabled={recoverLoading}
               />
-              <div className="drawer-actions" style={{ display: 'flex' }}>
+              <div className="drawer-actions">
                 <button
-                  className="planify-btn"
+                  className={styles.btn}
                   type="button"
                   onClick={async () => {
                     if (!recoverEmail) {
@@ -341,23 +268,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
                     }
                   }}
                   disabled={recoverLoading}
-                  style={{ flex: 1 }}
                 >
                   {recoverLoading ? 'Enviando...' : 'Enviar enlace'}
                 </button>
                 <button
                   type="button"
+                  className="muted-btn"
                   onClick={() => {
                     setShowRecover(false);
                     setRecoverMessage(null);
-                  }}
-                  style={{
-                    flex: '0 0 40%',
-                    borderRadius: 10,
-                    border: '1px solid var(--border-color)',
-                    background: 'transparent',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
                   }}
                 >
                   Cancelar
@@ -365,12 +284,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onGoogleLogin }) => {
               </div>
               {recoverMessage && (
                 <div
-                  className="drawer-message"
-                  style={{
-                    color: recoverMessage.startsWith('Se envió')
-                      ? 'limegreen'
-                      : '#ffb4b4',
-                  }}
+                  className={`drawer-message ${recoverMessage.startsWith('Se envió') ? 'drawer-success' : 'drawer-error'}`}
                 >
                   {recoverMessage}
                 </div>

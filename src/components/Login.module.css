@@ -1,0 +1,176 @@
+/* Scoped styles for Login component using CSS Modules to avoid global overrides */
+:root {
+  --glass-alpha-1: 0.10;
+  --glass-alpha-2: 0.04;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.video {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  filter: brightness(0.6) saturate(1.05);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, rgba(74,0,107,0.25), rgba(121,9,107,0.18));
+}
+
+.box {
+  position: relative;
+  z-index: 2;
+  width: 92%;
+  max-width: 420px;
+  padding: 1.8rem;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,var(--glass-alpha-1)), rgba(255,255,255,var(--glass-alpha-2)));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.38);
+  color: #fff;
+  text-align: center;
+}
+
+.logo {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 0 auto 1rem auto;
+  border: 3px solid rgba(255,255,255,0.12);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.title {
+  font-size: 1.5rem;
+  margin: 0.25rem 0 0.6rem 0;
+  color: #fff;
+}
+
+.subtitle {
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 1rem;
+}
+
+.formGroup {
+  margin-bottom: 0.9rem;
+  position: relative;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.92);
+  text-align: left;
+}
+
+.icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,0.8);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px 12px 44px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255,255,255,var(--glass-alpha-1)), rgba(255,255,255,var(--glass-alpha-2))) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: #fff !important;
+  font-size: 1rem;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 6px 16px rgba(2,6,23,0.28);
+}
+
+.input::placeholder { color: rgba(255,255,255,0.72) !important; }
+.input:focus { outline: none !important; border-color: rgba(255,255,255,0.46) !important; box-shadow: 0 10px 36px rgba(46,134,193,0.12) !important; }
+
+.btn {
+  width: 100%;
+  padding: 0.95rem;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 0.9rem;
+  background: linear-gradient(90deg, var(--primary-color), #1a73e8);
+  color: var(--surface-color);
+  box-shadow: 0 8px 28px rgba(26,115,232,0.18);
+}
+
+.googleBtn {
+  width: 100%;
+  padding: 0.85rem;
+  border-radius: 10px;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.6rem;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.1rem 0.2rem;
+}
+
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0,0,0,0.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.sideDrawer {
+  width: min(420px, 100%);
+  background: linear-gradient(135deg, rgba(255,255,255,var(--glass-alpha-1)), rgba(255,255,255,var(--glass-alpha-2)));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 1.25rem;
+  color: #fff;
+}
+
+.drawerHeader { text-align: center; margin-bottom: 1rem; }
+.drawerLogo { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto; }
+.drawerTitle { color: #fff; margin-top: 0.5rem; }
+
+.drawerForm { display:flex; flex-direction:column; gap:0.7rem; }
+
+@media (max-width: 480px) {
+  .box { padding: 1rem; }
+  .logo { width: 64px; height: 64px; }
+  .title { font-size: 1.1rem; }
+}
