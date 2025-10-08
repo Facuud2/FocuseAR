@@ -40,7 +40,7 @@ interface AnalysisState {
 
 const Subjects: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { setExtractedTopics } = usePlanner();
+  const { extractedTopics, setExtractedTopics } = usePlanner();
   const {
     loading: dbLoading,
     getUserMaterials,
@@ -75,16 +75,16 @@ const Subjects: React.FC = () => {
   const handleGenerateQuiz = async (subject: Subject) => {
     if (!user) return;
     try {
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateQuizFromMaterial',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ materialId: subject.id, userId: user.uid }),
+      const endpoint = import.meta.env
+        .VITE_GENERATE_QUIZ_FROM_MATERIAL_ENDPOINT;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({ materialId: subject.id, userId: user.uid }),
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate quiz');
@@ -200,12 +200,17 @@ const Subjects: React.FC = () => {
           fileType: 'pdf',
           color: selectedColor,
           examDate: importantDates.length > 0 ? importantDates[0].date : '',
+          // Guardar los temas extraídos junto con el material (si existen)
+          extractedTopics:
+            extractedTopics && extractedTopics.length > 0
+              ? extractedTopics
+              : undefined,
           importantDates: importantDates,
         });
 
         if (materialId) {
           const newSubject: Subject = {
-            id: Date.now(),
+            id: materialId,
             name: subjectName,
             examDate:
               importantDates.length > 0
@@ -722,9 +727,25 @@ const Subjects: React.FC = () => {
       {/* ===== COLUMNA DERECHA ===== */}
       <div className="subjects-right-column">
         <div className="panel subjects-list-panel">
-          <h2>
-            <i className="fas fa-list"></i> Mis Materias
-          </h2>
+          <h1
+            className="subjects-title"
+            style={{
+              fontSize: '2.2rem',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              margin: 0,
+              letterSpacing: '-0.5px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+            }}
+          >
+            <i
+              className="fas fa-book-open"
+              style={{ marginRight: '0.6rem', color: '#4285F4' }}
+            ></i>
+            Mis Materias
+          </h1>
           {subjects.length === 0 ? (
             <div className="empty-state">
               <i className="fas fa-book-open"></i>
@@ -749,21 +770,30 @@ const Subjects: React.FC = () => {
                       </div>
                       <div className="subject-info">
                         <h3 className="subject-name">{subject.name}</h3>
-                        <p className="subject-date">
-                          <i className="fas fa-calendar-alt"></i>
-                          {subject.examDate && subject.examDate !== ''
-                            ? new Date(subject.examDate).toLocaleDateString(
-                                'es-ES',
-                              )
-                            : 'Fecha no definida'}
-                        </p>
+                        <div className="meta">
+                          <p className="subject-date">
+                            <i className="fas fa-calendar-alt"></i>
+                            {subject.examDate && subject.examDate !== ''
+                              ? new Date(subject.examDate).toLocaleDateString(
+                                  'es-ES',
+                                )
+                              : 'Fecha no definida'}
+                          </p>
+
+                          <span className="pdf-count">
+                            <i className="fas fa-file-pdf"></i>
+                            {subject.pdfs.length} PDF(s)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="subject-header-right">
+                        <span className="header-progress">
+                          {subject.pdfs.length}/5
+                        </span>
                       </div>
                     </div>
                     <div className="subject-footer">
-                      <span className="pdf-count">
-                        <i className="fas fa-file-pdf"></i>
-                        {subject.pdfs.length} PDF(s)
-                      </span>
                       <div className="subject-progress">
                         <div className="progress-bar">
                           <div
@@ -773,68 +803,39 @@ const Subjects: React.FC = () => {
                               backgroundColor: subject.color,
                             }}
                           ></div>
+                          <span className="progress-text">
+                            {subject.pdfs.length}/5
+                          </span>
                         </div>
-                        <span className="progress-text">
-                          {subject.pdfs.length}/5
-                        </span>
                       </div>
-                      <button
-                        onClick={() => handleGenerateQuiz(subject)}
-                        style={{
-                          backgroundColor: '#3b82f6',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '6px 10px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          marginTop: '8px',
-                          transition: 'background-color 0.2s',
-                        }}
-                      >
-                        <i className="fas fa-question-circle"></i>
-                        Generar Quiz
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (
-                            confirm(
-                              `¿Estás seguro de que quieres eliminar la materia "${subject.name}" y todos sus planes de estudio asociados?`,
-                            )
-                          ) {
-                            deleteSubject(subject.id);
-                          }
-                        }}
-                        style={{
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '6px 10px',
-                          cursor: 'pointer',
-                          fontSize: '12px',
-                          fontWeight: '500',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          marginTop: '8px',
-                          transition: 'background-color 0.2s',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#dc2626';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = '#ef4444';
-                        }}
-                      >
-                        <i className="fas fa-trash"></i>
-                        Eliminar
-                      </button>
+                      <div className="subject-actions">
+                        <button
+                          className="btn btn-quiz"
+                          onClick={() => handleGenerateQuiz(subject)}
+                          aria-label={`Generar quiz para ${subject.name}`}
+                        >
+                          <i className="fas fa-question-circle"></i>
+                          Generar Quiz
+                        </button>
+
+                        <button
+                          className="btn btn-danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (
+                              confirm(
+                                `¿Estás seguro de que quieres eliminar la materia "${subject.name}" y todos sus planes de estudio asociados?`,
+                              )
+                            ) {
+                              deleteSubject(subject.id);
+                            }
+                          }}
+                          aria-label={`Eliminar ${subject.name}`}
+                        >
+                          <i className="fas fa-trash"></i>
+                          Eliminar
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

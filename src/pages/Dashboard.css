@@ -139,7 +139,6 @@ body {
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
-  margin-left: 150px;
 }
 
 /* Grid spans */
@@ -1766,3 +1765,509 @@ header {
   }
 }
 
+/* ===== Quitar animaciones y glossy solo en Dashboard ===== */
+.dashboard-container .panel,
+.dashboard-container .calendar-cell,
+.dashboard-container .calendar-day,
+.dashboard-container .event-item,
+.dashboard-container .note-item,
+.dashboard-container .recent-activity-item,
+.dashboard-container .stats-panel .stat-item,
+.dashboard-container .message-bubble,
+.dashboard-container .bar-item,
+.dashboard-container .line-chart-path,
+.dashboard-container .panel-title {
+  animation: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Eliminar overlay glossy */
+.dashboard-container .panel::before {
+  content: none !important;
+}
+
+/* Desactivar efectos hover */
+.dashboard-container .panel:hover,
+.dashboard-container .calendar-cell:hover,
+.dashboard-container .calendar-day:hover,
+.dashboard-container .event-item:hover,
+.dashboard-container .note-item:hover,
+.dashboard-container .recent-activity-item:hover,
+.dashboard-container .stats-panel .stat-item:hover,
+.dashboard-container .message-bubble:hover,
+.dashboard-container .bar-item:hover,
+.dashboard-container .line-chart-path:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: inherit !important;
+  border-color: inherit !important;
+}
+
+/* ===== Quitar zoom/hover del contenedor de notas ===== */
+.dashboard-container .notes-panel,
+.dashboard-container .notes-panel:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+/* =========================================================================
+ * 8.0 - RESPONSIVE MOBILE FIXES - CORREGIDO
+ * ========================================================================= */
+
+/* Primero resetear completamente el grid en móviles */
+@media (max-width: 768px) {
+  .dashboard-container {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+    padding: 1rem;
+    width: 100%;
+  }
+  
+  /* Forzar que TODOS los elementos sean bloques completos */
+  .dashboard-container > * {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+  
+  /* Calendar fixes */
+  .calendar-panel {
+    order: 1;
+    padding: 1.5rem;
+  }
+  
+  .calendar-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .calendar-title {
+    font-size: 1.5rem;
+  }
+  
+  .calendar-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+  
+  .calendar-cell {
+    min-height: 50px;
+    padding: 0.3rem;
+    font-size: 0.8rem;
+  }
+  
+  .day-number {
+    font-size: 0.9rem;
+  }
+  
+  .weekday-header {
+    padding: 0.5rem 0.1rem;
+    font-size: 0.65rem;
+  }
+  
+  /* Stats panel - hacer horizontal scroll */
+  .stats-panel {
+    order: 2;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
+  }
+  
+  .stats-panel::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .stats-panel .stat-item {
+    min-width: 140px;
+    flex-shrink: 0;
+    text-align: center;
+  }
+  
+  .stat-circle {
+    width: 50px;
+    height: 50px;
+    font-size: 1.1rem;
+    margin: 0 auto 0.5rem auto;
+  }
+  
+  .stat-text {
+    font-size: 0.8rem;
+  }
+  
+  /* Notes panel */
+  .notes-panel {
+    order: 3;
+    padding: 1.5rem;
+  }
+  
+  .notes-type-selector {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .notes-list {
+    max-height: 200px;
+  }
+  
+  /* Events panel */
+  .events-panel {
+    order: 4;
+  }
+  
+  .event-item {
+    padding: 0.8rem;
+    gap: 0.8rem;
+  }
+  
+  .event-date {
+    font-size: 1.1rem;
+    min-width: 45px;
+  }
+  
+  .event-title {
+    font-size: 0.9rem;
+  }
+  
+  .event-time {
+    font-size: 0.75rem;
+  }
+  
+  /* Assistant panel */
+  .assistant-panel {
+    order: 5;
+    height: 350px;
+  }
+  
+  .message-bubble {
+    max-width: 85%;
+    font-size: 0.85rem;
+    padding: 0.7rem 0.9rem;
+  }
+  
+  .chat-input-form {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Activity panel */
+  .activity-panel {
+    order: 6;
+  }
+  
+  .recent-activity-item {
+    padding: 0.7rem;
+    gap: 0.7rem;
+  }
+}
+
+/* Pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding: 0.5rem;
+    gap: 0.75rem;
+  }
+  
+  .panel {
+    padding: 1.25rem;
+  }
+  
+  .panel-title {
+    font-size: 1.1rem;
+  }
+  
+  .calendar-cell {
+    min-height: 45px;
+    padding: 0.2rem;
+  }
+  
+  .day-number {
+    font-size: 0.8rem;
+  }
+  
+  .stats-panel .stat-item {
+    min-width: 120px;
+    padding: 1rem;
+  }
+  
+  .stat-circle {
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
+  }
+  
+  /* Events más compactos */
+  .event-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .event-date {
+    min-width: auto;
+  }
+}
+
+/* Prevenir overflow horizontal */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .dashboard-container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .panel {
+    max-width: 100%;
+  }
+}
+
+/* Corrección específica para el grid system */
+@media (max-width: 768px) {
+  /* Reset completo de todas las clases grid-span */
+  .grid-span-2, .grid-span-3, .grid-span-4, .grid-span-5, 
+  .grid-span-6, .grid-span-7, .grid-span-8, .grid-span-9,
+  .grid-span-10, .grid-span-11, .grid-span-12 {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  /* Asegurar que el calendar panel ocupe todo el ancho */
+  .calendar-panel {
+}
+
+/* Modal para añadir eventos */
+.add-event-modal {
+  max-width: 500px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.add-event-modal .modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-neon-color);
+}
+
+.add-event-modal .panel-icon {
+  color: var(--primary-neon-color);
+}
+
+/* Formulario de eventos */
+.event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.event-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.event-form label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.event-form input,
+.event-form select,
+.event-form textarea {
+  padding: 0.75rem;
+  background: var(--surface-alt-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: var(--transition-ease);
+}
+
+.event-form input:focus,
+.event-form select:focus,
+.event-form textarea:focus {
+  outline: none;
+  border-color: var(--primary-neon-color);
+  box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.1);
+}
+
+.event-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.flex-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.full-width-input {
+  width: 100% !important;
+  padding: 0.75rem !important;
+  background: var(--surface-alt-color) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-primary) !important;
+  font-size: 0.875rem !important;
+}
+
+  /* Asegurar que el calendar panel ocupe todo el ancho */
+  .calendar-panel {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+  }
+}
+
+/* Si todavía hay problemas, usar este override más agresivo */
+@media (max-width: 768px) {
+  .dashboard-container {
+    display: block !important;
+  }
+  
+  .dashboard-container > * {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .dashboard-container > *:last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+/* =========================================================================
+ * ESTILOS PARA EVENTOS PERSONALIZADOS
+ * ========================================================================= */
+
+/* Botón de añadir evento en el header del calendario */
+.add-event-btn-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--primary-neon-color), var(--secondary-neon-color));
+  color: var(--text-inverted);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-ease);
+  box-shadow: var(--shadow-sm);
+}
+
+.add-event-btn-header:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.upcoming-item:hover {
+  background: var(--surface-color);
+  transform: translateX(4px);
+}
+
+.item-icon {
+  display: flex;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--surface-color);
+  color: var(--primary-neon-color);
+}
+
+.item-icon.study {
+  background: rgba(66, 133, 244, 0.1);
+  color: #4285F4;
+}
+
+.item-icon.exam {
+  background: rgba(234, 67, 53, 0.1);
+  color: #EA4335;
+}
+
+.item-icon.task {
+  background: rgba(251, 188, 5, 0.1);
+  color: #FBBC05;
+}
+
+.item-icon.reminder {
+  background: rgba(52, 168, 83, 0.1);
+  color: #34A853;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.item-date {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.item-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  background: var(--surface-color);
+  border-radius: var(--radius-sm);
+}
+
+.empty-state-text {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 2rem;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .flex-group {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+  }
+  
+  .add-event-modal {
+    width: 95vw;
+    max-height: 90vh;
+  }
+  
+  .upcoming-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .item-details {
+    align-items: center;
+  }
+}

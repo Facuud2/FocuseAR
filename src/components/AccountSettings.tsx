@@ -1,6 +1,8 @@
 // src/components/AccountSettings.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { useDatabase } from '../hooks/useDatabase';
 import './AccountSettings.css';
 import { usePremium } from '../context/PremiumHooks';
 import type { PlanType } from '../services/SubscriptionService';
@@ -77,7 +79,14 @@ const AccountSettings = () => {
   const { upgradePlan, currentPlan, activateTemporaryPremium } = usePremium();
   const [activatingTemp, setActivatingTemp] = useReactState(false);
   const [processingUpgrade, setProcessingUpgrade] = useReactState(false);
+  const { logout, user } = useAuth();
+  const { saveUserAvailability } = useDatabase();
 
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // Could load initial settings here if needed
+  }, []);
   const handleAvailabilityChange = (day: string) => {
     setAvailability((prev) => ({ ...prev, [day]: !prev[day] }));
   };
@@ -104,6 +113,26 @@ const AccountSettings = () => {
       case 'profile':
         return (
           <>
+            {/* Botón de cerrar sesión arriba de la sección de perfil */}
+            <div className="settings-section">
+              <button
+                className="logout-btn"
+                style={{
+                  marginBottom: '1rem',
+                  background: '#2E86C1',
+                  color: '#fff',
+                  borderRadius: '8px',
+                  padding: '0.75rem 1.5rem',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                onClick={logout}
+                disabled={!user}
+              >
+                Cerrar sesión
+              </button>
+            </div>
             <div className="settings-section">
               <h3 className="settings-section-title">Información del Perfil</h3>
               <p className="settings-section-subtitle">
@@ -215,6 +244,30 @@ const AccountSettings = () => {
                     {day.charAt(0).toUpperCase() + day.slice(1)}
                   </button>
                 ))}
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <button
+                  className="save-btn"
+                  onClick={async () => {
+                    if (!user)
+                      return alert(
+                        'Debes iniciar sesión para guardar la configuración',
+                      );
+                    setSaving(true);
+                    try {
+                      await saveUserAvailability(user.uid, availability);
+                      alert('Disponibilidad guardada');
+                    } catch (e) {
+                      console.error(e);
+                      alert('Error al guardar disponibilidad');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                >
+                  {saving ? 'Guardando...' : 'Guardar días de estudio'}
+                </button>
               </div>
             </div>
             <div className="settings-section">
@@ -487,6 +540,7 @@ const AccountSettings = () => {
           </button>
           <button
             className={`tab-button ${activeTab === 'planner' ? 'active' : ''}`}
+            data-tab="planner"
             onClick={() => setActiveTab('planner')}
           >
             Planificador IA

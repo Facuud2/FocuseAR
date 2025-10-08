@@ -915,3 +915,18 @@ h2 i {
 .logo-icon:hover {
   animation: pulse 1s infinite;
 }
+
+/* ===== AJUSTES PARA QUE EL SIDEBAR MUEVA TODO EL PROYECTO ===== */
+.content-area {
+  transition: margin-left 0.3s ease;
+}
+
+/* Cuando el sidebar está abierto */
+body.with-sidebar-open .content-area {
+  margin-left: 280px; /* ancho sidebar expandido */
+}
+
+/* Cuando el sidebar está colapsado */
+body.with-sidebar-collapsed .content-area {
+  margin-left: 80px; /* ancho sidebar colapsado */
+}

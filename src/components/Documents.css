@@ -499,3 +499,46 @@
     margin-top: 0;
   }
 }
+
+/* ===== Overrides: Documents planos, sin zoom ni sombras ===== */
+
+/* Paneles y cabecera */
+.documents-container .panel,
+.documents-container .documents-header {
+  background-color: var(--surface-color) !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+/* Tarjetas de documentos */
+.documents-container .document-card {
+  background-color: var(--surface-color) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+}
+
+/* Botones */
+.documents-container .documents-list-panel button {
+  transform: none !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+/* Hover neutral (sin cambios) */
+.documents-container .panel:hover,
+.documents-container .documents-header:hover,
+.documents-container .document-card:hover,
+.documents-container .documents-list-panel button:hover {
+  background-color: var(--surface-color) !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: inherit !important;
+}

@@ -336,3 +336,305 @@
     font-size: 1.4rem;
   }
 }
+
+/* ===== CORRECCIÓN RESPONSIVE PARA PROGRESS ===== */
+
+/* Para tablets */
+@media (max-width: 1024px) {
+  .progress-main-content {
+    grid-template-columns: 1fr !important;
+    gap: 2rem;
+  }
+  
+  body {
+    margin-left: 0 !important; /* Quitar el margen lateral en tablets */
+  }
+}
+
+/* Para móviles - OVERRIDE COMPLETO */
+@media (max-width: 768px) {
+  .progress-containers {
+    padding: 1rem !important;
+    width: calc(100% - 2rem);
+    margin: 0 auto;
+  }
+  
+  body {
+    margin-left: 0 !important; /* Eliminar margen lateral completamente */
+    overflow-x: hidden;
+  }
+  
+  .progress-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .progress-title {
+    font-size: 2rem !important;
+    line-height: 1.2;
+  }
+  
+  .progress-subtitle {
+    font-size: 0.9rem !important;
+    padding: 0 1rem;
+  }
+  
+  .progress-main-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  
+  /* Analytics panel adjustments */
+  .analytics-panel {
+    order: 1;
+    padding: 1.5rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+  
+  .panel-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .panel-icon {
+    font-size: 1.5rem !important;
+  }
+  
+  .chart-wrapper {
+    padding: 1.2rem !important;
+  }
+  
+  .chart-title-text {
+    font-size: 1.1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .chart-description {
+    font-size: 0.8rem !important;
+  }
+  
+  /* Metrics panel adjustments */
+  .metrics-panel {
+    order: 2;
+    padding: 1.5rem !important;
+  }
+  
+  .metrics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .metric-card {
+    padding: 1.2rem !important;
+  }
+  
+  .metric-value {
+    font-size: 1.8rem !important;
+  }
+  
+  .metric-label {
+    font-size: 0.8rem !important;
+  }
+  
+  /* Progress goal adjustments */
+  .progress-goal-title {
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+    font-size: 1.2rem !important;
+  }
+  
+  .progress-goal-card {
+    padding: 1.5rem !important;
+  }
+  
+  .progress-info {
+    font-size: 0.9rem !important;
+    margin-bottom: 1rem !important;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .progress-percentage {
+    font-size: 1.4rem !important;
+  }
+  
+  .progress-bar-container {
+    height: 12px !important;
+  }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 480px) {
+  .progress-containers {
+    padding: 0.75rem !important;
+    width: calc(100% - 1.5rem);
+  }
+  
+  .progress-title {
+    font-size: 1.8rem !important;
+  }
+  
+  .progress-subtitle {
+    font-size: 0.8rem !important;
+  }
+  
+  .analytics-panel,
+  .metrics-panel {
+    padding: 1.25rem !important;
+  }
+  
+  .panel-title {
+    font-size: 1.1rem !important;
+  }
+  
+  .chart-wrapper {
+    padding: 1rem !important;
+  }
+  
+  .metric-card {
+    padding: 1rem !important;
+  }
+  
+  .metric-value {
+    font-size: 1.6rem !important;
+  }
+  
+  .progress-goal-card {
+    padding: 1.25rem !important;
+  }
+}
+
+/* Móviles muy pequeños */
+@media (max-width: 360px) {
+  .progress-containers {
+    padding: 0.5rem !important;
+    width: calc(100% - 1rem);
+  }
+  
+  .progress-title {
+    font-size: 1.6rem !important;
+  }
+  
+  .progress-subtitle {
+    font-size: 0.7rem !important;
+  }
+  
+  .analytics-panel,
+  .metrics-panel {
+    padding: 1rem !important;
+  }
+  
+  .panel-title {
+    font-size: 1rem !important;
+  }
+  
+  .metric-value {
+    font-size: 1.4rem !important;
+  }
+  
+  .metric-label {
+    font-size: 0.7rem !important;
+  }
+  
+  .progress-percentage {
+    font-size: 1.2rem !important;
+  }
+}
+
+/* Prevenir overflow horizontal */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .progress-containers,
+  .progress-main-content,
+  .analytics-panel,
+  .metrics-panel {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Asegurar que los textos no causen overflow */
+  .progress-title,
+  .panel-title,
+  .metric-value,
+  .progress-percentage {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+}
+
+/* Override agresivo final para móviles */
+@media (max-width: 768px) {
+  .progress-main-content {
+    display: block !important;
+  }
+  
+  .progress-main-content > * {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .progress-main-content > *:last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Corrección específica para el grid system de Progress */
+@media (max-width: 768px) {
+  /* Reset completo de grid areas */
+  .analytics-panel,
+  .metrics-panel {
+    grid-area: auto !important;
+  }
+}
+
+/* Ajustes para elementos que podrían causar problemas en móviles */
+@media (max-width: 768px) {
+  /* Simplificar efectos en móviles para mejor rendimiento */
+  .metric-card:hover {
+    transform: none !important;
+  }
+  
+  /* Reducir blur effects en móviles para mejor rendimiento */
+  .analytics-panel,
+  .metrics-panel,
+  .metric-card,
+  .progress-goal-card {
+    backdrop-filter: blur(8px) !important;
+  }
+  
+  /* Simplificar animaciones en móviles */
+  .progress-bar {
+    transition: width 0.3s ease-in-out !important;
+  }
+}
+
+/* Corrección adicional para pantallas muy pequeñas */
+@media (max-width: 320px) {
+  .progress-containers {
+    padding: 0.5rem !important;
+  }
+  
+  .analytics-panel,
+  .metrics-panel {
+    padding: 0.8rem !important;
+  }
+  
+  .metrics-grid {
+    gap: 0.8rem;
+  }
+  
+  .metric-card {
+    padding: 0.8rem !important;
+  }
+  
+  .metric-value {
+    font-size: 1.2rem !important;
+  }
+}

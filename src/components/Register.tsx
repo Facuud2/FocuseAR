@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// useNavigate no es necesario; la redirección la gestionan las rutas protegidas
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import toast from 'react-hot-toast';
@@ -10,7 +10,7 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +26,7 @@ const Register: React.FC = () => {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       toast.success('¡Registro exitoso!');
-      navigate('/dashboard');
+      // No navegamos manualmente; ProtectedRoute/PublicOnlyRoute manejarán la redirección al detectar el user
     } catch (error: unknown) {
       const message = (error as Error)?.message || 'Error al registrar';
       toast.error(message);

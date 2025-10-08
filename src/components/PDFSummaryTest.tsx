@@ -58,14 +58,13 @@ const PDFSummaryTest: React.FC = () => {
       const pdfText = await extractTextFromPDF(selectedFile);
       setText(pdfText);
       // Llamada a la Cloud Function
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponseTest',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: pdfText }),
-        },
-      );
+      const endpoint = import.meta.env.VITE_GEMINI_TEST_ENDPOINT;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: pdfText }),
+      });
       if (!response.ok) throw new Error('Error al obtener el resumen');
       const data = await response.json();
       setSummary(data.summary || 'Sin resumen');

@@ -1428,3 +1428,16 @@ h2 i {
     font-size: 0.6rem;
   }
 }
+
+/* === NUKED RESET GLOBAL === */
+html, body, #root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow-x: hidden !important;
+}
+
+body {
+  position: relative !important;
+}
