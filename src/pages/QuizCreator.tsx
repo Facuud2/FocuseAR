@@ -82,21 +82,19 @@ const QuizCreator: React.FC = () => {
         throw new Error('Error al guardar los metadatos del material.');
       }
 
-      // Call the Cloud Function to generate the quiz
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateQuizFromMaterial', // Changed to deployed cloud function URL
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            materialId: materialId,
-            userId: user.uid,
-            // Removed quizType and text as the cloud function does not use them directly for quiz generation
-          }),
+      const endpoint = import.meta.env
+        .VITE_GENERATE_QUIZ_FROM_MATERIAL_ENDPOINT;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({
+          materialId: materialId,
+          userId: user.uid,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();

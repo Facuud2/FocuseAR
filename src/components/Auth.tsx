@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+// La navegación la gestiona las rutas (ProtectedRoute/PublicOnlyRoute)
 import toast from 'react-hot-toast';
 import Login from './Login';
 import {
@@ -11,13 +11,13 @@ import { auth } from '../firebase';
 const googleProvider = new GoogleAuthProvider();
 
 export default function Auth() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const handleLogin = async (email: string, pass: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, pass);
       toast.success('¡Inicio de sesión exitoso!');
-      navigate('/dashboard');
+      // La redirección la gestiona ProtectedRoute/PublicOnlyRoute
     } catch (error) {
       toast.error(
         'Error al iniciar sesión. Por favor, revisa tus credenciales.',
@@ -31,7 +31,7 @@ export default function Auth() {
       const result = await signInWithPopup(auth, googleProvider);
       if (result.user) {
         toast.success('¡Inicio de sesión con Google exitoso!');
-        navigate('/dashboard');
+        // La redirección la gestiona ProtectedRoute/PublicOnlyRoute
       }
     } catch (error) {
       toast.error('Error al iniciar sesión con Google');

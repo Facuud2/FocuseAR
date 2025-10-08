@@ -50,6 +50,21 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
   const { user } = useAuth();
   const { addMessageToConversation, createAIConversation } = useDatabase();
 
+  const formatTopicToString = (t: unknown): string => {
+    if (typeof t === 'string') return t;
+    if (t === null || t === undefined) return '';
+    if (typeof t === 'object') {
+      const obj = t as Record<string, unknown>;
+      return (
+        (typeof obj.title === 'string' && obj.title) ||
+        (typeof obj.name === 'string' && obj.name) ||
+        (typeof obj.id === 'string' && obj.id) ||
+        JSON.stringify(obj)
+      );
+    }
+    return String(t);
+  };
+
   useEffect(() => {
     const fetchMaterials = async () => {
       if (!user) return;
@@ -127,10 +142,10 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
             .replace(/^Plan de Estudio\s*-\s*/i, '')
             .replace(/\s*-\s*Primer Parcial$/i, '')
             .trim();
-          const topics = mat.topics;
+          const topics = mat.topics || [];
           let menu = `Has seleccionado: ${nombre}\nEstos son los temas disponibles:\n`;
           topics.forEach((topic, i) => {
-            menu += `${i + 1}. ${topic}\n`;
+            menu += `${i + 1}. ${formatTopicToString(topic)}\n`;
           });
           setTimeout(() => {
             addMessage({
@@ -173,14 +188,16 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
         }
         return;
       } else if (step === 'topic' && selectedMaterialIdx !== null) {
-        const topics = materials[selectedMaterialIdx].topics;
+        const topics = materials[selectedMaterialIdx].topics || [];
         const idx = parseInt(messageText.trim(), 10) - 1;
         if (!isNaN(idx) && topics[idx]) {
           setStep('done');
           setTimeout(() => {
             addMessage({
               id: `topic-selected-${Date.now()}`,
-              message: `Has seleccionado el tema: ${topics[idx]}\nAhora puedes escribir tu pregunta sobre este tema.`,
+              message: `Has seleccionado el tema: ${formatTopicToString(
+                topics[idx],
+              )}\nAhora puedes escribir tu pregunta sobre este tema.`,
               isUser: false,
               timestamp: new Date(),
               userName: assistantName,
@@ -190,8 +207,8 @@ const CompleteChat: React.FC<CompleteChatProps & { onClose?: () => void }> = ({
             setIsLoading(false);
           }, 1500);
         } else {
-          const topicsMenu = materials[selectedMaterialIdx].topics
-            .map((topic, i) => `${i + 1}. ${topic}\n`)
+          const topicsMenu = (materials[selectedMaterialIdx].topics || [])
+            .map((topic, i) => `${i + 1}. ${formatTopicToString(topic)}\n`)
             .join('');
           setTimeout(() => {
             addMessage({

@@ -39,6 +39,16 @@ export interface Material {
     date: string;
     type: 'exam' | 'tp' | 'other';
   }>; // CORREGIDO: Campo para guardar todas las fechas importantes
+  // Temas extraídos por IA (opcional). Puede ser un arreglo de objetos {id,name,description,order}
+  extractedTopics?: Array<{
+    id: string;
+    name?: string;
+    description?: string;
+    order?: number;
+  }>;
+  // Metadatos para control de versiones/actualizaciones de topics
+  extractedTopicsUpdatedAt?: Timestamp;
+  extractedTopicsVersion?: number;
   storagePath: string;
   fileType: string;
   createdAt: Timestamp;
@@ -242,16 +252,30 @@ export class DatabaseService {
 
   // 2. Crear un nuevo material
   static async createMaterial(
-    material: Omit<Material, 'id' | 'createdAt' | 'updatedAt'>,
+    material: Omit<Material, 'id' | 'createdAt' | 'updatedAt'> & {
+      extractedTopics?: Array<{
+        id: string;
+        name?: string;
+        description?: string;
+        order?: number;
+      }>;
+    },
   ): Promise<string> {
     try {
       console.log('📂 Creando material en Firestore...');
 
+      // Añadir metadatos de topics si vienen del cliente
       const materialData: Material = {
         ...material,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
-      };
+        ...(material.extractedTopics && material.extractedTopics.length > 0
+          ? {
+              extractedTopicsUpdatedAt: Timestamp.now(),
+              extractedTopicsVersion: 1,
+            }
+          : {}),
+      } as Material;
 
       const materialRef = await addDoc(
         collection(db, 'materials'),
@@ -264,6 +288,84 @@ export class DatabaseService {
       console.error('❌ Error al crear material:', error);
       throw error;
     }
+  }
+
+  // 2.1 Guardar la disponibilidad del usuario (user settings)
+  static async saveUserAvailability(
+    userId: string,
+    availability: Record<string, boolean>,
+  ): Promise<void> {
+    try {
+      const selectedWeekDays =
+        DatabaseService.availabilityToWeekdayIndices(availability);
+      const payload = {
+        availability,
+        selectedWeekDays,
+        updatedAt: Timestamp.now(),
+      };
+      await setDoc(doc(db, 'user_settings', userId), payload, { merge: true });
+      console.log('✅ Disponibilidad de usuario guardada');
+    } catch (error) {
+      console.error('❌ Error al guardar disponibilidad del usuario:', error);
+      throw error;
+    }
+  }
+
+  // 2.2 Obtener la disponibilidad del usuario
+  static async getUserAvailability(userId: string): Promise<{
+    availability?: Record<string, boolean>;
+    selectedWeekDays?: number[];
+  } | null> {
+    try {
+      const ref = doc(db, 'user_settings', userId);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return null;
+      const data = snap.data();
+      // Guard: ensure expected shape
+      if (
+        data &&
+        typeof data === 'object' &&
+        ('selectedWeekDays' in data || 'availability' in data)
+      ) {
+        return data as {
+          availability?: Record<string, boolean>;
+          selectedWeekDays?: number[];
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Error al obtener disponibilidad del usuario:', error);
+      throw error;
+    }
+  }
+
+  // Helper: convierte un objeto availability {lunes:true,...} a indices de semana [1,2,5]
+  private static availabilityToWeekdayIndices(
+    availability: Record<string, boolean>,
+  ): number[] {
+    // Mapa de nombres en español a índices usados en cloud function (domingo=0, lunes=1, ...)
+    const map: Record<string, number> = {
+      domingo: 0,
+      lunes: 1,
+      martes: 2,
+      miércoles: 3,
+      miercoles: 3,
+      jueves: 4,
+      viernes: 5,
+      sábado: 6,
+      sabado: 6,
+    };
+
+    const indices: number[] = [];
+    for (const [day, enabled] of Object.entries(availability)) {
+      if (enabled) {
+        const key = day.toLowerCase();
+        const idx = map[key];
+        if (typeof idx === 'number') indices.push(idx);
+      }
+    }
+    // Ordenar y retornar
+    return indices.sort((a, b) => a - b);
   }
 
   // 3. Crear un plan de estudio
@@ -299,10 +401,10 @@ export class DatabaseService {
         updatedAt: Timestamp.now(),
       };
 
-      const planRef = await addDoc(
-        collection(db, 'study_plans'),
-        studyPlanData,
-      );
+      // Sanitizar el objeto removiendo keys con valor `undefined` (Firestore no acepta `undefined`)
+      const sanitized = this.sanitizeForFirestore(studyPlanData);
+
+      const planRef = await addDoc(collection(db, 'studyPlans'), sanitized);
       console.log('✅ Plan de estudio creado exitosamente con ID:', planRef.id);
 
       return planRef.id;
@@ -310,6 +412,38 @@ export class DatabaseService {
       console.error('❌ Error al crear plan de estudio:', error);
       throw error;
     }
+  }
+
+  // Util: remover recursivamente propiedades con valor `undefined` y limpiar arrays
+  private static sanitizeForFirestore(value: unknown): unknown {
+    if (value === undefined) return undefined;
+    if (value === null) return null;
+
+    if (Array.isArray(value)) {
+      // map + filter out undefined entries
+      const arr = value
+        .map((v) => this.sanitizeForFirestore(v))
+        .filter((v) => v !== undefined);
+      return arr;
+    }
+
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      !(value instanceof Timestamp)
+    ) {
+      const out: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+        const sanitized = this.sanitizeForFirestore(v);
+        if (sanitized !== undefined) {
+          out[k] = sanitized;
+        }
+      }
+      return out;
+    }
+
+    // Primitivos (string, number, boolean, Timestamp, etc.)
+    return value;
   }
 
   // 4. Obtener usuario por UID
@@ -434,9 +568,31 @@ export class DatabaseService {
   // 8. Eliminar material y sus planes de estudio asociados
   static async deleteMaterialAndPlans(materialId: string): Promise<void> {
     try {
+      // Intentar eliminar una posible subcolección 'topics' dentro del material (cascada)
+      try {
+        const topicsCollectionRef = collection(
+          db,
+          'materials',
+          materialId,
+          'topics',
+        );
+        const topicsSnap = await getDocs(topicsCollectionRef);
+        if (!topicsSnap.empty) {
+          const topicDeletes = topicsSnap.docs.map((d) => deleteDoc(d.ref));
+          await Promise.all(topicDeletes);
+          console.log('✅ Temas (subcolección) eliminados');
+        }
+      } catch (subErr) {
+        // No crítico: si no existe la subcolección o falla, lo registramos y continuamos
+        console.warn(
+          '⚠️ No se pudo eliminar subcolección topics o no existe:',
+          subErr,
+        );
+      }
+
       // Eliminar planes de estudio asociados
       const plansQuery = query(
-        collection(db, 'study_plans'),
+        collection(db, 'studyPlans'),
         where('materialId', '==', materialId),
       );
 
