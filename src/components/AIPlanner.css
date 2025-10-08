@@ -126,109 +126,105 @@ select, input, button {
   font-family: 'Inter', sans-serif;
 }
 
-select {
+/* Use the shared form control styles from the design system */
+.ai-planner-container .form-group input,
+.ai-planner-container .form-group select,
+.ai-planner-container .form-group textarea {
   width: 100%;
-  padding: 0.6rem 0.8rem;
-  border: var(--glass-border);
+  padding: 0.9rem 1.2rem; /* matches global form-group */
+  border: 1px solid var(--input-border-light);
   border-radius: var(--radius-md);
-  font-size: 0.8rem;
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  color: var(--text-color);
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%234FC3F7'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 1em;
+  font-size: 1rem;
+  background: var(--input-bg-light);
+  color: var(--text-primary);
   transition: var(--transition);
+  box-shadow: var(--input-shadow);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
-select:focus {
+.ai-planner-container .form-group input:focus,
+.ai-planner-container .form-group select:focus,
+.ai-planner-container .form-group textarea:focus {
   outline: none;
-  border-color: var(--highlight-color);
-  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.3);
-  background: var(--glass-bg-hover);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(46, 134, 193, 0.1);
+  background: var(--input-bg-light);
 }
 
-.button-primary {
-  width: 100%;
-  padding: 0.6rem 1.2rem;
-  background: var(--accent-green);
-  color: white;
+/* Dark mode overrides for planner form controls */
+[data-theme='dark'] .ai-planner-container .form-group input,
+[data-theme='dark'] .ai-planner-container .form-group select,
+[data-theme='dark'] .ai-planner-container .form-group textarea {
+  background: var(--input-bg-dark);
+  color: var(--text-light);
+  border-color: var(--input-border-dark);
+}
+
+[data-theme='dark'] .ai-planner-container .form-group input:focus,
+[data-theme='dark'] .ai-planner-container .form-group select:focus,
+[data-theme='dark'] .ai-planner-container .form-group textarea:focus {
+  background: var(--input-bg-dark);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.2);
+}
+
+
+/* Buttons - align with global button/planify styles */
+.ai-planner-container button.primary,
+.ai-planner-container .button-primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--surface-color);
   border: none;
-  border-radius: 20px;
-  font-size: 0.8rem;
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: var(--glass-shadow);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+  transition: var(--transition);
 }
 
-.button-primary:hover {
+.ai-planner-container button.primary:hover,
+.ai-planner-container .button-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(129, 199, 132, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
 }
 
-.button-primary:disabled {
-  background: rgba(107, 114, 128, 0.6);
-  cursor: not-allowed;
+.ai-planner-container .button-primary:disabled,
+.ai-planner-container button.primary:disabled {
   opacity: 0.6;
+  cursor: not-allowed;
   transform: none;
+  box-shadow: none;
 }
 
-.button-secondary {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  color: var(--text-color);
-  border: var(--glass-border);
-  border-radius: 25px;
-  padding: 0.5rem 1rem;
+.ai-planner-container .button-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1rem;
   cursor: pointer;
-  transition: var(--transition);
   font-weight: 600;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  box-shadow: var(--glass-shadow);
 }
 
-.button-secondary:hover {
-  transform: translateY(-2px);
-  background: var(--glass-bg-hover);
-  box-shadow: var(--glass-shadow);
-}
-
-.button-danger {
-  background: var(--accent-red);
-  color: white;
+.ai-planner-container .button-danger {
+  background: var(--danger-color);
+  color: var(--surface-color);
   border: none;
-  border-radius: 25px;
-  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1rem;
   cursor: pointer;
-  transition: var(--transition);
   font-weight: 600;
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.button-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(239, 154, 154, 0.4);
 }
 
 .topic-item {
-  background: var(--glass-bg);
+  background: var(--surface-color);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border: var(--glass-border);
@@ -251,7 +247,7 @@ select:focus {
 }
 
 .topic-tag {
-  background: var(--glass-bg);
+  background: rgba(255,255,255,0.03);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border: var(--glass-border);
@@ -272,27 +268,26 @@ select:focus {
 }
 
 .remove-btn {
-  background: var(--accent-red);
-  color: white;
+  background: var(--danger-color);
+  color: var(--surface-color);
   border: none;
   border-radius: 50%;
-  width: 1rem;
-  height: 1rem;
-  font-size: 0.6rem;
+  width: 28px;
+  height: 28px;
+  font-size: 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: var(--transition);
-  font-weight: bold;
+  font-weight: 700;
   line-height: 1;
   margin-left: 0.3rem;
 }
 
 .remove-btn:hover {
-  transform: scale(1.1);
-  background: rgba(239, 154, 154, 0.9);
-  box-shadow: 0 2px 8px rgba(239, 154, 154, 0.4);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
 .selected-day {
@@ -368,23 +363,23 @@ select:focus {
 }
 
 .plan-completion-btn {
-  background: var(--accent-green);
-  color: white;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: var(--surface-color);
   border: none;
-  border-radius: 25px;
-  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1rem;
   cursor: pointer;
   transition: var(--transition);
   font-weight: 600;
-  font-size: 0.85rem;
-  display: flex;
+  font-size: 0.9rem;
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  box-shadow: var(--glass-shadow);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
 .plan-completion-btn.completed {
-  background: var(--accent-blue);
+  background: linear-gradient(135deg, var(--primary-color), #1a73e8);
 }
 
 .plan-completion-btn:hover {
@@ -393,7 +388,7 @@ select:focus {
 }
 
 .study-day-card {
-  background: var(--glass-bg);
+  background: var(--surface-color);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border: var(--glass-border);
@@ -569,9 +564,9 @@ select:focus {
 }
 
 .plan-summary {
-  font-size: 0.75rem;
-  color: var(--text-color);
-  background: var(--glass-bg);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.02);
   padding: 0.6rem;
   border-radius: var(--radius-md);
   margin-bottom: 0.6rem;
@@ -668,7 +663,7 @@ select:focus {
 }
 
 .text-plan-container {
-  background: var(--glass-bg);
+  background: rgba(255,255,255,0.02);
   border: var(--glass-border);
   border-radius: var(--radius-md);
   padding: 1rem;
@@ -730,6 +725,52 @@ select:focus {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+}
+
+/* Ensure layout works on very small screens (360px and down) */
+@media (max-width: 360px) {
+  .ai-planner-container {
+    margin: 0.5rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-md);
+  }
+
+  .ai-planner-header {
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .panel {
+    padding: 0.75rem;
+  }
+
+  .panel h2, .ai-planner-title {
+    font-size: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.8rem;
+  }
+
+  .ai-planner-container .form-group input,
+  .ai-planner-container .form-group select {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .ai-planner-container button.primary,
+  .ai-planner-container .button-primary,
+  .ai-planner-container .plan-completion-btn {
+    width: 100%;
+    padding: 0.8rem 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .day-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
   }
 }
 
