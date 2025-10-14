@@ -115,7 +115,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 350px;
   gap: 2rem;
-  height: calc(100vh - 200px);
+  min-height: 500px; /* Cambio de altura fija a altura mínima */
 }
 
 .study-area-left {
@@ -252,6 +252,16 @@ body {
   }
 }
 
+/* Animación del reloj circular */
+@keyframes timer-progress {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .control-btn:hover {
   animation: buttonGlow 2s infinite;
   background: var(--glass-bg-hover);
@@ -263,12 +273,16 @@ body {
 
 .timer-countdown {
   font-family: 'Courier New', monospace;
-  font-size: 5rem;
+  font-size: 2.5rem; /* Reducido drasticamente para asegurar que sea visible */
   font-weight: bold;
   color: var(--highlight-color);
   text-shadow: var(--neon-glow);
   letter-spacing: 2px;
   transition: text-shadow 0.3s ease;
+  /* Asegurar que el timer sea visible */
+  display: block;
+  width: 100%;
+  text-align: center;
 }
 
 .timer-controls {
@@ -328,7 +342,11 @@ body {
   text-align: center;
   box-shadow: var(--glass-shadow);
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Cambio de hidden a visible para evitar que se corte el timer */
+  min-height: 300px; /* Altura mínima para asegurar que sea visible */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .timer-panel .mode-selection {
@@ -1014,12 +1032,13 @@ body {
   }
 
   .timer-panel {
-    width: 100%;
-    max-width: 360px;
-    padding: 1.5rem 1rem;
-    border-radius: 14px;
-    display: flex;
-    flex-direction: column;
+    width: 100% !important;
+    max-width: 360px !important;
+    padding: 1.5rem 1rem !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    visibility: visible !important;
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
@@ -1040,15 +1059,79 @@ body {
     min-width: 0;
   }
 
-  .timer-countdown {
-    font-size: 72px !important;
-    line-height: 1;
-    letter-spacing: 1px;
-    padding: 0;
-    margin: 0;
-    font-weight: 800;
-    color: var(--highlight-color);
-    text-shadow: none;
+  /* Timer display container - con reloj circular */
+  .timer-display,
+  .timer-panel .timer-display,
+  div.timer-display {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 200px !important;
+    height: 200px !important;
+    margin: 1.5rem auto !important;
+    padding: 0 !important;
+    position: relative !important;
+    z-index: 9999 !important;
+  }
+
+  /* Reloj circular de fondo */
+  .timer-display::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    border: 8px solid rgba(255, 255, 255, 0.1) !important;
+    background: radial-gradient(circle, rgba(255,255,255,0.05), transparent) !important;
+    backdrop-filter: blur(10px) !important;
+    box-shadow: 
+      inset 0 0 20px rgba(255,255,255,0.1),
+      0 0 30px rgba(79, 195, 247, 0.3) !important;
+  }
+
+  /* Progreso del reloj circular */
+  .timer-display::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    border: 8px solid transparent !important;
+    border-top: 8px solid #4FC3F7 !important;
+    animation: timer-progress 1500ms linear infinite !important;
+    z-index: 1 !important;
+  }
+
+  /* Timer countdown - centrado dentro del círculo */
+  .timer-countdown,
+  .timer-panel .timer-countdown,
+  .timer-display .timer-countdown,
+  span.timer-countdown {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    font-size: 28px !important;
+    line-height: 1 !important;
+    letter-spacing: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-weight: 700 !important;
+    color: #4FC3F7 !important;
+    text-shadow: 0 0 15px rgba(79, 195, 247, 0.8) !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    text-align: center !important;
+    z-index: 10000 !important;
+    font-family: 'Courier New', monospace !important;
+    white-space: nowrap !important;
   }
 
   .timer-controls {
@@ -1232,5 +1315,56 @@ body {
   .timer-countdown {
     word-wrap: break-word;
     overflow-wrap: break-word;
+  }
+}
+
+/* 
+RESPONSIVE PARA 360px - Mejoras de usabilidad móvil
+Comentario: Ajustes específicos para pantallas muy pequeñas (móviles)
+Usamos especificidad alta para sobrescribir las reglas agresivas de 768px
+*/
+@media (max-width: 420px) {
+  /* Reducir padding del contenedor principal */
+  .cottagecore-container {
+    margin: 0.5rem !important;
+    padding: 1rem !important;
+  }
+  
+  /* Timer más pequeño pero legible en móvil - especificidad alta */
+  .timer-panel .timer-countdown,
+  .timer-countdown {
+    font-size: 2rem !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  /* Asegurar que el timer-panel sea visible */
+  .timer-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 250px !important;
+    visibility: visible !important;
+  }
+  
+  /* Botones más grandes y táctiles para móvil */
+  .control-btn {
+    padding: 0.8rem 1rem !important;
+    font-size: 1rem !important;
+    min-height: 44px !important;
+    display: flex !important;
+  }
+  
+  /* Botones de modo más cómodos para toque */
+  .mode-btn {
+    padding: 0.6rem 0.8rem !important;
+    font-size: 0.9rem !important;
+    min-width: 70px !important;
+  }
+  
+  /* Apilar botones de control verticalmente en pantallas muy pequeñas */
+  .timer-controls {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    display: flex !important;
   }
 }
