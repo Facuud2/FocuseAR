@@ -45,14 +45,14 @@ interface CustomReward {
 }
 
 // Timer constants
-const POMODORO_TIME = 25 * 60;
+const POMODORO_TIME = 1 * 60;
 const SHORT_BREAK = 5 * 60;
 const LONG_BREAK = 15 * 60;
 
 const videoUrls = {
-  pomodoro: '/public/estudiar.mp4',
-  shortBreak: '/public/descansar.mp4',
-  longBreak: '/public/dormir.mp4',
+  pomodoro: '/estudiar.mp4',
+  shortBreak: '/descansar.mp4',
+  longBreak: '/dormir.mp4',
 };
 
 const initialAchievements: Achievement[] = [
@@ -191,9 +191,21 @@ const PomodoroTimer = () => {
       setConsecutiveCycles((prev) => prev + 1); // Increment consecutive cycles
       setCycles((prev) => prev + 1); // Increment total cycles
       // Registrar ciclo en la base de datos
-      savePomodoroCycle?.(true, 'pomodoro').catch((e) =>
-        console.warn('No se pudo guardar ciclo Pomodoro:', e),
-      );
+      // Guardar ciclo en la base de datos y emitir evento para que otras vistas (ej. Profile) puedan refrescarse
+      if (savePomodoroCycle) {
+        savePomodoroCycle(true, 'pomodoro')
+          .then((id) => {
+            try {
+              window.dispatchEvent(
+                new CustomEvent('pomodoro:recorded', { detail: { id } }),
+              );
+            } catch (err) {
+              // En entornos donde CustomEvent no esté disponible, ignorar
+              console.debug('No se pudo emitir evento pomodoro:recorded', err);
+            }
+          })
+          .catch((e) => console.warn('No se pudo guardar ciclo Pomodoro:', e));
+      }
     } else {
       setConsecutiveCycles(0); // Reset consecutive cycles on break
     }

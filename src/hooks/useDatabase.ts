@@ -550,6 +550,30 @@ export const useDatabase = () => {
     }
   }, [user]);
 
+  // Obtener perfil de usuario (datos guardados en Firestore)
+  const getUserProfile = useCallback(async () => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return null;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const profile = await DatabaseService.getUserByUid(user.uid);
+      return profile;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener perfil de usuario:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   // Obtener conteo de ciclos Pomodoro
   const getPomodoroCyclesCount = useCallback(async (): Promise<number> => {
     if (!user) {
@@ -680,6 +704,165 @@ export const useDatabase = () => {
     getPomodoroCyclesCount,
     getActiveSubjectsCount,
     getStudyPlansCount,
+    getUserProfile,
+    // Streak and weekly mastery helpers
+    getUserStreakDays: async (daysToCheck: number = 30): Promise<number> => {
+      if (!user) return 0;
+      try {
+        const end = Timestamp.now();
+        const start = Timestamp.fromDate(
+          new Date(Date.now() - daysToCheck * 24 * 60 * 60 * 1000),
+        );
+        const counts = await DatabaseService.getPomodoroCyclesByRange(
+          user.uid,
+          start,
+          end,
+        );
+        console.debug('debug:getWeeklyMastery counts:', counts);
+
+        // iterate from today backwards
+        let streak = 0;
+        for (let i = 0; i < daysToCheck; i++) {
+          const d = new Date();
+          d.setUTCDate(d.getUTCDate() - i);
+          const key = d.toISOString().slice(0, 10);
+          const c = counts[key] || 0;
+          if (c > 0) streak += 1;
+          else break;
+        }
+        return streak;
+      } catch (e) {
+        console.error('Error calculando streak:', e);
+        return 0;
+      }
+    },
+    getWeeklyMastery: async (
+      targetCyclesPerDay: number = 4,
+      mode: 'sliding' | 'calendar' = 'sliding',
+    ): Promise<number[]> => {
+      if (!user) return new Array(7).fill(0);
+      try {
+        let start: Timestamp;
+        let end: Timestamp;
+
+        if (mode === 'sliding') {
+          // last 7 days (oldest -> today)
+          end = Timestamp.now();
+          start = Timestamp.fromDate(
+            new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+          );
+        } else {
+          // 'calendar' week: Monday -> Sunday of current week
+          const now = new Date();
+          // getDay(): 0 (Sun) .. 6 (Sat). We want Monday as start.
+          const day = now.getDay();
+          const diffToMonday = (day + 6) % 7; // 0->Mon
+          const monday = new Date(now);
+          monday.setHours(0, 0, 0, 0);
+          monday.setDate(now.getDate() - diffToMonday);
+          const sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+          // start = monday 00:00, end = sunday 23:59:59
+          start = Timestamp.fromDate(monday);
+          const endDate = new Date(sunday);
+          endDate.setHours(23, 59, 59, 999);
+          end = Timestamp.fromDate(endDate);
+        }
+
+        const counts = await DatabaseService.getPomodoroCyclesByRange(
+          user.uid,
+          start,
+          end,
+        );
+
+        const result: number[] = [];
+
+        if (mode === 'sliding') {
+          // order from oldest -> newest (day-6 ... today)
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setUTCDate(d.getUTCDate() - i);
+            const key = d.toISOString().slice(0, 10);
+            const c = counts[key] || 0;
+            const val = Math.min(c / targetCyclesPerDay, 1);
+            result.push(val);
+          }
+        } else {
+          // calendar: Monday -> Sunday
+          const monday = start.toDate();
+          for (let i = 0; i < 7; i++) {
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            const key = d.toISOString().slice(0, 10);
+            const c = counts[key] || 0;
+            const val = Math.min(c / targetCyclesPerDay, 1);
+            result.push(val);
+          }
+        }
+
+        return result;
+      } catch (e) {
+        console.error('Error calculando weekly mastery:', e);
+        return new Array(7).fill(0);
+      }
+    },
+    getWeeklyCounts: async (
+      mode: 'sliding' | 'calendar' = 'sliding',
+    ): Promise<number[]> => {
+      if (!user) return new Array(7).fill(0);
+      try {
+        let start: Timestamp;
+        let end: Timestamp;
+        if (mode === 'sliding') {
+          end = Timestamp.now();
+          start = Timestamp.fromDate(
+            new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+          );
+        } else {
+          const now = new Date();
+          const day = now.getDay();
+          const diffToMonday = (day + 6) % 7;
+          const monday = new Date(now);
+          monday.setHours(0, 0, 0, 0);
+          monday.setDate(now.getDate() - diffToMonday);
+          const sunday = new Date(monday);
+          sunday.setDate(monday.getDate() + 6);
+          start = Timestamp.fromDate(monday);
+          const endDate = new Date(sunday);
+          endDate.setHours(23, 59, 59, 999);
+          end = Timestamp.fromDate(endDate);
+        }
+
+        const countsMap = await DatabaseService.getPomodoroCyclesByRange(
+          user.uid,
+          start,
+          end,
+        );
+
+        const counts: number[] = [];
+        if (mode === 'sliding') {
+          for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setUTCDate(d.getUTCDate() - i);
+            const key = d.toISOString().slice(0, 10);
+            counts.push(countsMap[key] || 0);
+          }
+        } else {
+          const monday = start.toDate();
+          for (let i = 0; i < 7; i++) {
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + i);
+            const key = d.toISOString().slice(0, 10);
+            counts.push(countsMap[key] || 0);
+          }
+        }
+
+        return counts;
+      } catch (e) {
+        console.error('Error obteniendo weekly counts:', e);
+        return new Array(7).fill(0);
+      }
+    },
     saveUserAvailability: DatabaseService.saveUserAvailability,
     getUserAvailability: DatabaseService.getUserAvailability,
   };

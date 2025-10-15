@@ -21,22 +21,39 @@ import './Profile.css';
 const Profile = () => {
   const { user } = useContext(AuthContext);
 
-  // Datos de ejemplo para el rediseño
-  const [streakDays] = useState(7);
+  // Estados para métricas
+  const [streakDays, setStreakDays] = useState<number>(0);
   const [totalHoursThisMonth, setTotalHoursThisMonth] = useState<number>(0);
   const [activeSubjectsCount, setActiveSubjectsCount] = useState<number>(0);
   const [studyPlansCount, setStudyPlansCount] = useState<number>(0);
-  const [weeklyProgress] = useState<number[]>([
-    0.2, 0.5, 0.7, 0.8, 0.6, 0.9, 0.75,
-  ]);
+  const [weeklyProgress, setWeeklyProgress] = useState<number[]>(
+    new Array(7).fill(0),
+  );
+  const [weeklyCountsState, setWeeklyCountsState] = useState<number[]>(
+    new Array(7).fill(0),
+  );
 
-  const { getPomodoroCyclesCount, getActiveSubjectsCount, getStudyPlansCount } =
-    useDatabase();
+  const {
+    getPomodoroCyclesCount,
+    getActiveSubjectsCount,
+    getStudyPlansCount,
+    getUserProfile,
+    getUserStreakDays,
+    getWeeklyCounts,
+  } = useDatabase();
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [profileData, setProfileData] = useState<{
+    displayName?: string;
+    email?: string;
+    photoURL?: string;
+  } | null>(null);
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       try {
+        setIsLoading(true);
         const cycles = await getPomodoroCyclesCount();
         // Cada ciclo = 25 minutos
         const totalMinutes = cycles * 25;
@@ -50,13 +67,79 @@ const Profile = () => {
 
         const plansCount = await getStudyPlansCount();
         if (mounted) setStudyPlansCount(plansCount);
+        // Obtener racha y progreso semanal
+        try {
+          const streak = await getUserStreakDays?.();
+          const counts: number[] =
+            (await getWeeklyCounts?.('calendar')) || new Array(7).fill(0);
+          const weekly = counts.map((c: number) => Math.min(c / 4, 1));
+          if (mounted) {
+            setStreakDays(typeof streak === 'number' ? streak : 0);
+            setWeeklyProgress(
+              weekly.length === 7 ? weekly : new Array(7).fill(0),
+            );
+            setWeeklyCountsState(
+              counts.length === 7 ? counts : new Array(7).fill(0),
+            );
+          }
+        } catch (e) {
+          console.warn('No se pudo calcular racha o progreso semanal:', e);
+        }
+        // Cargar perfil guardado en Firestore (si existe)
+        try {
+          const profile = await getUserProfile?.();
+          if (mounted && profile) {
+            setProfileData({
+              displayName: profile.displayName || undefined,
+              email: profile.email || undefined,
+              photoURL: profile.photoURL || undefined,
+            });
+          }
+        } catch (e) {
+          console.warn('No se pudo cargar profile desde Firestore:', e);
+        }
+        if (mounted) setIsLoading(false);
       } catch (e) {
         console.warn('Error cargando métricas del perfil:', e);
+        if (mounted) setIsLoading(false);
       }
     };
     load();
+
+    // Listener para actualizar métricas cuando se registra un ciclo Pomodoro en otra parte de la app
+    const onPomodoroRecorded = async () => {
+      try {
+        const streak = await getUserStreakDays?.();
+        const counts: number[] =
+          (await getWeeklyCounts?.('calendar')) || new Array(7).fill(0);
+        const weekly = counts.map((c: number) => Math.min(c / 4, 1));
+        if (mounted) {
+          setStreakDays(typeof streak === 'number' ? streak : 0);
+          setWeeklyProgress(
+            weekly.length === 7 ? weekly : new Array(7).fill(0),
+          );
+          setWeeklyCountsState(
+            counts.length === 7 ? counts : new Array(7).fill(0),
+          );
+        }
+      } catch (e) {
+        console.warn(
+          'Error refrescando métricas por evento pomodoro:recorded',
+          e,
+        );
+      }
+    };
+
+    window.addEventListener(
+      'pomodoro:recorded',
+      onPomodoroRecorded as EventListener,
+    );
     return () => {
       mounted = false;
+      window.removeEventListener(
+        'pomodoro:recorded',
+        onPomodoroRecorded as EventListener,
+      );
     };
   }, [getPomodoroCyclesCount, getActiveSubjectsCount, getStudyPlansCount]);
 
@@ -88,10 +171,10 @@ const Profile = () => {
           <div className="hero-content">
             {/* ¡MÁS SPICY! Avatar con marco futurista */}
             <div className="user-avatar-frame">
-              {user?.photoURL ? (
+              {profileData?.photoURL || user?.photoURL ? (
                 <img
-                  src={user.photoURL}
-                  alt="Avatar"
+                  src={profileData?.photoURL ?? user?.photoURL ?? ''}
+                  alt={`${profileData?.displayName || user?.displayName || 'Avatar'} avatar`}
                   className="user-avatar-lg"
                 />
               ) : (
@@ -102,9 +185,16 @@ const Profile = () => {
             </div>
             <div className="user-details-lg">
               <h3 className="user-name-lg">
-                {user?.displayName || 'Explorador'}
+                {profileData?.displayName || user?.displayName || 'Explorador'}
               </h3>
-              <p className="user-status-tag">Conectado al Hivemind</p>{' '}
+              {/* Mostrar email si lo tenemos */}
+              {isLoading ? (
+                <p className="user-email-loading">Cargando información...</p>
+              ) : (
+                <p className="user-email" aria-live="polite">
+                  {profileData?.email || user?.email || ''}
+                </p>
+              )}
               {/* ¡NUEVO! Estado cool */}
               <div className="study-streak glow-effect">
                 {' '}
@@ -121,17 +211,35 @@ const Profile = () => {
             <h4>
               Dominio Semanal <Zap size={16} />
             </h4>
-            <div className="progress-graph">
-              {weeklyProgress.map((value: number, index: number) => (
-                <div
-                  key={index}
-                  className="progress-bar"
-                  style={{ height: `${value * 100}%` }}
-                  title={`Día ${index + 1}: ${Math.round(value * 100)}%`}
-                ></div>
+            <div className="progress-graph" aria-hidden="false">
+              {weeklyProgress.map((value: number, index: number) => {
+                const count = weeklyCountsState[index] ?? 0;
+                // Normalize height relative to max count or target (use target=4 as baseline)
+                const heightPercent = Math.min((count / 4) * 100, 100);
+                return (
+                  <div key={index} className="progress-bar-wrapper">
+                    <div
+                      className="progress-bar"
+                      style={{ height: `${heightPercent}%` }}
+                      title={`Día ${index + 1}: ${count} ciclos (${Math.round(value * 100)}%)`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            {/* day labels moved outside of the graph container to keep graph exclusive */}
+            <div
+              className="progress-graph-days"
+              role="list"
+              aria-label="Días de la semana"
+            >
+              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d, i) => (
+                <div key={i} className="progress-bar-day" role="listitem">
+                  {d}
+                </div>
               ))}
             </div>
-            <p className="graph-label">Actividad en los últimos 7 días</p>
+            <p className="graph-label">Actividad esta semana (Lun→Dom)</p>
           </div>
         </div>
 

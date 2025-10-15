@@ -851,6 +851,44 @@ export class DatabaseService {
     }
   }
 
+  // 23.1 Obtener ciclos Pomodoro agrupados por día dentro de un rango
+  static async getPomodoroCyclesByRange(
+    userId: string,
+    start: Timestamp,
+    end: Timestamp,
+  ): Promise<Record<string, number>> {
+    try {
+      // Para evitar requerir un índice compuesto en Firestore durante desarrollo,
+      // hacemos una consulta simple por userId y filtramos por rango en el cliente.
+      const simpleQuery = query(
+        collection(db, 'pomodoroCycles'),
+        where('userId', '==', userId),
+      );
+
+      const snap = await getDocs(simpleQuery);
+      const counts: Record<string, number> = {};
+
+      snap.forEach((d) => {
+        const data = d.data();
+        const ts = data?.completedAt as Timestamp | undefined;
+        if (!ts) return;
+        const millis = ts.toMillis();
+        if (millis < start.toMillis() || millis > end.toMillis()) return;
+        // Use ISO date (YYYY-MM-DD) as key (UTC)
+        const key = ts.toDate().toISOString().slice(0, 10);
+        counts[key] = (counts[key] || 0) + 1;
+      });
+
+      return counts;
+    } catch (error) {
+      console.error(
+        '❌ Error al obtener ciclos Pomodoro (consulta simple):',
+        error,
+      );
+      throw error;
+    }
+  }
+
   // 24. Obtener cantidad de materias activas (basado en materials.subjectName)
   static async getActiveSubjectsCount(userId: string): Promise<number> {
     try {
