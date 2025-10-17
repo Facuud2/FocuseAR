@@ -119,6 +119,207 @@ interface StudyPlan {
 }
 ```
 
+### 4. Colección `user_settings`
+Almacena configuraciones específicas del usuario, como disponibilidad semanal para el planificador IA.
+
+**Estructura del documento:**
+```typescript
+interface UserSettings {
+  availability: Record<string, boolean>;  // Días disponibles (lunes: true, martes: false...)
+  selectedWeekDays: number[];             // Índices de días (0=domingo, 1=lunes...)
+  updatedAt: Timestamp;
+}
+```
+
+**Ejemplo:**
+```json
+{
+  "availability": {
+    "lunes": true,
+    "martes": false,
+    "miércoles": true,
+    "jueves": true,
+    "viernes": false,
+    "sábado": true,
+    "domingo": false
+  },
+  "selectedWeekDays": [1, 3, 4, 6],
+  "updatedAt": "2024-01-15T10:00:00Z"
+}
+```
+
+### 5. Colección `ai_conversations`
+Almacena conversaciones del chatbot IA para historial y reutilización.
+
+**Estructura del documento:**
+```typescript
+interface AIConversation {
+  id?: string;
+  userId: string;
+  title?: string;
+  messages: AIConversationMessage[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+interface AIConversationMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Timestamp;
+  messageType?: 'text' | 'system' | 'error';
+}
+```
+
+**Ejemplo:**
+```json
+{
+  "id": "conv_001",
+  "userId": "abc123xyz",
+  "title": "Consulta sobre Álgebra Lineal",
+  "messages": [
+    {
+      "id": "msg_001",
+      "role": "user",
+      "content": "¿Qué son los vectores?",
+      "timestamp": "2024-01-15T14:00:00Z",
+      "messageType": "text"
+    },
+    {
+      "id": "msg_002",
+      "role": "assistant",
+      "content": "Los vectores son entidades matemáticas...",
+      "timestamp": "2024-01-15T14:00:30Z",
+      "messageType": "text"
+    }
+  ],
+  "createdAt": "2024-01-15T14:00:00Z",
+  "updatedAt": "2024-01-15T14:00:30Z"
+}
+```
+
+### 6. Colección `quizzes`
+Almacena cuestionarios generados para evaluación de conocimientos.
+
+**Estructura del documento:**
+```typescript
+interface Quiz {
+  id?: string;
+  questions: QuizQuestion[];
+  subjectName: string;
+  materialId: string;
+  userId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+}
+```
+
+**Ejemplo:**
+```json
+{
+  "id": "quiz_001",
+  "questions": [
+    {
+      "question": "¿Qué es un vector?",
+      "options": ["Una magnitud escalar", "Una magnitud vectorial", "Un número", "Una función"],
+      "correctAnswer": "Una magnitud vectorial"
+    }
+  ],
+  "subjectName": "Matemáticas Avanzadas",
+  "materialId": "material_001",
+  "userId": "abc123xyz",
+  "createdAt": "2024-01-15T15:00:00Z",
+  "updatedAt": "2024-01-15T15:00:00Z"
+}
+```
+
+### 7. Colección `events`
+Almacena eventos personalizados del usuario (exámenes, tareas, recordatorios).
+
+**Estructura del documento:**
+```typescript
+interface UserEvent {
+  id?: string;
+  userId: string;
+  title: string;
+  description?: string;
+  type: 'study' | 'exam' | 'task' | 'reminder';
+  start: string | Date;
+  end?: string | Date;
+  allDay?: boolean;
+  color?: string;
+  time?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+```
+
+**Ejemplo:**
+```json
+{
+  "id": "event_001",
+  "userId": "abc123xyz",
+  "title": "Examen Final Matemáticas",
+  "description": "Examen final del curso de matemáticas avanzadas",
+  "type": "exam",
+  "start": "2024-02-15T09:00:00Z",
+  "end": "2024-02-15T12:00:00Z",
+  "allDay": false,
+  "color": "#FF5722",
+  "time": "09:00",
+  "createdAt": "2024-01-15T16:00:00Z",
+  "updatedAt": "2024-01-15T16:00:00Z"
+}
+```
+
+### 8. Colección `folders`
+Sistema de carpetas para organizar materiales (implementación futura).
+
+**Estructura del documento:**
+```typescript
+interface Folder {
+  id?: string;
+  userId: string;
+  name: string;
+  path: string;
+  createdAt: Timestamp;
+}
+```
+
+### 9. Colección `pomodoroCycles` (actividad Pomodoro)
+
+La aplicación registra los ciclos Pomodoro del usuario en una colección dedicada para poder calcular rachas, dominio semanal y estadísticas de uso.
+
+Estructura recomendada del documento:
+```typescript
+interface PomodoroCycle {
+  id?: string; // id del documento en Firestore
+  userId: string; // UID del usuario (Firebase Auth)
+  completed: boolean; // si el ciclo se completó
+  mode: 'pomodoro' | 'short-break' | 'long-break';
+  completedAt: Timestamp; // cuando se completó el ciclo (Timestamp de Firestore)
+  createdAt: Timestamp; // fecha de creación (opcional)
+  meta?: Record<string, unknown>; // campo abierto para datos adicionales (p.ej. topicId)
+}
+```
+
+Ejemplo de documento:
+```json
+{
+  "userId": "abc123xyz",
+  "completed": true,
+  "mode": "pomodoro",
+  "completedAt": "2025-10-15T10:30:00Z",
+  "createdAt": "2025-10-15T10:30:05Z"
+}
+```
+
 ## Operaciones CRUD
 
 ### Crear Datos
