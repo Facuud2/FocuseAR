@@ -4,6 +4,8 @@
 
 FocuseAR utiliza Firebase Firestore como base de datos NoSQL para almacenar toda la información de usuarios, materiales y planes de estudio. La aplicación está diseñada para manejar datos de forma escalable y en tiempo real.
 
+
+
 ## Estructura de Colecciones
 
 ### 1. Colección `users`
