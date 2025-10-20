@@ -35,16 +35,16 @@ export const QuizModal: React.FC<QuizModalProps> = ({ subject, onClose }) => {
   useEffect(() => {
     const generateQuiz = async () => {
       try {
-        const response = await fetch(
-          'http://localhost:5001/focusear-copy/us-central1/generateQuizFromMaterial',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ materialId: subject.id }),
+        const endpoint = import.meta.env
+          .VITE_GENERATE_QUIZ_FROM_MATERIAL_ENDPOINT;
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        );
+          body: JSON.stringify({ materialId: subject.id }),
+        });
 
         if (!response.ok) {
           throw new Error('Failed to generate quiz');

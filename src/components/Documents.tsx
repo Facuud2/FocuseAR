@@ -384,17 +384,16 @@ const Documents: React.FC = () => {
       }
 
       const token = await user.getIdToken();
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/deleteFolder',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ folderId }),
+      const endpoint = import.meta.env.VITE_DELETE_FOLDER_ENDPOINT;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ folderId }),
+      });
 
       const result = await response.json();
 

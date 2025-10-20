@@ -723,3 +723,352 @@ body {
     margin-top: 1rem;
   }
 }
+
+/* ===== Overrides: Hero Panel azul fijo ===== */
+.profile-container .profile-hero-panel {
+  background: var(--primary-color) !important; /* Azul sólido */
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+  opacity: 1 !important;
+}
+
+/* Hover igual al estado normal */
+.profile-container .profile-hero-panel:hover {
+  background: var(--primary-color) !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== CORRECCIÓN RESPONSIVE PARA PROFILE ===== */
+
+/* Para tablets */
+@media (max-width: 1024px) {
+  .profile-main-content {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "hero"
+      "stats"
+      "ai" !important;
+    gap: 2rem;
+  }
+  
+  body {
+    margin-left: 0 !important; /* Quitar el margen lateral en tablets */
+  }
+}
+
+/* Para móviles - OVERRIDE COMPLETO */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 1rem !important;
+    width: calc(100% - 2rem);
+    margin: 0 auto;
+  }
+  
+  body {
+    margin-left: 0 !important; /* Eliminar margen lateral completamente */
+    overflow-x: hidden;
+  }
+  
+  .profile-header {
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  
+  .profile-title {
+    font-size: 2rem !important;
+    line-height: 1.2;
+  }
+  
+  .profile-subtitle {
+    font-size: 0.9rem !important;
+    padding: 0 1rem;
+  }
+  
+  .profile-main-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+  
+  /* Hero panel adjustments */
+  .profile-hero-panel {
+    order: 1;
+    padding: 1.5rem !important;
+    border-radius: var(--radius-md) !important;
+  }
+  
+  .hero-content {
+    gap: 1rem;
+  }
+  
+  .user-avatar-frame {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  .user-avatar-lg,
+  .user-avatar-placeholder-lg {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  .user-name-lg {
+    font-size: 1.5rem !important;
+  }
+  
+  .user-status-tag {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.8rem;
+  }
+  
+  .study-streak {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  
+  .holographic-progress {
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .progress-graph {
+    height: 60px;
+  }
+  
+  /* Stats panel adjustments */
+  .stats-panel {
+    order: 2;
+    padding: 1.5rem !important;
+  }
+  
+  .panel-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+  }
+  
+  .stat-card-neumorphic {
+    padding: 1.2rem !important;
+  }
+  
+  .stat-value {
+    font-size: 1.4rem !important;
+  }
+  
+  .stat-label {
+    font-size: 0.9rem !important;
+  }
+  
+  /* AI insights panel adjustments */
+  .ai-insights-panel {
+    order: 3;
+    padding: 1.5rem !important;
+  }
+  
+  .ai-console-header {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  
+  .ai-insights-message {
+    font-size: 0.85rem !important;
+    line-height: 1.6;
+  }
+  
+  .ai-recommendation {
+    font-size: 0.8rem !important;
+    padding: 0.8rem;
+  }
+  
+  /* Settings access panel adjustments */
+  .settings-access-panel {
+    order: 4;
+    padding: 1.5rem !important;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .settings-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .settings-text h3 {
+    font-size: 1.2rem !important;
+  }
+  
+  .settings-text p {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 480px) {
+  .profile-container {
+    padding: 0.75rem !important;
+    width: calc(100% - 1.5rem);
+  }
+  
+  .profile-title {
+    font-size: 1.8rem !important;
+  }
+  
+  .profile-hero-panel {
+    padding: 1.25rem !important;
+  }
+  
+  .user-avatar-frame {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  
+  .user-avatar-lg,
+  .user-avatar-placeholder-lg {
+    width: 60px !important;
+    height: 60px !important;
+  }
+  
+  .user-name-lg {
+    font-size: 1.3rem !important;
+  }
+  
+  .stats-panel,
+  .ai-insights-panel,
+  .settings-access-panel {
+    padding: 1.25rem !important;
+  }
+  
+  .stat-card-neumorphic {
+    padding: 1rem !important;
+  }
+  
+  .stat-value {
+    font-size: 1.2rem !important;
+  }
+  
+  .progress-graph {
+    height: 50px;
+  }
+}
+
+/* Móviles muy pequeños */
+@media (max-width: 360px) {
+  .profile-container {
+    padding: 0.5rem !important;
+    width: calc(100% - 1rem);
+  }
+  
+  .profile-title {
+    font-size: 1.6rem !important;
+  }
+  
+  .profile-hero-panel,
+  .stats-panel,
+  .ai-insights-panel,
+  .settings-access-panel {
+    padding: 1rem !important;
+  }
+  
+  .user-avatar-frame {
+    width: 70px !important;
+    height: 70px !important;
+  }
+  
+  .user-avatar-lg,
+  .user-avatar-placeholder-lg {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  
+  .user-name-lg {
+    font-size: 1.1rem !important;
+  }
+  
+  .study-streak {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* Prevenir overflow horizontal */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .profile-container,
+  .profile-main-content,
+  .profile-hero-panel,
+  .stats-panel,
+  .ai-insights-panel,
+  .settings-access-panel {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Asegurar que los textos no causen overflow */
+  .profile-title,
+  .user-name-lg,
+  .ai-insights-message,
+  .stat-value {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+}
+
+/* Override agresivo final para móviles */
+@media (max-width: 768px) {
+  .profile-main-content {
+    display: block !important;
+  }
+  
+  .profile-main-content > * {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 1.5rem !important;
+  }
+  
+  .profile-main-content > *:last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Corrección específica para el grid system de Profile */
+@media (max-width: 768px) {
+  /* Reset completo de grid areas */
+  .profile-hero-panel,
+  .stats-panel,
+  .ai-insights-panel,
+  .settings-access-panel {
+    grid-area: auto !important;
+  }
+}
+
+/* Ajustes para elementos que podrían causar problemas en móviles */
+@media (max-width: 768px) {
+  .hero-background-effect {
+    display: none; /* Ocultar efectos de fondo en móviles para mejor rendimiento */
+  }
+  
+  .button-glare-effect {
+    display: none; /* Ocultar efectos de brillo en móviles */
+  }
+  
+  /* Simplificar animaciones en móviles */
+  .user-avatar-frame,
+  .stat-card-neumorphic,
+  .ai-insights-panel {
+    animation: none !important;
+    transform: none !important;
+  }
+}

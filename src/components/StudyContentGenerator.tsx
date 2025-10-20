@@ -54,8 +54,7 @@ const StudyContentGenerator: React.FC<StudyContentGeneratorProps> = ({
     setError(null);
 
     try {
-      const endpoint =
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateStudyContent';
+      const endpoint = import.meta.env.VITE_GENERATE_STUDY_CONTENT_ENDPOINT;
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
