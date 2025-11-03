@@ -1,6 +1,7 @@
 // src/components/Profile.tsx
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../hooks/authContext';
+import { useDatabase } from '../hooks/useDatabase';
 // Importamos iconos adicionales para un look más futurista
 import {
   User,
@@ -17,14 +18,57 @@ import {
 import './Profile.css';
 
 const Profile = () => {
-  const { user } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
+  const { getUserMaterials, getUserStudyPlans } = useDatabase();
+
+  const [materialsCount, setMaterialsCount] = useState<number | null>(null);
+  const [studyPlansCount, setStudyPlansCount] = useState<number | null>(null);
+  const [dataLoading, setDataLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadCounts = async () => {
+      if (!user) {
+        if (mounted) {
+          setMaterialsCount(0);
+          setStudyPlansCount(0);
+        }
+        return;
+      }
+
+      try {
+        setDataLoading(true);
+        const materials = await getUserMaterials();
+        const plans = await getUserStudyPlans();
+        if (!mounted) return;
+        setMaterialsCount(Array.isArray(materials) ? materials.length : 0);
+        setStudyPlansCount(Array.isArray(plans) ? plans.length : 0);
+      } catch (err) {
+        // Si falla la carga, dejamos los contadores en 0 y registramos el error
+        console.error('Error cargando materials/studyPlans:', err);
+        if (mounted) {
+          setMaterialsCount(0);
+          setStudyPlansCount(0);
+        }
+      } finally {
+        if (mounted) setDataLoading(false);
+      }
+    };
+
+    loadCounts();
+    return () => {
+      mounted = false;
+    };
+  }, [user, getUserMaterials, getUserStudyPlans]);
 
   // Datos de ejemplo para el rediseño
   const studyStats = {
     streakDays: 7,
     totalHoursThisMonth: 45,
-    activeSubjects: 5,
-    mostStudiedSubject: 'Matemáticas Avanzadas',
+    // activeSubjects and mostStudiedSubject will be populated from DB
+    activeSubjects: materialsCount ?? 0,
+    mostStudiedSubject:
+      studyPlansCount !== null ? String(studyPlansCount) : '0',
     // ¡NUEVO! Datos para el gráfico holográfico
     weeklyProgress: [0.2, 0.5, 0.7, 0.8, 0.6, 0.9, 0.75], // Progreso ficticio
   };
@@ -70,19 +114,25 @@ const Profile = () => {
               )}
             </div>
             <div className="user-details-lg">
-              <h3 className="user-name-lg">
-                {user?.displayName || 'Explorador'}
-              </h3>
-              <p className="user-status-tag">Conectado al Hivemind</p>{' '}
-              {/* ¡NUEVO! Estado cool */}
-              <div className="study-streak glow-effect">
-                {' '}
-                {/* ¡MÁS SPICY! Efecto glow */}
-                <Award size={24} className="streak-icon" />
-                <span className="streak-text">
-                  Racha: **{studyStats.streakDays} días**
-                </span>
-              </div>
+              {loading ? (
+                <div className="profile-loading">Cargando perfil...</div>
+              ) : (
+                <>
+                  <h3 className="user-name-lg">
+                    {user?.displayName || 'Explorador'}
+                  </h3>
+                  <p className="user-email-lg">{user?.email}</p>
+                  <p className="user-status-tag">Conectado al Hivemind</p>
+
+                  {/* Estado cool */}
+                  <div className="study-streak glow-effect">
+                    <Award size={24} className="streak-icon" />
+                    <span className="streak-text">
+                      Racha: {studyStats.streakDays} días
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           {/* ¡NUEVO! Gráfico holográfico de progreso (visual placeholder) */}
@@ -129,7 +179,11 @@ const Profile = () => {
                 <Globe size={32} />
               </div>
               <div className="stat-info">
-                <span className="stat-value">{studyStats.activeSubjects}</span>
+                <span className="stat-value">
+                  {dataLoading || materialsCount === null
+                    ? '...'
+                    : materialsCount}
+                </span>
                 <span className="stat-label">Materias en curso</span>
               </div>
             </div>
@@ -139,9 +193,11 @@ const Profile = () => {
               </div>
               <div className="stat-info">
                 <span className="stat-value">
-                  {studyStats.mostStudiedSubject}
+                  {dataLoading || studyPlansCount === null
+                    ? '...'
+                    : studyPlansCount}
                 </span>
-                <span className="stat-label">Estrella principal</span>
+                <span className="stat-label">Planes de estudio generados</span>
               </div>
             </div>
           </div>
