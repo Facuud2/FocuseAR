@@ -36,6 +36,14 @@ Las variables de entorno se encuentran en el archivo `.env` en la raiz del proye
     git pull origin develop
     ```
 
+    ## Documentación de características
+
+    Encontrarás documentación técnica y guías de las características en la carpeta `docs/`.
+
+    - Progreso de Estudio (sesiones Pomodoro): `docs/STUDY_PROGRESS.md`
+    - Integración Firestore: `docs/FIRESTORE_INTEGRATION.md`
+
+
 3.  **Crear una nueva rama para tu tarea:**
     Crea una nueva rama a partir de `develop` para trabajar en tu nueva funcionalidad o corrección. recuerda **utilizar el boton create branch desde la tarea**, la misma te traera una tarea `{numero}-{nombre-de-tarea}`.
     ```bash
