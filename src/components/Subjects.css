@@ -7,6 +7,32 @@
   align-items: flex-end;
   justify-content: flex-start;
 }
+/* Loading bar animation used by Subjects component when generating quiz */
+@keyframes loadingBar {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(-30%); }
+  100% { transform: translateX(100%); }
+}
+
+.subjects-loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  z-index: 9999;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(96,165,250,0.6) 0%, rgba(167,139,250,0.6) 100%);
+}
+
+.subjects-loading-bar::after {
+  content: '';
+  display: block;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa 0%, #a78bfa 100%);
+  animation: loadingBar 1.2s linear infinite;
+}
 
 .subjects-title {
   font-size: 2.2rem;

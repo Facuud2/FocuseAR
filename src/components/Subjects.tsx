@@ -71,9 +71,11 @@ const Subjects: React.FC = () => {
 
   const [analysisSuccess, setAnalysisSuccess] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
 
   const handleGenerateQuiz = async (subject: Subject) => {
     if (!user) return;
+    setIsGeneratingQuiz(true);
     try {
       const endpoint = import.meta.env
         .VITE_GENERATE_QUIZ_FROM_MATERIAL_ENDPOINT;
@@ -86,19 +88,25 @@ const Subjects: React.FC = () => {
         body: JSON.stringify({ materialId: subject.id, userId: user.uid }),
       });
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || 'Failed to generate quiz');
       }
       const responseData = await response.json();
       if (responseData.success && responseData.quizId) {
-        navigate(`/quizzes/${responseData.quizId}`);
+        // navegar a la lista de quizzes para ver el quiz generado
+        navigate('/quizzes');
       } else {
         throw new Error(
           'Failed to generate quiz: Invalid response from server.',
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
+      alert(
+        error instanceof Error ? error.message : 'Error al generar el quiz',
+      );
+    } finally {
+      setIsGeneratingQuiz(false);
     }
   };
 
@@ -373,6 +381,7 @@ const Subjects: React.FC = () => {
 
   return (
     <div className="subjects-container">
+      {isGeneratingQuiz && <div className="subjects-loading-bar" />}
       {/* ===== COLUMNA IZQUIERDA ===== */}
       <div className="subjects-left-column">
         <div className="panel">
@@ -813,9 +822,10 @@ const Subjects: React.FC = () => {
                           className="btn btn-quiz"
                           onClick={() => handleGenerateQuiz(subject)}
                           aria-label={`Generar quiz para ${subject.name}`}
+                          disabled={isGeneratingQuiz}
                         >
                           <i className="fas fa-question-circle"></i>
-                          Generar Quiz
+                          {isGeneratingQuiz ? 'Generando...' : 'Generar Quiz'}
                         </button>
 
                         <button

@@ -48,6 +48,9 @@ export default function Sidebar({
     }
   }, [isCollapsed]);
 
+  // Toggle to show/hide Analytics section easily during development
+  const SHOW_ANALYTICS = false;
+
   const menuSections = [
     {
       title: 'Dashboard',
@@ -86,23 +89,28 @@ export default function Sidebar({
         { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
       ],
     },
-    {
-      title: 'Analytics',
-      items: [
-        {
-          id: 'progress',
-          label: 'Progress',
-          icon: TrendingUp,
-          path: '/progress',
-        },
-        {
-          id: 'analytics',
-          label: 'Analytics',
-          icon: BarChart3,
-          path: '/analytics',
-        },
-      ],
-    },
+    // La ocultamos si SHOW_ANALYTICS es falso
+    ...(SHOW_ANALYTICS
+      ? [
+          {
+            title: 'Analytics',
+            items: [
+              {
+                id: 'progress',
+                label: 'Progress',
+                icon: TrendingUp,
+                path: '/progress',
+              },
+              {
+                id: 'analytics',
+                label: 'Analytics',
+                icon: BarChart3,
+                path: '/analytics',
+              },
+            ],
+          },
+        ]
+      : []),
     {
       title: 'Settings',
       items: [
