@@ -2,12 +2,14 @@
 
 ## Resumen General
 
-FocuseAR utiliza Firebase Firestore como base de datos NoSQL para almacenar toda la información de usuarios, materiales, planes de estudio, conversaciones de IA, quizzes, eventos y configuraciones. La aplicación está diseñada para manejar datos de forma escalable y en tiempo real.
+FocuseAR utiliza Firebase Firestore como base de datos NoSQL para almacenar toda la información de usuarios, materiales, planes de estudio, conversaciones de IA, quizzes, eventos, notas de usuario y configuraciones. La aplicación está diseñada para manejar datos de forma escalable y en tiempo real con soporte completo para funciones serverless.
 
 **Proyecto Firebase**: `proyecto-final-universitario`  
-**Autenticación**: Google Auth  
-**Base de datos**: Firestore  
-**Storage**: Firebase Storage para archivos PDF
+**Autenticación**: Firebase Auth (Google, Email/Password)  
+**Base de datos**: Firestore (NoSQL)  
+**Storage**: Firebase Storage para archivos PDF  
+**Functions**: Firebase Functions para procesamiento IA y operaciones complejas  
+**IA Integration**: Google Gemini AI para análisis de contenido y generación de quizzes
 
 ## Estructura de Colecciones
 
@@ -296,24 +298,35 @@ interface AIConversationMessage {
 ```
 
 ### 6. Colección `quizzes`
-Almacena cuestionarios generados para evaluación de conocimientos.
+Almacena cuestionarios generados automáticamente por IA para evaluación de conocimientos.
 
 **Estructura del documento:**
 ```typescript
 interface Quiz {
   id?: string;
-  questions: QuizQuestion[];
-  subjectName: string;
   materialId: string;
   userId: string;
+  questions: ProcessedQuizQuestion[];
   createdAt: Timestamp;
-  updatedAt: Timestamp;
+  completedAt?: Timestamp;
+  score?: number;
+  totalQuestions: number;
+  correctAnswers: number;
 }
 
-interface QuizQuestion {
-  question: string;
+interface ProcessedQuizQuestion {
+  id: string; // UUID generado
+  questionText: string;
+  options: string[]; // Exactamente 4 opciones
+  correctAnswerIndex: number; // Índice de la respuesta correcta (0-3)
+  userSelectedIndex?: number | null;
+  isCorrect?: boolean | null;
+}
+
+interface RawQuestion {
+  questionText: string;
   options: string[];
-  correctAnswer: string;
+  correctAnswerIndex: number;
 }
 ```
 
@@ -321,18 +334,28 @@ interface QuizQuestion {
 ```json
 {
   "id": "quiz_001",
-  "questions": [
-    {
-      "question": "¿Qué es un vector?",
-      "options": ["Una magnitud escalar", "Una magnitud vectorial", "Un número", "Una función"],
-      "correctAnswer": "Una magnitud vectorial"
-    }
-  ],
-  "subjectName": "Matemáticas Avanzadas",
   "materialId": "material_001",
   "userId": "abc123xyz",
+  "questions": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "questionText": "¿Qué es un vector en álgebra lineal?",
+      "options": [
+        "Una magnitud escalar",
+        "Una magnitud vectorial con dirección y sentido",
+        "Un número complejo",
+        "Una función matemática"
+      ],
+      "correctAnswerIndex": 1,
+      "userSelectedIndex": null,
+      "isCorrect": null
+    }
+  ],
   "createdAt": "2024-01-15T15:00:00Z",
-  "updatedAt": "2024-01-15T15:00:00Z"
+  "completedAt": null,
+  "score": null,
+  "totalQuestions": 10,
+  "correctAnswers": 0
 }
 ```
 
@@ -375,8 +398,76 @@ interface UserEvent {
 }
 ```
 
-### 8. Colección `folders`
-Sistema de carpetas para organizar materiales (implementación futura).
+### 8. Colección `user_notes`
+Almacena notas y tareas personales del usuario en el componente de anotador.
+
+**Estructura del documento:**
+```typescript
+interface UserNotesDocument {
+  notes: UserNote[];
+  updatedAt: Timestamp;
+}
+
+interface UserNote {
+  id: number | string;
+  text: string;
+  completed: boolean;
+  type: 'note' | 'task';
+}
+```
+
+**Ejemplo:**
+```json
+{
+  "notes": [
+    {
+      "id": 1642123456789,
+      "text": "Revisar capítulo 3 de matemáticas",
+      "completed": false,
+      "type": "task"
+    },
+    {
+      "id": 1642123456790,
+      "text": "Recordar traer calculadora al examen",
+      "completed": true,
+      "type": "note"
+    }
+  ],
+  "updatedAt": "2024-01-15T16:30:00Z"
+}
+```
+
+### 9. Colección `ai_cache`
+Cache de respuestas de IA para optimización y reducción de costos.
+
+**Estructura del documento:**
+```typescript
+interface AICacheEntry {
+  userId: string;
+  material?: string;
+  topic?: string;
+  question: string;
+  normalizedQuestion: string;
+  answer: string;
+  cachedAt: string; // ISO timestamp
+}
+```
+
+**Ejemplo:**
+```json
+{
+  "userId": "abc123xyz",
+  "material": "Matemáticas Avanzadas",
+  "topic": "Álgebra Lineal",
+  "question": "¿Qué son los vectores?",
+  "normalizedQuestion": "que son los vectores",
+  "answer": "Los vectores son entidades matemáticas que representan magnitudes que tienen dirección y sentido.",
+  "cachedAt": "2024-01-15T16:45:00Z"
+}
+```
+
+### 10. Colección `folders`
+Sistema de carpetas para organizar materiales (implementación futura expandida).
 
 **Estructura del documento:**
 ```typescript
@@ -488,6 +579,34 @@ const eventData = {
 const eventId = await DatabaseService.createUserEvent(eventData);
 ```
 
+#### Crear Quiz Automático (vía Function)
+```typescript
+// Desde el frontend, tras subir un material
+const handleGenerateQuiz = async (subject) => {
+  const response = await fetch(`${GENERATE_QUIZ_ENDPOINT}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+      materialId: subject.id, 
+      userId: user.uid 
+    })
+  });
+  
+  const result = await response.json();
+  // result: { success: true, quizId: "quiz_xyz", totalQuestions: 10 }
+  navigate(`/quiz/${result.quizId}`);
+};
+```
+
+#### Crear Notas de Usuario
+```typescript
+const notes = [
+  { id: Date.now(), text: "Estudiar capítulo 3", completed: false, type: "task" },
+  { id: Date.now() + 1, text: "Revisar ejercicios", completed: true, type: "note" }
+];
+await DatabaseService.saveUserNotes(userId, notes);
+```
+
 ### Leer Datos
 
 #### Obtener Materiales del Usuario
@@ -536,6 +655,12 @@ const quiz = await DatabaseService.getQuiz(quizId);
 ```typescript
 const activities = await DatabaseService.getRecentActivities(userId, 10);
 // Consolida actividades de materiales, planes, conversaciones y quizzes
+```
+
+#### Obtener Notas del Usuario
+```typescript
+const userNotes = await DatabaseService.getUserNotes(userId);
+// userNotes: UserNote[] - array de notas del usuario
 ```
 
 ### Actualizar Datos
@@ -741,6 +866,15 @@ service cloud.firestore {
         request.auth.uid == resource.data.userId;
     }
     
+    match /user_notes/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /ai_cache/{cacheId} {
+      allow read, write: if request.auth != null;
+      // Cache es compartido pero controlado por las functions
+    }
+    
     match /folders/{folderId} {
       allow read, write: if request.auth != null && 
         request.auth.uid == resource.data.userId;
@@ -751,22 +885,27 @@ service cloud.firestore {
 
 ## Consideraciones de Rendimiento
 
-### Indexación
+### Indexación Automática
 - **materials**: Índice compuesto en `userId` + `createdAt`
 - **studyPlans**: Índice compuesto en `userId` + `materialId`
 - **studyPlans**: Índice compuesto en `userId` + `createdAt`
 - **ai_conversations**: Índice compuesto en `userId` + `createdAt`
 - **quizzes**: Índice compuesto en `userId` + `createdAt`
 - **events**: Índice compuesto en `userId` + `start`
+- **user_notes**: Índice simple en `userId` (documento por usuario)
+- **ai_cache**: Índices compuestos para optimización de búsqueda de cache
 
-### Optimizaciones
-1. **Paginación**: Para usuarios con muchos materiales (implementar con `limit()`)
-2. **Cache Local**: Los datos se mantienen en estado React para acceso rápido
-3. **Eliminación en Cascada**: Al eliminar material, se eliminan planes asociados automáticamente
-4. **Validación**: Verificación de permisos antes de operaciones
-5. **Normalización de Temas**: Los temas se normalizan automáticamente de string[] a Topic[]
-6. **Sanitización**: Campos `undefined` se eliminan antes de persistir en Firestore
-7. **Enriquecimiento**: Los planes incluyen automáticamente `subjectName` del material asociado
+### Optimizaciones Implementadas
+1. **Cache de IA**: Las respuestas de Gemini AI se almacenan para reutilización
+2. **Paginación**: Para usuarios con muchos materiales (implementar con `limit()`)
+3. **Cache Local**: Los datos se mantienen en estado React para acceso rápido
+4. **Eliminación en Cascada**: Al eliminar material, se eliminan planes asociados automáticamente
+5. **Validación**: Verificación de permisos antes de operaciones
+6. **Normalización de Temas**: Los temas se normalizan automáticamente de string[] a Topic[]
+7. **Sanitización**: Campos `undefined` se eliminan antes de persistir en Firestore
+8. **Enriquecimiento**: Los planes incluyen automáticamente `subjectName` del material asociado
+9. **Debounced Saves**: Las notas se guardan con retraso para reducir writes a Firestore
+10. **Generación Serverless**: Los quizzes se generan vía Functions para mejor rendimiento
 
 ## Manejo de Errores
 
@@ -784,24 +923,82 @@ try {
 }
 ```
 
-## Funciones Cloud Integradas
+## Firebase Functions Integradas
 
-### 1. `geminiResponse`
-- **URL**: `https://us-central1-proyecto-final-universitario.cloudfunctions.net/geminiResponse`
-- **Propósito**: Genera planes de estudio estructurados usando Gemini AI
-- **Input**: `{ text, examDate, selectedWeekDays, topics }`
-- **Output**: Plan estructurado con días, tareas y recomendaciones
+### 1. Funciones de Procesamiento IA
 
-### 2. `processPdfTopics`
-- **URL**: `https://us-central1-proyecto-final-universitario.cloudfunctions.net/processPdfTopics`
-- **Propósito**: Extrae temas principales de texto de PDF usando IA
-- **Input**: `{ text, subjectName }`
-- **Output**: Lista de temas con descripción y orden
-
-### 3. `askGeminiBot`
-- **Propósito**: Chatbot IA para consultas sobre materiales de estudio
+#### `askGeminiBot`
+- **URL**: `https://us-central1-proyecto-final-universitario.cloudfunctions.net/askGeminiBot`
+- **Propósito**: Chatbot IA para responder consultas sobre materiales de estudio
 - **Input**: `{ userId, material, topic, question }`
-- **Output**: `{ answer, source }`
+- **Output**: `{ response, context: { material, topic }, source: 'gemini-bot' }`
+- **Features**: Cache de respuestas, normalización de preguntas, reintentos automáticos
+- **Cache**: Las respuestas se almacenan en colección `ai_cache` para optimización
+
+#### `generateStudyContent`
+- **Propósito**: Genera contenido de estudio estructurado usando IA
+- **Input**: Material y parámetros de configuración
+- **Output**: Contenido educativo personalizado
+
+#### `processPdfTopics`
+- **URL**: `https://us-central1-proyecto-final-universitario.cloudfunctions.net/processPdfTopics`
+- **Propósito**: Extrae temas principales de texto de PDF usando Gemini AI
+- **Input**: `{ text, subjectName }`
+- **Output**: `{ parsed: { topics: [...], summary: "..." }, source: 'gemini' }`
+- **Features**: Análisis inteligente de contenido, estructura JSON confiable
+
+#### `generateQuizFromMaterial`
+- **URL**: `https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateQuizFromMaterial`
+- **Propósito**: Genera quizzes automáticamente basados en los temas de un material
+- **Input**: `{ materialId, userId }`
+- **Output**: `{ success: true, quizId, totalQuestions, message }`
+- **Features**: 
+  - Generación de exactamente 10 preguntas de múltiple opción
+  - 4 opciones por pregunta con una sola respuesta correcta
+  - Validación automática de formato JSON
+  - Integración directa con colección `quizzes`
+
+### 2. Funciones de Planificación
+
+#### `generateStudyPlan`
+- **Propósito**: Crea planes de estudio personalizados usando IA
+- **Input**: Material, fechas de examen, disponibilidad del usuario
+- **Output**: Plan estructurado con cronograma detallado
+
+### 3. Funciones de Gestión de Carpetas
+
+#### `createFolder`
+- **Propósito**: Crear nuevas carpetas en el sistema de organización
+- **Input**: `{ name, path, userId }`
+- **Output**: ID de carpeta creada
+
+#### `renameFolder`
+- **Propósito**: Renombrar carpetas existentes
+- **Input**: `{ folderId, newName }`
+- **Output**: Confirmación de actualización
+
+#### `deleteFolder`
+- **Propósito**: Eliminar carpetas y reorganizar contenido
+- **Input**: `{ folderId }`
+- **Output**: Confirmación de eliminación
+
+### 4. Configuración CORS y Seguridad
+
+Todas las functions implementan:
+- **CORS Headers**: Configuración específica para `https://focuse-ar.vercel.app`
+- **Preflight Handling**: Manejo automático de requests OPTIONS
+- **Error Handling**: Respuestas estructuradas con códigos HTTP apropiados
+- **Environment Detection**: Desarrollo vs producción automático
+- **Rate Limiting**: Control de abuso implementado por función
+
+```typescript
+// Configuración CORS unificada
+const allowedOrigins = [
+  'https://focuse-ar.vercel.app',
+  'https://focuse-ar-git-main.vercel.app',
+  ...(isDevelopment ? ['http://localhost:3000', 'http://localhost:5173'] : [])
+];
+```
 
 ## Integración con useDatabase Hook
 
@@ -810,6 +1007,7 @@ El hook `useDatabase` proporciona una interfaz simplificada que:
 - Gestiona estados de `loading` y `error`
 - Proporciona funciones CRUD con validación
 - Integra configuraciones de usuario automáticamente
+- Incluye funciones para notas de usuario (`saveUserNotes`, `getUserNotes`)
 
 ```typescript
 const {
@@ -820,9 +1018,27 @@ const {
   getUserMaterials,
   getUserStudyPlans,
   updateStudyPlan,
+  saveUserNotes,      // Nueva función para notas
+  getUserNotes,       // Nueva función para notas
   // ... más funciones
 } = useDatabase();
 ```
+
+## Arquitectura Serverless y Funciones Cloud
+
+### Flujo de Procesamiento IA
+1. **Cliente** → Sube PDF y metadatos
+2. **processPdfTopics Function** → Extrae temas con Gemini AI
+3. **DatabaseService** → Almacena material con temas extraídos
+4. **generateQuizFromMaterial Function** → Genera quiz basado en temas
+5. **askGeminiBot Function** → Responde consultas específicas con cache
+
+### Beneficios de la Arquitectura
+- **Escalabilidad**: Functions se escalan automáticamente según demanda
+- **Costo**: Solo se paga por uso real de IA y procesamiento
+- **Seguridad**: Lógica sensible ejecuta en servidor, no en cliente
+- **Cache**: Respuestas de IA se reutilizan para reducir costos
+- **CORS**: Configuración centralizada y segura para producción
 
 ## Backup y Recuperación
 
@@ -844,15 +1060,32 @@ const {
 - Los materiales antiguos sin `subjectName` usan `fileName` como fallback
 - Los temas pueden ser strings o objetos Topic (se normalizan automáticamente)
 - Los planes antiguos se enriquecen con `subjectName` al cargar
+- Las notas migran automáticamente de localStorage a Firestore
+- Los quizzes antiguos se actualizan al nuevo formato con UUIDs
 
 ### Futuras Expansiones
-- Sistema de carpetas completamente implementado
+- Sistema de carpetas completamente implementado con operaciones CRUD
 - Notificaciones push para recordatorios de estudio
-- Colaboración entre usuarios
-- Analytics avanzados de progreso de estudio
+- Colaboración entre usuarios en materiales compartidos
+- Analytics avanzados de progreso de estudio con métricas detalladas
+- Integración con calendarios externos (Google Calendar, Outlook)
+- Sistema de recompensas y gamificación expandido
+- Soporte para más formatos de archivo (DOCX, PPT, videos)
+- IA conversacional más avanzada con memoria de contexto
+- Sistema de tutores virtuales personalizados
+
+### Monitoreo y Observabilidad
+- **Firebase Console**: Métricas de uso y rendimiento en tiempo real
+- **Functions Logs**: Monitoreo de ejecución de funciones serverless
+- **Error Tracking**: Logs estructurados con contexto para debugging
+- **Usage Analytics**: Seguimiento de operaciones CRUD y patrones de uso
+- **AI Costs**: Monitoreo de costos de Gemini AI y optimización de cache
+- **Performance**: Métricas de latencia de base de datos y functions
 
 ---
 
-*Última actualización: Octubre 2024*  
-*Versión: 2.0*  
-*Proyecto: proyecto-final-universitario*
+*Última actualización: Noviembre 2024*  
+*Versión: 3.0*  
+*Proyecto: proyecto-final-universitario*  
+*Arquitectura: Firebase + Firestore + Functions + Gemini AI*  
+*Frontend: React + TypeScript desplegado en Vercel*
