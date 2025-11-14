@@ -766,6 +766,55 @@ export class DatabaseService {
     }
   }
 
+  // Guardar resultado de un quiz para un usuario en la colección 'quizResults'
+  static async saveQuizResult(
+    userId: string,
+    quizId: string,
+    score: number,
+  ): Promise<string | null> {
+    try {
+      const payload: DocumentData = {
+        userId,
+        quizId,
+        score,
+        createdAt: Timestamp.now(),
+      };
+      const ref = await addDoc(collection(db, 'quizResults'), payload);
+      console.log('✅ Resultado de quiz guardado con id:', ref.id);
+      return ref.id;
+    } catch (error) {
+      console.error('❌ Error al guardar resultado de quiz:', error);
+      return null;
+    }
+  }
+
+  // Obtener la mejor (más alta) puntuación de un usuario para un quiz específico
+  static async getBestQuizScore(
+    userId: string,
+    quizId: string,
+  ): Promise<{ score: number; createdAt: Timestamp } | null> {
+    try {
+      const q = query(
+        collection(db, 'quizResults'),
+        where('userId', '==', userId),
+        where('quizId', '==', quizId),
+        orderBy('score', 'desc'),
+        limit(1),
+      );
+      const snap = await getDocs(q);
+      if (snap.empty) return null;
+      const docSnap = snap.docs[0];
+      const data = docSnap.data();
+      return {
+        score: (data.score as number) || 0,
+        createdAt: data.createdAt as Timestamp,
+      };
+    } catch (error) {
+      console.error('❌ Error al obtener mejor puntuación del quiz:', error);
+      return null;
+    }
+  }
+
   // 16. Get a single quiz by its ID
   static async getQuiz(quizId: string): Promise<Quiz | null> {
     try {

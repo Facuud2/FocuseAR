@@ -22,8 +22,9 @@ interface Quiz {
 
 const Quizzes: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { getQuizzes, deleteQuiz } = useDatabase();
+  const { getQuizzes, deleteQuiz, getBestQuizScore } = useDatabase();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [bestScores, setBestScores] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -49,6 +50,30 @@ const Quizzes: React.FC = () => {
       try {
         const userQuizzes = await getQuizzes();
         setQuizzes(userQuizzes);
+        // Fetch best scores for each quiz in background
+        try {
+          const scoresMap: Record<string, number> = {};
+          await Promise.all(
+            (userQuizzes || []).map(async (q) => {
+              if (!q.id) return;
+              try {
+                const best = await getBestQuizScore(q.id);
+                if (best && typeof best.score === 'number') {
+                  scoresMap[q.id!] = best.score;
+                }
+              } catch (e) {
+                console.warn(
+                  'No se pudo obtener mejor puntuación para quiz',
+                  q.id,
+                  e,
+                );
+              }
+            }),
+          );
+          setBestScores(scoresMap);
+        } catch (e) {
+          console.warn('Error fetching best scores', e);
+        }
       } catch (error) {
         console.error('Error loading quizzes:', error);
       } finally {
@@ -56,7 +81,7 @@ const Quizzes: React.FC = () => {
       }
     };
     loadQuizzes();
-  }, [user, getQuizzes, deleteQuiz]);
+  }, [user, getQuizzes, deleteQuiz, getBestQuizScore]);
 
   // Define a type for Firestore Timestamp-like objects
   interface FirestoreTimestamp {
@@ -195,6 +220,11 @@ const Quizzes: React.FC = () => {
               <p className="quiz-date">
                 Creado: {toDate(quizItem.createdAt).toLocaleDateString()}
               </p>
+              {quizItem.id && bestScores[quizItem.id] !== undefined && (
+                <p className="quiz-best-score">
+                  Mejor puntuación: {bestScores[quizItem.id]} preguntas
+                </p>
+              )}
               <Link to={`/quiz/${quizItem.id}`} className="play-quiz-btn">
                 Jugar
               </Link>

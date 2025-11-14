@@ -218,6 +218,12 @@
   margin-bottom: 8px;
 }
 
+.quiz-card .quiz-best-score {
+  font-weight: 800;
+  color: var(--accent-color);
+  margin-top: 6px;
+}
+
 .quiz-card .quiz-type {
   font-style: italic;
   color: var(--text-color);
