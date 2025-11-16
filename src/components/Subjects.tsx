@@ -75,16 +75,16 @@ const Subjects: React.FC = () => {
   const handleGenerateQuiz = async (subject: Subject) => {
     if (!user) return;
     try {
-      const response = await fetch(
-        'https://us-central1-proyecto-final-universitario.cloudfunctions.net/generateQuizFromMaterial',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ materialId: subject.id, userId: user.uid }),
+      const endpoint = import.meta.env
+        .VITE_GENERATE_QUIZ_FROM_MATERIAL_ENDPOINT;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({ materialId: subject.id, userId: user.uid }),
+      });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate quiz');
@@ -210,7 +210,7 @@ const Subjects: React.FC = () => {
 
         if (materialId) {
           const newSubject: Subject = {
-            id: Date.now(),
+            id: materialId,
             name: subjectName,
             examDate:
               importantDates.length > 0
@@ -727,9 +727,25 @@ const Subjects: React.FC = () => {
       {/* ===== COLUMNA DERECHA ===== */}
       <div className="subjects-right-column">
         <div className="panel subjects-list-panel">
-          <h2>
-            <i className="fas fa-list"></i> Mis Materias
-          </h2>
+          <h1
+            className="subjects-title"
+            style={{
+              fontSize: '2.2rem',
+              fontWeight: 700,
+              color: 'var(--text-primary)',
+              margin: 0,
+              letterSpacing: '-0.5px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+            }}
+          >
+            <i
+              className="fas fa-book-open"
+              style={{ marginRight: '0.6rem', color: '#4285F4' }}
+            ></i>
+            Mis Materias
+          </h1>
           {subjects.length === 0 ? (
             <div className="empty-state">
               <i className="fas fa-book-open"></i>

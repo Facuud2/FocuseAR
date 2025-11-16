@@ -509,7 +509,15 @@ const Dashboard: React.FC = () => {
       {/* CALENDAR PANEL (col-span-12) */}
       <div className="panel calendar-panel grid-span-12">
         <div className="panel-title-container">
-          <h3 className="panel-title">Calendario de Estudio</h3>
+          <h3 className="panel-title">Calendario de Estudio y Eventos</h3>
+          <button
+            className="add-event-btn-header"
+            onClick={() => setShowAddEventModal(true)}
+            title="Añadir evento personalizado"
+          >
+            <Plus size={20} />
+            Añadir Evento
+          </button>
           <div className="calendar-header">
             {/* --- 2. CÓDIGO CORREGIDO --- */}
             <button

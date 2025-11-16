@@ -443,3 +443,67 @@
     height: 6px;
   }
 }
+
+/* Small-screen (<=360px) optimizations for StudyArea */
+@media (max-width: 360px) {
+  .study-area {
+    padding: 0.75rem !important;
+    border-radius: 10px !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  .study-area-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 0.5rem !important;
+    border-bottom: none !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .study-area-title {
+    font-size: 1.1rem !important;
+  }
+
+  .current-session {
+    width: auto !important;
+    padding: 0.35rem 0.6rem !important;
+    font-size: 0.8rem !important;
+    border-radius: 999px !important;
+  }
+
+  .plan-selector select {
+    font-size: 0.95rem !important;
+  }
+
+  .topics-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.6rem !important;
+  }
+
+  .topic-card {
+    padding: 0.75rem !important;
+  }
+
+  .start-topic-btn, .generate-content-btn {
+    width: 100% !important;
+    font-size: 0.95rem !important;
+    padding: 0.6rem 0.8rem !important;
+    border-radius: 12px !important;
+  }
+
+  .no-plans {
+    padding: 1rem !important;
+    height: auto !important;
+  }
+
+  .study-progress, .plan-info {
+    width: 100% !important;
+  }
+}

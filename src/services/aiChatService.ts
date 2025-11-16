@@ -19,9 +19,7 @@ export async function askGeminiBot({
   question,
 }: AskGeminiBotParams): Promise<AskGeminiBotResponse> {
   // Cambia esta URL por la de tu función en producción si es necesario
-  const endpoint =
-    import.meta.env.VITE_GEMINI_ENDPOINT_BOT ||
-    'http://localhost:5001/focusear/us-central1/askGeminiBot';
+  const endpoint = import.meta.env.VITE_GEMINI_ENDPOINT_BOT;
 
   // Log de depuración
   console.log('[askGeminiBot] endpoint:', endpoint);
@@ -43,5 +41,18 @@ export async function askGeminiBot({
 
   const data = await response.json();
   console.log('[askGeminiBot] respuesta:', data);
-  return data;
+  // Normalizar distintos shapes que pueda devolver la Cloud Function:
+  // - { response: 'texto', source: 'gemini-bot' }
+  // - { answer: 'texto', source: 'gemini-bot' }
+  // - { raw_response: 'texto', source: 'gemini' }
+  const answer =
+    (data &&
+      (data.response || data.answer || data.raw_response || data.summary)) ||
+    '';
+  const source = (data && (data.source || data.from || '')) || '';
+
+  return {
+    answer: String(answer),
+    source: String(source),
+  };
 }
