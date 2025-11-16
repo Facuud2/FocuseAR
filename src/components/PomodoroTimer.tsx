@@ -9,7 +9,7 @@ import {
   Coffee,
   Sun,
   Brain,
-  Gem,
+  // Gem, // Comentado temporalmente
   Check,
 } from 'lucide-react';
 import StudyArea from './StudyArea';
@@ -18,7 +18,7 @@ import StudyArea from './StudyArea';
 // Tipos de tienda/logros/recompensas eliminados para simplificar el componente
 
 // Timer constants
-const POMODORO_TIME = 1 * 60;
+const POMODORO_TIME = 25 * 60;
 const SHORT_BREAK = 5 * 60;
 const LONG_BREAK = 15 * 60;
 
@@ -37,10 +37,13 @@ const PomodoroTimer = () => {
   );
   const [time, setTime] = useState(POMODORO_TIME);
   const [isActive, setIsActive] = useState(false);
+  // Variables de gamificación - mantener funcionalidad pero ocultar UI
   const [cycles, setCycles] = useState(0);
-  const [consecutiveCycles, setConsecutiveCycles] = useState(0); // New state for tracking consecutive cycles
+  const [consecutiveCycles, setConsecutiveCycles] = useState(0);
   const [isCycleComplete, setIsCycleComplete] = useState(false);
   const [focusPoints, setFocusPoints] = useState(0);
+
+  void cycles; // Suprime warning de variable no usada
   const [currentStudyTopic, setCurrentStudyTopic] = useState<{
     id: string;
     name: string;
@@ -190,11 +193,6 @@ const PomodoroTimer = () => {
     if (mode === 'short-break') return videoUrls.shortBreak;
     return videoUrls.longBreak;
   };
-  // Item image helper and purchase logic removed (shop/achievements discarded)
-
-  const addTestPoints = () => {
-    setFocusPoints((prev) => prev + 100);
-  };
 
   // Función para iniciar sesión de estudio con un tema específico
   const handleStartStudySession = (topic: {
@@ -210,10 +208,6 @@ const PomodoroTimer = () => {
     }
   };
 
-  // Custom rewards removed
-
-  // Achievements UI removed
-
   return (
     <div className="cottagecore-container">
       {/* Shop, rewards and achievements removed */}
@@ -225,14 +219,13 @@ const PomodoroTimer = () => {
             : 'Área de Estudio'}
         </h1>
         <div className="user-info">
+          {/* Sistema de focus points temporalmente oculto */}
+          {/* 
           <div className="focus-points">
             <Gem size={20} />
             <span className="points-value">{focusPoints}</span>
-            <button className="add-points-btn" onClick={addTestPoints}>
-              +
-            </button>
-            {/* Botón de prueba removido */}
           </div>
+          */}
         </div>
       </header>
 
@@ -294,15 +287,6 @@ const PomodoroTimer = () => {
               <button className="control-btn reset" onClick={handleReset}>
                 <RotateCcw size={24} /> Reiniciar
               </button>
-            </div>
-
-            <div className="cycle-info">
-              <div>
-                Ciclos: <strong>{cycles}</strong>
-              </div>
-              <div>
-                Racha: <strong>{consecutiveCycles}</strong>
-              </div>
             </div>
           </div>
 

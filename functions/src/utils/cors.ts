@@ -2,10 +2,10 @@ import cors from 'cors';
 
 // Dominios permitidos para CORS
 const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:4173',
-  'https://focuse-ar.vercel.app',
+  'http://localhost:5173', // Desarrollo local Vite (principal)
+  'http://localhost:3000', // Desarrollo local React
+  'http://localhost:4173', // Preview Vite
+  'https://focuse-ar.vercel.app', // Producción Vercel
 ];
 
 // Configuración segura de CORS
@@ -31,8 +31,11 @@ export function addCorsHeaders(
   },
   origin?: string,
 ) {
+  // Si el origin está en la lista permitida, usarlo. Si no, usar el de desarrollo principal
   const allowedOrigin =
-    origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+    origin && allowedOrigins.includes(origin)
+      ? origin
+      : 'http://localhost:5173'; // Default a Vite para desarrollo
 
   res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
