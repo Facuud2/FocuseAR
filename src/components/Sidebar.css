@@ -57,27 +57,23 @@
 }
 
 .sidebar-container {
-  width: 320px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--glass-shadow);
+  /* ... tus otros estilos ... */
+  width: 280px; /* Ancho MÁXIMO */
   position: fixed;
   left: 0;
   top: 0;
   height: 100vh;
-  z-index: 40;
-  border-radius: 0 18px 18px 0;
-  border-right: var(--glass-border);
-  overflow-x: hidden;
-  transition: var(--transition-smooth);
+  transition: width 0.3s ease; 
+  will-change: width; 
+  transform: translateX(0);
+  overflow-y: auto;
 }
 
 .sidebar-container.collapsed {
-  width: 80px;
+  /* Al colapsar, cambiamos el 'width' a 80px */
+  width: 80px; 
 }
+
 .sidebar-container.collapsed .sidebar-logo-text,
 .sidebar-container.collapsed .sidebar-logo-subtext,
 .sidebar-container.collapsed .sidebar-section-title,
@@ -309,11 +305,27 @@
   animation: sparkle 3s linear infinite;
 }
 
+.dark-mode-icon-container {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+  
+  /* FONDO MODO CLARO (POR DEFECTO) */
+  background-color: var(--background-primary);
+}
+
 .dark-mode-icon {
-  color: white;
-  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.3));
-  z-index: 2;
-  position: relative;
+  /* ICONO MODO CLARO (LUNA) */
+  color: #63b5f6; /* Azul de la luna */
+  transition: color 0.3s ease;
+}
+
+.dark-mode-icon-container.dark-mode .dark-mode-icon {
+  color: #ffc107; /* Amarillo del sol */
 }
 
 /* Ajustes para modo colapsado */
@@ -371,16 +383,19 @@
 }
 
 .sidebar-help-section {
-  padding: 24px;
-  border-top: 1px solid var(--border-light);
-  background-color: var(--bg-light);
+  margin: 1.5rem 1rem 1rem 1rem;
+  padding: 1rem;
+  background: var(--background-accent); 
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  text-align: left;
 }
 
 .sidebar-help-content {
   background: var(--bg-white);
   border-radius: 16px;
   padding: 22px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px #f1efefed;
   text-align: center;
 }
 

@@ -1,8 +1,6 @@
-/* Modern Glass UI Styles */
+/* Modern Glass UI Styles - PRUEBA DE RENDIMIENTO */
 .panel, .subject-card, .calendar-cell, .modal-content {
-  background: var(--glass-gradient);
-  backdrop-filter: var(--backdrop-blur);
-  -webkit-backdrop-filter: var(--backdrop-blur);
+  background: rgba(255, 255, 255, 0.1);
   border: var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
