@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import './PomodoroTimer.css';
+import { useDatabase } from '../hooks/useDatabase';
 import {
   Play,
   Pause,
@@ -49,9 +50,10 @@ const SHORT_BREAK = 5 * 60;
 const LONG_BREAK = 15 * 60;
 
 const videoUrls = {
-  pomodoro: '/public/estudiar.mp4',
-  shortBreak: '/public/descansar.mp4',
-  longBreak: '/public/dormir.mp4',
+  // Los assets en la carpeta `public` se sirven desde la raíz, por eso no incluimos '/public' en la ruta
+  pomodoro: '/estudiar.mp4',
+  shortBreak: '/descansar.mp4',
+  longBreak: '/dormir.mp4',
 };
 
 const initialAchievements: Achievement[] = [
@@ -116,6 +118,8 @@ const PomodoroTimer = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const notificationSound = useRef<HTMLAudioElement | null>(null);
 
+  const { saveUserStudySession } = useDatabase();
+
   // Load state from local storage on component mount
   useEffect(() => {
     const savedState = localStorage.getItem('pomodoroState');
@@ -177,20 +181,40 @@ const PomodoroTimer = () => {
     checkAchievements();
   }, [checkAchievements]);
 
-  const handleModeChange = useCallback(() => {
+  // handleModeChange -> called cuando un timer llega a 0
+  const handleModeChange = useCallback(async () => {
     setIsActive(false);
     setIsCycleComplete(true);
-    notificationSound.current?.play();
+
+    // Intentar reproducir el sonido de notificación, si existe y es reproducible
+    try {
+      if (notificationSound.current) {
+        // play() devuelve una Promise que puede rechazar; la esperamos y atrapamos el error
+        await notificationSound.current.play();
+      }
+    } catch (err) {
+      console.warn('No se pudo reproducir el sonido de notificación:', err);
+    }
 
     if (mode === 'pomodoro') {
       const pointsEarned = 25 + consecutiveCycles * 10; // Bonus points for consecutive cycles
       setFocusPoints((prev) => prev + pointsEarned);
       setConsecutiveCycles((prev) => prev + 1); // Increment consecutive cycles
       setCycles((prev) => prev + 1); // Increment total cycles
+
+      // Guardar sessão de pomodoro en Firestore (si está disponible la función)
+      try {
+        // duration por convención: 25 minutos
+        if (typeof saveUserStudySession === 'function') {
+          await saveUserStudySession({ type: 'pomodoro', duration: 25 });
+        }
+      } catch (err) {
+        console.warn('No se pudo guardar la sesión de estudio:', err);
+      }
     } else {
       setConsecutiveCycles(0); // Reset consecutive cycles on break
     }
-  }, [mode, consecutiveCycles]);
+  }, [mode, consecutiveCycles, saveUserStudySession]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -198,7 +222,17 @@ const PomodoroTimer = () => {
       interval = setInterval(() => {
         setTime((prevTime) => prevTime - 1);
       }, 1000);
-      if (videoRef.current) videoRef.current.play();
+      if (videoRef.current) {
+        const playPromise = videoRef.current.play();
+        if (
+          playPromise &&
+          typeof (playPromise as Promise<void>).catch === 'function'
+        ) {
+          (playPromise as Promise<void>).catch((e) =>
+            console.warn('No se pudo reproducir el video:', e),
+          );
+        }
+      }
     } else {
       if (interval) clearInterval(interval);
       if (videoRef.current) videoRef.current.pause();
@@ -553,11 +587,7 @@ const PomodoroTimer = () => {
             </div>
 
             <div className="avatar-section-compact">
-              <img
-                src={'/public/base1.png'}
-                alt="Avatar"
-                className="avatar-image"
-              />
+              <img src={'/base1.png'} alt="Avatar" className="avatar-image" />
               {avatarItems.map((item, index) => (
                 <img
                   key={index}

@@ -65,6 +65,30 @@ Usuario hace login → Google Auth → Firebase Auth → Firestore
 }
 ```
 
+#### ⏱️ Subcolección: `stydu_session` (sesiones Pomodoro)
+
+Nota: históricamente esta subcolección se llamó `studySessions` en algunas versiones. Actualmente el código utiliza `stydu_session`. Si llegas a tener documentos en `studySessions`, considera migrarlos o mantener ambos mientras migra la base de datos.
+
+Cada usuario puede tener una subcolección con sus sesiones de estudio bajo su documento en `users/{uid}/stydu_session`.
+
+Ejemplo de documento (cada pomodoro completado crea uno):
+```json
+{
+  "type": "pomodoro",
+  "duration": 25,
+  "createdAt": "timestamp"
+}
+```
+
+Dónde se escribe/lee en el código:
+- Escritura: `DatabaseService.saveStudySession(userId, session)` → guarda en `users/{userId}/stydu_session` (ver `src/services/DatabaseService.ts`).
+- Hook: `useDatabase().saveUserStudySession(session)` envuelve la llamada y usa `user.uid` (ver `src/hooks/useDatabase.ts`).
+- Lectura: `DatabaseService.getUserStudySessions(userId, days)` y `useDatabase().getUserStudySessions(days)` se usan en el perfil (`src/components/Profile.tsx`) para obtener sesiones de los últimos 7/30 días y calcular métricas.
+
+Nota sobre visualización:
+- En la UI las horas se calculan como `cantidad_de_pomodoros * 25 minutos` y se muestran como `Xh Ym` para evitar confusiones con decimales (antes se mostraba en horas decimales, p. ej. `0.42h`).
+
+
 ## 🛠️ Servicios Implementados
 
 ### **DatabaseService** (`src/services/DatabaseService.ts`)
@@ -187,6 +211,9 @@ service cloud.firestore {
 - Crear dashboard de progreso de estudio
 - Implementar búsqueda y filtros avanzados
 - Agregar estadísticas de estudio
+
+Referencias relacionadas:
+- Documentación del feature "Progreso de Estudio": `docs/STUDY_PROGRESS.md`
 
 ---
 

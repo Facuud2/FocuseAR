@@ -2,6 +2,11 @@
 import { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../hooks/authContext';
 import { useDatabase } from '../hooks/useDatabase';
+import {
+  totalSessionsLast7Days,
+  groupSessionsByDayPercentages,
+  computeCurrentStreak,
+} from '../utils/studyStats';
 // Importamos iconos adicionales para un look más futurista
 import {
   User,
@@ -19,11 +24,17 @@ import './Profile.css';
 
 const Profile = () => {
   const { user, loading } = useContext(AuthContext);
-  const { getUserMaterials, getUserStudyPlans } = useDatabase();
+  const { getUserMaterials, getUserStudyPlans, getUserStudySessions } =
+    useDatabase();
 
   const [materialsCount, setMaterialsCount] = useState<number | null>(null);
   const [studyPlansCount, setStudyPlansCount] = useState<number | null>(null);
   const [dataLoading, setDataLoading] = useState(false);
+  const [weeklyProgressData, setWeeklyProgressData] = useState<number[]>([]);
+  const [sessionsThisWeek, setSessionsThisWeek] = useState<number>(0);
+  const [minutesThisMonth, setMinutesThisMonth] = useState<number | null>(null);
+  const [sessionsLoading, setSessionsLoading] = useState<boolean>(false);
+  const [streakDays, setStreakDays] = useState<number>(0);
 
   useEffect(() => {
     let mounted = true;
@@ -40,9 +51,34 @@ const Profile = () => {
         setDataLoading(true);
         const materials = await getUserMaterials();
         const plans = await getUserStudyPlans();
+
+        // Cargar sesiones: últimos 7 días para el gráfico y 30 días para las horas del mes
+        setSessionsLoading(true);
+        const sessionsLast7 = await getUserStudySessions(7);
+        const sessionsLast30 = await getUserStudySessions(30);
+
+        // Calcular totales y distribuciones usando utilidades
+        const totalWeek = totalSessionsLast7Days(sessionsLast7);
+        const weeklyPercentages = groupSessionsByDayPercentages(sessionsLast7);
+
         if (!mounted) return;
         setMaterialsCount(Array.isArray(materials) ? materials.length : 0);
         setStudyPlansCount(Array.isArray(plans) ? plans.length : 0);
+        setWeeklyProgressData(weeklyPercentages);
+        setSessionsThisWeek(totalWeek);
+
+        // Calcular racha con sesiones de los últimos 30 días (suficiente lookback)
+        const streak = computeCurrentStreak(sessionsLast30, 30);
+        setStreakDays(streak);
+
+        // Cada pomodoro se considera 25 minutos
+        const minutesPerPomodoro = 25;
+        const totalPomodoroLast30 = Array.isArray(sessionsLast30)
+          ? sessionsLast30.length
+          : 0;
+        const totalMinutes = totalPomodoroLast30 * minutesPerPomodoro;
+        setMinutesThisMonth(totalMinutes);
+        setSessionsLoading(false);
       } catch (err) {
         // Si falla la carga, dejamos los contadores en 0 y registramos el error
         console.error('Error cargando materials/studyPlans:', err);
@@ -59,18 +95,22 @@ const Profile = () => {
     return () => {
       mounted = false;
     };
-  }, [user, getUserMaterials, getUserStudyPlans]);
+  }, [user, getUserMaterials, getUserStudyPlans, getUserStudySessions]);
 
-  // Datos de ejemplo para el rediseño
+  // Datos para el rediseño (ahora dinámicos)
   const studyStats = {
-    streakDays: 7,
-    totalHoursThisMonth: 45,
+    streakDays: streakDays,
+    // Calculado a partir de sesiones: minutos en el último mes (convertidos para mostrar)
+    totalHoursThisMonth: minutesThisMonth ? minutesThisMonth / 60 : 0,
     // activeSubjects and mostStudiedSubject will be populated from DB
     activeSubjects: materialsCount ?? 0,
     mostStudiedSubject:
       studyPlansCount !== null ? String(studyPlansCount) : '0',
-    // ¡NUEVO! Datos para el gráfico holográfico
-    weeklyProgress: [0.2, 0.5, 0.7, 0.8, 0.6, 0.9, 0.75], // Progreso ficticio
+    // weeklyProgress ahora viene de la DB (porcentajes por día)
+    weeklyProgress:
+      weeklyProgressData && weeklyProgressData.length === 7
+        ? weeklyProgressData
+        : [0, 0, 0, 0, 0, 0, 0],
   };
 
   const aiInsight = {
@@ -141,14 +181,42 @@ const Profile = () => {
               Dominio Semanal <Zap size={16} />
             </h4>
             <div className="progress-graph">
-              {studyStats.weeklyProgress.map((value, index) => (
+              {sessionsLoading ? (
                 <div
-                  key={index}
-                  className="progress-bar"
-                  style={{ height: `${value * 100}%` }}
-                  title={`Día ${index + 1}: ${Math.round(value * 100)}%`}
-                ></div>
-              ))}
+                  style={{
+                    width: '100%',
+                    textAlign: 'center',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  Cargando progreso...
+                </div>
+              ) : (
+                (weeklyProgressData && weeklyProgressData.length === 7
+                  ? weeklyProgressData
+                  : [0, 0, 0, 0, 0, 0, 0]
+                ).map((value, index) => {
+                  const labels = [
+                    'Lun',
+                    'Mar',
+                    'Mié',
+                    'Jue',
+                    'Vie',
+                    'Sáb',
+                    'Dom',
+                  ];
+                  return (
+                    <div key={index} className="progress-bar-wrapper">
+                      <div
+                        className="progress-bar"
+                        style={{ height: `${value * 100}%` }}
+                        title={`${labels[index]}: ${Math.round(value * 100)}%`}
+                      ></div>
+                      <div className="progress-label">{labels[index]}</div>
+                    </div>
+                  );
+                })
+              )}
             </div>
             <p className="graph-label">Actividad en los últimos 7 días</p>
           </div>
@@ -168,8 +236,9 @@ const Profile = () => {
               </div>
               <div className="stat-info">
                 <span className="stat-value">
-                  {studyStats.totalHoursThisMonth}
-                  <small>h</small>
+                  {dataLoading || minutesThisMonth === null
+                    ? '...'
+                    : `${Math.floor((minutesThisMonth || 0) / 60)}h ${minutesThisMonth % 60}m`}
                 </span>
                 <span className="stat-label">En órbita este mes</span>
               </div>
@@ -185,6 +254,17 @@ const Profile = () => {
                     : materialsCount}
                 </span>
                 <span className="stat-label">Materias en curso</span>
+              </div>
+            </div>
+            <div className="stat-card stat-card-neumorphic">
+              <div className="stat-icon-wrapper pulse-effect">
+                <Zap size={32} />
+              </div>
+              <div className="stat-info">
+                <span className="stat-value">
+                  {dataLoading ? '...' : sessionsThisWeek}
+                </span>
+                <span className="stat-label">Sesiones esta semana</span>
               </div>
             </div>
             <div className="stat-card stat-card-neumorphic stat-card-full">

@@ -972,4 +972,58 @@ export class DatabaseService {
       throw error;
     }
   }
+
+  // 22. Obtener sesiones de estudio del usuario (subcolección 'stydu_session')
+  // Por convención cada documento de stydu_session debe tener al menos un campo `createdAt: Timestamp`.
+  // Si se almacena otra propiedad para la fecha, esta función debería adaptarse.
+  static async getUserStudySessions(
+    userId: string,
+    days: number = 7,
+  ): Promise<DocumentData[]> {
+    try {
+      const now = Date.now();
+      const cutoff = Timestamp.fromMillis(now - days * 24 * 60 * 60 * 1000);
+
+      const sessionsCol = collection(db, 'users', userId, 'stydu_session');
+      const sessionsQuery = query(
+        sessionsCol,
+        where('createdAt', '>=', cutoff),
+        orderBy('createdAt', 'asc'),
+      );
+
+      const sessionsSnap = await getDocs(sessionsQuery);
+      const sessions: DocumentData[] = [];
+      sessionsSnap.forEach((doc) =>
+        sessions.push({ id: doc.id, ...(doc.data() as DocumentData) }),
+      );
+      return sessions;
+    } catch (error) {
+      console.error('❌ Error al obtener stydu_session del usuario:', error);
+      throw error;
+    }
+  }
+
+  // 23. Guardar una sesión de estudio para el usuario (subcolección 'stydu_session')
+  static async saveStudySession(
+    userId: string,
+    session: {
+      type?: string;
+      duration?: number;
+      meta?: Record<string, unknown>;
+    } = {},
+  ): Promise<string> {
+    try {
+      const sessionToSave = {
+        ...session,
+        createdAt: Timestamp.now(),
+      };
+      const colRef = collection(db, 'users', userId, 'stydu_session');
+      const docRef = await addDoc(colRef, sessionToSave as DocumentData);
+      console.log('✅ stydu_session guardada con ID:', docRef.id);
+      return docRef.id;
+    } catch (error) {
+      console.error('❌ Error al guardar stydu_session:', error);
+      throw error;
+    }
+  }
 }
