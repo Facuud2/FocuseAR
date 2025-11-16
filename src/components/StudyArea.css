@@ -1,7 +1,6 @@
 /* src/components/StudyArea.css */
 
 .study-area {
-  background-color: var(--modal-bg);
   border: 3px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 1.5rem;

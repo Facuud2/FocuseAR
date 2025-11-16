@@ -477,16 +477,17 @@ header {
 }
 
 .calendar-nav-btn {
-    background: transparent;
-    border: 2px solid var(--border-color);
-    color: var(--text-secondary);
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: var(--transition-ease);
+    background: transparent; 
+  border: none;
+  color: var(--text-secondary); 
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem; 
 }
+
 
 .calendar-nav-btn:hover {
     background: var(--primary-neon-color);
@@ -2039,4 +2040,68 @@ header {
   .dashboard-container > *:last-child {
     margin-bottom: 0 !important;
   }
+}
+
+/* --- PEGA ESTO AL FINAL DE /src/pages/Dashboard.css --- */
+
+/* 1. Para centrar el Dashboard en pantallas grandes */
+.dashboard-container {
+  max-width: 1600px; /* Define un ancho máximo (ajústalo a tu gusto) */
+  margin: 0 auto;     /* Centra todo el contenedor */
+}
+
+/* 2. Para cambiar el layout y achicar el calendario (Ancho) */
+.calendar-panel {
+  /* En el JSX tiene grid-span-12, lo sobreescribimos aquí */
+  grid-column: span 8; /* Hacemos que ocupe 8 de 12 columnas */
+}
+
+.notes-panel {
+  /* En el JSX tiene grid-span-6, lo sobreescribimos */
+  grid-column: span 4; /* Ocupa las 4 columnas restantes al lado del calendario */
+}
+
+.activity-panel {
+  /* En el JSX tiene grid-span-6, lo sobreescribimos */
+  grid-column: span 12; /* Hacemos que "Próximas Tareas" ocupe todo el ancho de abajo */
+}
+
+/* 3. Para achicar el calendario (Alto) */
+.calendar-cell {
+  min-height: 90px; /* Reducimos la altura (antes era 120px) */
+  padding: 0.5rem;   /* Reducimos el padding interno */
+}
+
+/* 4. (Opcional) Retoques para que el calendario se vea "más lindo" */
+.day-number {
+  text-align: left; /* Mueve el número a la esquina superior izquierda */
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.calendar-cell.today .day-number {
+  color: var(--primary-color); /* Resalta el número del día de hoy */
+}
+
+.day-dots-container {
+  justify-content: flex-start; /* Alinea los puntos a la izquierda */
+  flex-wrap: wrap; /* Permite que los puntos bajen si no entran */
+  gap: 3px; /* Espacio entre puntos */
+  padding-left: 0.5rem; /* Pequeña sangría */
+  margin-top: 4px;
+}
+
+.day-dot {
+  width: 6px;  /* Puntos de evento más pequeños */
+  height: 6px;
+}
+
+/* --- 5. (NUEVO) Achicar los títulos --- */
+.calendar-panel .panel-title {
+  font-size: 1.1rem; /* Achica "Calendario de Estudio" */
+}
+
+.calendar-panel .calendar-title {
+  font-size: 1rem; /* Achica el mes y año */
 }
