@@ -12,7 +12,7 @@ import {
   ArrowRight,
   TrendingUp,
   Zap,
-  Atom,
+  // Atom, // Comentado temporalmente
   Globe,
 } from 'lucide-react';
 import './Profile.css';
@@ -73,6 +73,8 @@ const Profile = () => {
     weeklyProgress: [0.2, 0.5, 0.7, 0.8, 0.6, 0.9, 0.75], // Progreso ficticio
   };
 
+  // Datos temporalmente comentados para AI Insights
+  /*
   const aiInsight = {
     title: 'Análisis Predictivo de Rendimiento',
     message:
@@ -80,6 +82,7 @@ const Profile = () => {
     recommendation:
       'Considera una sesión de repaso profundo este jueves a las 19:00.',
   };
+  */
 
   return (
     <div className="profile-container">
@@ -203,10 +206,9 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Panel de Insights de la IA con interfaz de comando futurista */}
+        {/* Panel de Insights de la IA con interfaz de comando futurista - OCULTO TEMPORALMENTE */}
+        {/* 
         <div className="ai-insights-panel glow-border">
-          {' '}
-          {/* ¡MÁS SPICY! Borde que brilla */}
           <div className="ai-console-header">
             <Atom size={20} className="ai-icon-brain" />
             <span className="ai-console-title">_AI_ASSISTANT: &gt;</span>
@@ -214,14 +216,14 @@ const Profile = () => {
           <div className="ai-insights-content">
             <p className="ai-insights-message type-effect">
               {aiInsight.message}
-            </p>{' '}
-            {/* ¡NUEVO! Efecto de escritura */}
+            </p>
             <p className="ai-recommendation">
               <Zap size={16} className="ai-rec-icon" />
               Recomendación: _{aiInsight.recommendation}_
             </p>
           </div>
         </div>
+        */}
       </div>
 
       {/* Panel de Acceso a Configuración, con diseño más agresivo */}
