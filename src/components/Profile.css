@@ -276,15 +276,28 @@ body {
   border-radius: var(--radius-sm);
   box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.2);
 }
+.progress-bar-wrapper {
+  /* Cada wrapper ocupa el mismo espacio y contiene la barra + etiqueta */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centrar la etiqueta horizontalmente */
+  justify-content: flex-end; /* hacer que la barra "ascienda" desde la base */
+  flex: 1 1 0; /* crecer y encoger equitativamente */
+  min-width: 0; /* importante para evitar overflow en flex children */
+  height: 100%;
+}
 
 .progress-bar {
-  flex-grow: 1;
+  width: 100%; /* ocupar todo el ancho del wrapper */
+  height: 100%; /* la altura real se controlará mediante el inline style (p.ej. style={{height: '40%'}}) */
+  max-height: 100%;
   background: linear-gradient(to top, rgba(0, 255, 255, 0.6), rgba(0, 255, 255, 0.9));
-  border-radius: 2px;
-  transition: all 0.5s ease-out;
+  border-radius: 6px 6px 2px 2px; /* radio en la parte superior para verse bien */
+  transition: transform 0.5s ease-out, opacity 0.3s ease-out;
   box-shadow: 0 0 8px rgba(0, 255, 255, 0.7);
-  opacity: 0.8;
+  opacity: 0.9;
   border: 1px solid var(--accent-cyan);
+  transform-origin: bottom center; /* animaciones escala desde la base */
 }
 .progress-bar:hover {
   opacity: 1;
@@ -292,10 +305,13 @@ body {
   box-shadow: 0 0 15px var(--accent-cyan);
 }
 
+.progress-label,
 .graph-label {
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-top: 1rem;
+  margin-top: 0.6rem; /* separar un poco la etiqueta de la barra */
+  text-align: center;
+  width: 100%;
 }
 
 

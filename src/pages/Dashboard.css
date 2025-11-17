@@ -477,16 +477,17 @@ header {
 }
 
 .calendar-nav-btn {
-    background: transparent;
-    border: 2px solid var(--border-color);
-    color: var(--text-secondary);
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 1.5rem;
-    cursor: pointer;
-    transition: var(--transition-ease);
+    background: transparent; 
+  border: none;
+  color: var(--text-secondary); 
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem; 
 }
+
 
 .calendar-nav-btn:hover {
     background: var(--primary-neon-color);
@@ -2125,123 +2126,66 @@ header {
   }
 }
 
-/* =========================================================================
- * ESTILOS PARA EVENTOS PERSONALIZADOS
- * ========================================================================= */
+/* --- PEGA ESTO AL FINAL DE /src/pages/Dashboard.css --- */
 
-/* Botón de añadir evento en el header del calendario */
-.add-event-btn-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, var(--primary-neon-color), var(--secondary-neon-color));
-  color: var(--text-inverted);
-  border: none;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
+/* 1. Para centrar el Dashboard en pantallas grandes */
+.dashboard-container {
+  max-width: 1600px; /* Define un ancho máximo (ajústalo a tu gusto) */
+  margin: 0 auto;     /* Centra todo el contenedor */
+}
+
+/* 2. Para cambiar el layout y achicar el calendario (Ancho) */
+.calendar-panel {
+  /* En el JSX tiene grid-span-12, lo sobreescribimos aquí */
+  grid-column: span 8; /* Hacemos que ocupe 8 de 12 columnas */
+}
+
+.notes-panel {
+  /* En el JSX tiene grid-span-6, lo sobreescribimos */
+  grid-column: span 4; /* Ocupa las 4 columnas restantes al lado del calendario */
+}
+
+.activity-panel {
+  /* En el JSX tiene grid-span-6, lo sobreescribimos */
+  grid-column: span 12; /* Hacemos que "Próximas Tareas" ocupe todo el ancho de abajo */
+}
+
+/* 3. Para achicar el calendario (Alto) */
+.calendar-cell {
+  min-height: 90px; /* Reducimos la altura (antes era 120px) */
+  padding: 0.5rem;   /* Reducimos el padding interno */
+}
+
+/* 4. (Opcional) Retoques para que el calendario se vea "más lindo" */
+.day-number {
+  text-align: left; /* Mueve el número a la esquina superior izquierda */
+  font-size: 0.8rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-ease);
-  box-shadow: var(--shadow-sm);
-}
-
-.add-event-btn-header:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-.upcoming-item:hover {
-  background: var(--surface-color);
-  transform: translateX(4px);
-}
-
-.item-icon {
-  display: flex;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-full);
-  background: var(--surface-color);
-  color: var(--primary-neon-color);
-}
-
-.item-icon.study {
-  background: rgba(66, 133, 244, 0.1);
-  color: #4285F4;
-}
-
-.item-icon.exam {
-  background: rgba(234, 67, 53, 0.1);
-  color: #EA4335;
-}
-
-.item-icon.task {
-  background: rgba(251, 188, 5, 0.1);
-  color: #FBBC05;
-}
-
-.item-icon.reminder {
-  background: rgba(52, 168, 83, 0.1);
-  color: #34A853;
-}
-
-.item-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.item-title {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 0.875rem;
-}
-
-.item-date {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  text-transform: capitalize;
-}
-
-.item-time {
-  font-size: 0.75rem;
   color: var(--text-secondary);
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  background: var(--surface-color);
-  border-radius: var(--radius-sm);
 }
 
-.empty-state-text {
-  text-align: center;
-  color: var(--text-muted);
-  font-style: italic;
-  padding: 2rem;
+.calendar-cell.today .day-number {
+  color: var(--primary-color); /* Resalta el número del día de hoy */
 }
 
-/* Responsive para móviles */
-@media (max-width: 768px) {
-  .flex-group {
-    grid-template-columns: 1fr;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .add-event-modal {
-    width: 95vw;
-    max-height: 90vh;
-  }
-  
-  .upcoming-item {
-    flex-direction: column;
-    text-align: center;
-    gap: 0.5rem;
-  }
-  
-  .item-details {
-    align-items: center;
-  }
+.day-dots-container {
+  justify-content: flex-start; /* Alinea los puntos a la izquierda */
+  flex-wrap: wrap; /* Permite que los puntos bajen si no entran */
+  gap: 3px; /* Espacio entre puntos */
+  padding-left: 0.5rem; /* Pequeña sangría */
+  margin-top: 4px;
+}
+
+.day-dot {
+  width: 6px;  /* Puntos de evento más pequeños */
+  height: 6px;
+}
+
+/* --- 5. (NUEVO) Achicar los títulos --- */
+.calendar-panel .panel-title {
+  font-size: 1.1rem; /* Achica "Calendario de Estudio" */
+}
+
+.calendar-panel .calendar-title {
+  font-size: 1rem; /* Achica el mes y año */
 }

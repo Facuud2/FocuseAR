@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import './PomodoroTimer.css';
+import { useDatabase } from '../hooks/useDatabase';
 import {
   Play,
   Pause,
@@ -23,7 +24,7 @@ const SHORT_BREAK = 5 * 60;
 const LONG_BREAK = 15 * 60;
 
 const videoUrls = {
-  // Public assets should be referenced from the server root when using Vite
+  // Los assets en la carpeta `public` se sirven desde la raíz, por eso no incluimos '/public' en la ruta
   pomodoro: '/estudiar.mp4',
   shortBreak: '/descansar.mp4',
   longBreak: '/dormir.mp4',
@@ -56,6 +57,8 @@ const PomodoroTimer = () => {
     null,
   );
 
+  const { saveUserStudySession } = useDatabase();
+
   // Load state from local storage on component mount
   useEffect(() => {
     const savedState = localStorage.getItem('pomodoroState');
@@ -80,7 +83,8 @@ const PomodoroTimer = () => {
     localStorage.setItem('pomodoroState', JSON.stringify(state));
   }, [focusPoints]);
 
-  const handleModeChange = useCallback(() => {
+  // handleModeChange -> called cuando un timer llega a 0
+  const handleModeChange = useCallback(async () => {
     setIsActive(false);
     setIsCycleComplete(true);
     // play notification sound if available, handle promise errors
@@ -114,7 +118,7 @@ const PomodoroTimer = () => {
     } else {
       setConsecutiveCycles(0); // Reset consecutive cycles on break
     }
-  }, [mode, consecutiveCycles]);
+  }, [mode, consecutiveCycles, saveUserStudySession]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;

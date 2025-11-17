@@ -3,30 +3,18 @@
 
 :root {
   /* Glass Morphism Design System - Siguiendo el estilo de Pomodoro */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-bg-hover: rgba(255, 255, 255, 0.15);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.18);
-  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+
   --text-color: var(--text-primary);
   --accent-blue: rgba(79, 195, 247, 0.9);
   --accent-green: rgba(129, 199, 132, 0.9);
   --accent-red: rgba(239, 154, 154, 0.9);
   --highlight-color: #4FC3F7;
-  --modal-bg: rgba(255, 255, 255, 0.2);
   --radius-lg: 20px;
   --radius-md: 12px;
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --blur: blur(10px);
-  --neon-glow: 0 0 10px rgba(79, 195, 247, 0.5),
-               0 0 20px rgba(79, 195, 247, 0.3),
-               0 0 30px rgba(79, 195, 247, 0.1);
 }
 
 [data-theme='dark'] {
-  --glass-bg: rgba(0, 31, 63, 0.3);
-  --glass-bg-hover: rgba(0, 31, 63, 0.4);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   --accent-blue: rgba(3, 169, 244, 0.9);
   --accent-green: rgba(46, 125, 50, 0.9);
   --accent-red: rgba(183, 28, 28, 0.9);
@@ -38,7 +26,6 @@
   max-width: 1400px;
   margin: 1rem auto;
   padding: 1rem;
-  background: var(--glass-bg);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border-radius: var(--radius-lg);

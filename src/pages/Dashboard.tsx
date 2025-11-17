@@ -4,7 +4,15 @@ import { AuthContext } from '../hooks/authContext';
 import { useNavigate } from 'react-router-dom';
 import NotesAndChecklist from '../components/NotesAndChecklist';
 import './Dashboard.css';
-import { Settings, Plus, BookOpen, Clock, AlertCircle } from 'lucide-react';
+import {
+  Settings,
+  Plus,
+  BookOpen,
+  Clock,
+  AlertCircle,
+  ChevronLeft, // <-- 1. AÑADIDO
+  ChevronRight, // <-- 1. AÑADIDO
+} from 'lucide-react';
 import type { Topic } from '../types/studyPlan';
 import { type UserEvent as DBUserEvent } from '../services/DatabaseService';
 import { Timestamp } from 'firebase/firestore';
@@ -515,18 +523,20 @@ const Dashboard: React.FC = () => {
             </button>
           )}
           <div className="calendar-header">
+            {/* --- 2. CÓDIGO CORREGIDO --- */}
             <button
               className="calendar-nav-btn"
               onClick={() => changeMonth(-1)}
             >
-              <i className="fas fa-chevron-left"></i>
+              <ChevronLeft size={18} />
             </button>
             <h4 className="calendar-title">
               {monthNames[currentMonth]} {currentYear}
             </h4>
             <button className="calendar-nav-btn" onClick={() => changeMonth(1)}>
-              <i className="fas fa-chevron-right"></i>
+              <ChevronRight size={18} />
             </button>
+            {/* --- FIN CÓDIGO CORREGIDO --- */}
           </div>
         </div>
         <div className="calendar-grid">

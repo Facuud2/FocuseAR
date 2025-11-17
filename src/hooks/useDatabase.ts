@@ -453,6 +453,69 @@ export const useDatabase = () => {
     }
   }, [user]);
 
+  // Obtener sesiones de estudio del usuario (últimos N días)
+  const getUserStudySessions = useCallback(
+    async (days: number = 7) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return [];
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const sessions = await DatabaseService.getUserStudySessions(
+          user.uid,
+          days,
+        );
+        return sessions;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al obtener stydu_session:', err);
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
+  // Guardar sesión de estudio para el usuario
+  const saveUserStudySession = useCallback(
+    async (
+      session: {
+        type?: string;
+        duration?: number;
+        meta?: Record<string, unknown>;
+      } = {},
+    ) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return null;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const id = await DatabaseService.saveStudySession(user.uid, session);
+        return id;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al guardar stydu_session:', err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
   const getQuiz = useCallback(
     async (quizId: string): Promise<Quiz | null> => {
       if (!user) {
@@ -634,6 +697,8 @@ export const useDatabase = () => {
     getQuizzes,
     getQuiz,
     deleteQuiz,
+    getUserStudySessions,
+    saveUserStudySession,
     saveUserAvailability: DatabaseService.saveUserAvailability,
     getUserAvailability: DatabaseService.getUserAvailability,
   };

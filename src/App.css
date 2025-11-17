@@ -917,16 +917,22 @@ h2 i {
 }
 
 /* ===== AJUSTES PARA QUE EL SIDEBAR MUEVA TODO EL PROYECTO ===== */
+
 .content-area {
-  transition: margin-left 0.3s ease;
+  /* 1. Margin-left FIJO (el del sidebar colapsado) */
+  margin-left: 80px; 
+  
+  /* 2. Animamos 'transform', NO 'margin' */
+  transition: transform 0.3s ease;
+  will-change: transform;
 }
 
-/* Cuando el sidebar está abierto */
 body.with-sidebar-open .content-area {
-  margin-left: 280px; /* ancho sidebar expandido */
+  /* (Ancho abierto 280px - Ancho colapsado 80px = 200px) */
+  transform: translateX(200px); 
 }
 
-/* Cuando el sidebar está colapsado */
 body.with-sidebar-collapsed .content-area {
-  margin-left: 80px; /* ancho sidebar colapsado */
+  /* Vuelve a su sitio */
+  transform: translateX(0);
 }

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
-import { BookOpen, Clock, Target, Brain, Play, Pause } from 'lucide-react';
+import { Clock, Target, Brain, Play, Pause } from 'lucide-react';
 import StudyContentGenerator from './StudyContentGenerator';
 import StudyMaterialViewer from './StudyMaterialViewer';
 import './StudyArea.css';
@@ -339,10 +339,7 @@ const StudyArea: React.FC<StudyAreaProps> = ({
   return (
     <div className="study-area">
       <div className="study-area-header">
-        <h2 className="study-area-title">
-          <BookOpen size={24} />
-          Área de Estudio
-        </h2>
+        <h2 className="study-area-title"></h2>
         {currentMode === 'pomodoro' && selectedTopic && (
           <div className="current-session">
             <Target size={16} />
