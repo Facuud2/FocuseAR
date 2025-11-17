@@ -60,6 +60,8 @@ const Dashboard: React.FC = () => {
   const { getUserStudyPlans, createUserEvent, getUserEvents } = useDatabase();
   const navigate = useNavigate();
   const [studyPlans, setStudyPlans] = useState<StudyPlanData[]>([]);
+  // Toggle para ocultar el panel de "Próximas Tareas" y el botón de añadir evento
+  const SHOW_UPCOMING_EVENTS = false;
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<
@@ -510,14 +512,16 @@ const Dashboard: React.FC = () => {
       <div className="panel calendar-panel grid-span-12">
         <div className="panel-title-container">
           <h3 className="panel-title">Calendario de Estudio y Eventos</h3>
-          <button
-            className="add-event-btn-header"
-            onClick={() => setShowAddEventModal(true)}
-            title="Añadir evento personalizado"
-          >
-            <Plus size={20} />
-            Añadir Evento
-          </button>
+          {SHOW_UPCOMING_EVENTS && (
+            <button
+              className="add-event-btn-header"
+              onClick={() => setShowAddEventModal(true)}
+              title="Añadir evento personalizado"
+            >
+              <Plus size={20} />
+              Añadir Evento
+            </button>
+          )}
           <div className="calendar-header">
             {/* --- 2. CÓDIGO CORREGIDO --- */}
             <button
@@ -550,44 +554,46 @@ const Dashboard: React.FC = () => {
         <NotesAndChecklist />
       </div>
 
-      <div className="panel activity-panel grid-span-6">
-        <div className="panel-title-container">
-          <h3 className="panel-title">
-            <Clock className="panel-icon" /> Próximas Tareas
-          </h3>
+      {SHOW_UPCOMING_EVENTS && (
+        <div className="panel activity-panel grid-span-6">
+          <div className="panel-title-container">
+            <h3 className="panel-title">
+              <Clock className="panel-icon" /> Próximas Tareas
+            </h3>
+          </div>
+          <div className="activity-content">
+            {upcomingEvents.length === 0 ? (
+              <p className="empty-state-text">No hay eventos próximos.</p>
+            ) : (
+              <ul className="upcoming-list">
+                {upcomingEvents.slice(0, 5).map((event, index) => (
+                  <li key={index} className="upcoming-item">
+                    <div className={`item-icon ${event.type}`}>
+                      {event.type === 'study' && <BookOpen size={20} />}
+                      {event.type === 'exam' && <AlertCircle size={20} />}
+                      {event.type === 'task' && <Clock size={20} />}
+                      {event.type === 'reminder' && <Clock size={20} />}
+                    </div>
+                    <div className="item-details">
+                      <span className="item-title">{event.title}</span>
+                      <span className="item-date">
+                        {event.date
+                          ? format(
+                              new Date(event.date + 'T' + event.time),
+                              'EEEE, dd MMMM',
+                              { locale: es },
+                            )
+                          : ''}
+                      </span>
+                    </div>
+                    <span className="item-time">{event.time}h</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
-        <div className="activity-content">
-          {upcomingEvents.length === 0 ? (
-            <p className="empty-state-text">No hay eventos próximos.</p>
-          ) : (
-            <ul className="upcoming-list">
-              {upcomingEvents.slice(0, 5).map((event, index) => (
-                <li key={index} className="upcoming-item">
-                  <div className={`item-icon ${event.type}`}>
-                    {event.type === 'study' && <BookOpen size={20} />}
-                    {event.type === 'exam' && <AlertCircle size={20} />}
-                    {event.type === 'task' && <Clock size={20} />}
-                    {event.type === 'reminder' && <Clock size={20} />}
-                  </div>
-                  <div className="item-details">
-                    <span className="item-title">{event.title}</span>
-                    <span className="item-date">
-                      {event.date
-                        ? format(
-                            new Date(event.date + 'T' + event.time),
-                            'EEEE, dd MMMM',
-                            { locale: es },
-                          )
-                        : ''}
-                    </span>
-                  </div>
-                  <span className="item-time">{event.time}h</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* MODAL for day details */}
       {showDayModal &&

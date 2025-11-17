@@ -58,9 +58,18 @@ const Garden: React.FC<GardenProps> = ({
   useEffect(() => {
     if (videoRef.current) {
       if (isActive) {
-        videoRef.current.play();
+        try {
+          const p = videoRef.current.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } catch {
+          // ignore play errors
+        }
       } else {
-        videoRef.current.pause();
+        try {
+          videoRef.current.pause();
+        } catch {
+          // ignore
+        }
       }
     }
   }, [isActive]);

@@ -10,39 +10,13 @@ import {
   Coffee,
   Sun,
   Brain,
-  ShoppingCart,
-  Gem,
+  // Gem, // Comentado temporalmente
   Check,
-  X,
-  Plus,
-  Award,
-  Gift,
 } from 'lucide-react';
-import Store from './Store';
 import StudyArea from './StudyArea';
 
 // Define the interfaces for store items, achievements, and rewards
-interface StoreItem {
-  id: string;
-  name: string;
-  price: number;
-  type: 'garden' | 'avatar';
-}
-
-interface Achievement {
-  id: string;
-  name: string;
-  description: string;
-  condition: number; // e.g., number of cycles
-  icon: string;
-  unlocked: boolean;
-}
-
-interface CustomReward {
-  id: string;
-  name: string;
-  cost: number;
-}
+// Tipos de tienda/logros/recompensas eliminados para simplificar el componente
 
 // Timer constants
 const POMODORO_TIME = 25 * 60;
@@ -56,40 +30,7 @@ const videoUrls = {
   longBreak: '/dormir.mp4',
 };
 
-const initialAchievements: Achievement[] = [
-  {
-    id: 'ach_01',
-    name: 'Primer Foco',
-    description: 'Completa 1 ciclo Pomodoro.',
-    condition: 1,
-    icon: '🏆',
-    unlocked: false,
-  },
-  {
-    id: 'ach_02',
-    name: '5 al hilo',
-    description: 'Completa 5 ciclos seguidos.',
-    condition: 5,
-    icon: '🏅',
-    unlocked: false,
-  },
-  {
-    id: 'ach_03',
-    name: 'Foco Profesional',
-    description: 'Completa 25 ciclos.',
-    condition: 25,
-    icon: '🌟',
-    unlocked: false,
-  },
-  {
-    id: 'ach_04',
-    name: 'El coleccionista',
-    description: 'Compra 3 artículos en la tienda.',
-    condition: 3,
-    icon: '✨',
-    unlocked: false,
-  },
-];
+// Achievements removed
 
 const PomodoroTimer = () => {
   const [mode, setMode] = useState<'pomodoro' | 'short-break' | 'long-break'>(
@@ -97,18 +38,13 @@ const PomodoroTimer = () => {
   );
   const [time, setTime] = useState(POMODORO_TIME);
   const [isActive, setIsActive] = useState(false);
+  // Variables de gamificación - mantener funcionalidad pero ocultar UI
   const [cycles, setCycles] = useState(0);
-  const [consecutiveCycles, setConsecutiveCycles] = useState(0); // New state for tracking consecutive cycles
+  const [consecutiveCycles, setConsecutiveCycles] = useState(0);
   const [isCycleComplete, setIsCycleComplete] = useState(false);
   const [focusPoints, setFocusPoints] = useState(0);
-  const [gardenItems, setGardenItems] = useState<string[]>([]);
-  const [avatarItems, setAvatarItems] = useState<string[]>([]);
-  const [isStoreOpen, setIsStoreOpen] = useState(false);
-  const [isRewardsOpen, setIsRewardsOpen] = useState(false);
-  const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
-  const [customRewards, setCustomRewards] = useState<CustomReward[]>([]);
-  const [achievements, setAchievements] =
-    useState<Achievement[]>(initialAchievements);
+
+  void cycles; // Suprime warning de variable no usada
   const [currentStudyTopic, setCurrentStudyTopic] = useState<{
     id: string;
     name: string;
@@ -117,6 +53,9 @@ const PomodoroTimer = () => {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const notificationSound = useRef<HTMLAudioElement | null>(null);
+  const [toast, setToast] = useState<{ title: string; message: string } | null>(
+    null,
+  );
 
   const { saveUserStudySession } = useDatabase();
 
@@ -126,74 +65,36 @@ const PomodoroTimer = () => {
     if (savedState) {
       const state = JSON.parse(savedState);
       setFocusPoints(state.focusPoints);
-      setGardenItems(state.gardenItems);
-      setAvatarItems(state.avatarItems);
-      setCustomRewards(state.customRewards);
-      setAchievements(state.achievements);
     }
     if (!notificationSound.current) {
-      notificationSound.current = new Audio('/audio/notification_sound.mp3');
+      try {
+        notificationSound.current = new Audio('/audio/notification_sound.mp3');
+      } catch {
+        // ignore audio init errors
+        // console.warn('Audio init failed');
+        notificationSound.current = null;
+      }
     }
   }, []);
 
   // Save state to local storage whenever it changes
   useEffect(() => {
-    const state = {
-      focusPoints,
-      gardenItems,
-      avatarItems,
-      customRewards,
-      achievements,
-    };
+    const state = { focusPoints };
     localStorage.setItem('pomodoroState', JSON.stringify(state));
-  }, [focusPoints, gardenItems, avatarItems, customRewards, achievements]);
-
-  const checkAchievements = useCallback(() => {
-    setAchievements((prev) =>
-      prev.map((ach) => {
-        if (!ach.unlocked) {
-          if (ach.id === 'ach_01' && cycles >= ach.condition) {
-            alert(`¡Logro desbloqueado: ${ach.name}!`);
-            return { ...ach, unlocked: true };
-          }
-          if (ach.id === 'ach_02' && consecutiveCycles >= ach.condition) {
-            alert(`¡Logro desbloqueado: ${ach.name}!`);
-            return { ...ach, unlocked: true };
-          }
-          if (ach.id === 'ach_03' && cycles >= ach.condition) {
-            alert(`¡Logro desbloqueado: ${ach.name}!`);
-            return { ...ach, unlocked: true };
-          }
-          if (
-            ach.id === 'ach_04' &&
-            gardenItems.length + avatarItems.length >= ach.condition
-          ) {
-            alert(`¡Logro desbloqueado: ${ach.name}!`);
-            return { ...ach, unlocked: true };
-          }
-        }
-        return ach;
-      }),
-    );
-  }, [cycles, consecutiveCycles, gardenItems, avatarItems]);
-
-  useEffect(() => {
-    checkAchievements();
-  }, [checkAchievements]);
+  }, [focusPoints]);
 
   // handleModeChange -> called cuando un timer llega a 0
   const handleModeChange = useCallback(async () => {
     setIsActive(false);
     setIsCycleComplete(true);
-
-    // Intentar reproducir el sonido de notificación, si existe y es reproducible
-    try {
-      if (notificationSound.current) {
-        // play() devuelve una Promise que puede rechazar; la esperamos y atrapamos el error
-        await notificationSound.current.play();
+    // play notification sound if available, handle promise errors
+    if (notificationSound.current) {
+      try {
+        const sp = notificationSound.current.play();
+        if (sp && typeof sp.catch === 'function') sp.catch(() => {});
+      } catch {
+        // ignore play errors
       }
-    } catch (err) {
-      console.warn('No se pudo reproducir el sonido de notificación:', err);
     }
 
     if (mode === 'pomodoro') {
@@ -202,15 +103,18 @@ const PomodoroTimer = () => {
       setConsecutiveCycles((prev) => prev + 1); // Increment consecutive cycles
       setCycles((prev) => prev + 1); // Increment total cycles
 
-      // Guardar sessão de pomodoro en Firestore (si está disponible la función)
-      try {
-        // duration por convención: 25 minutos
-        if (typeof saveUserStudySession === 'function') {
-          await saveUserStudySession({ type: 'pomodoro', duration: 25 });
-        }
-      } catch (err) {
-        console.warn('No se pudo guardar la sesión de estudio:', err);
-      }
+      // Show in-app toast notification
+      setToast({
+        title: 'Felicidades',
+        message:
+          '¡Has completado un Pomodoro! El temporizador está listo para iniciar de nuevo.',
+      });
+      // Auto-hide toast after 4s
+      setTimeout(() => setToast(null), 4000);
+
+      // Reset timer to Pomodoro time and keep it paused so user can start manually
+      setMode('pomodoro');
+      setTime(POMODORO_TIME);
     } else {
       setConsecutiveCycles(0); // Reset consecutive cycles on break
     }
@@ -218,49 +122,46 @@ const PomodoroTimer = () => {
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-    if (isActive && time > 0) {
+    if (isActive) {
+      // start interval and handle reaching 0 inside it to avoid race conditions
       interval = setInterval(() => {
-        setTime((prevTime) => prevTime - 1);
+        setTime((prevTime) => {
+          if (prevTime <= 1) {
+            // reached zero (or below) - clear interval and call handler
+            if (interval) clearInterval(interval);
+            // call handleModeChange in next tick to avoid state update during render
+            setTimeout(() => {
+              handleModeChange();
+            }, 0);
+            return 0;
+          }
+          return prevTime - 1;
+        });
       }, 1000);
       if (videoRef.current) {
-        const playPromise = videoRef.current.play();
-        if (
-          playPromise &&
-          typeof (playPromise as Promise<void>).catch === 'function'
-        ) {
-          (playPromise as Promise<void>).catch((e) =>
-            console.warn('No se pudo reproducir el video:', e),
-          );
+        try {
+          const p = videoRef.current.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } catch {
+          // Some browsers throw synchronously if no source; ignore
         }
       }
     } else {
       if (interval) clearInterval(interval);
-      if (videoRef.current) videoRef.current.pause();
-      if (time === 0 && isActive) handleModeChange();
+      if (videoRef.current) {
+        try {
+          videoRef.current.pause();
+        } catch {
+          // ignore
+        }
+      }
     }
     return () => {
       if (interval) clearInterval(interval);
     };
   }, [isActive, time, handleModeChange]);
 
-  const startNextCycle = () => {
-    setIsCycleComplete(false);
-    if (mode === 'pomodoro') {
-      const newCycles = cycles + 1;
-      setCycles(newCycles);
-      if (newCycles % 4 === 0) {
-        setMode('long-break');
-        setTime(LONG_BREAK);
-      } else {
-        setMode('short-break');
-        setTime(SHORT_BREAK);
-      }
-    } else {
-      setMode('pomodoro');
-      setTime(POMODORO_TIME);
-    }
-    setIsActive(true);
-  };
+  // startNextCycle removed: next Pomodoro is prepared automatically on cycle end
 
   const handleStartPause = () => setIsActive(!isActive);
 
@@ -297,32 +198,6 @@ const PomodoroTimer = () => {
     return videoUrls.longBreak;
   };
 
-  const getItemImagePath = (itemId: string) => {
-    if (itemId === 'hat_01') {
-      return '/vip.png';
-    }
-    return `/assets/items/${itemId}.png`;
-  };
-
-  const handlePurchase = (item: StoreItem) => {
-    if (focusPoints >= item.price) {
-      setFocusPoints((prev) => prev - item.price);
-      if (item.type === 'garden') {
-        setGardenItems((prev) => [...prev, item.id]);
-      } else if (item.type === 'avatar') {
-        setAvatarItems((prev) => [...prev, item.id]);
-      }
-      alert(`¡Has comprado ${item.name}!`);
-      checkAchievements(); // Re-check achievements after a purchase
-    } else {
-      alert('Puntos de foco insuficientes.');
-    }
-  };
-
-  const addTestPoints = () => {
-    setFocusPoints((prev) => prev + 100);
-  };
-
   // Función para iniciar sesión de estudio con un tema específico
   const handleStartStudySession = (topic: {
     id: string;
@@ -337,142 +212,9 @@ const PomodoroTimer = () => {
     }
   };
 
-  // Custom Rewards Logic
-  const addReward = (name: string, cost: number) => {
-    setCustomRewards((prev) => [
-      ...prev,
-      { id: `reward_${Date.now()}`, name, cost },
-    ]);
-  };
-
-  const redeemReward = (rewardId: string) => {
-    const reward = customRewards.find((r) => r.id === rewardId);
-    if (reward && focusPoints >= reward.cost) {
-      setFocusPoints((prev) => prev - reward.cost);
-      alert(`¡Recompensa "${reward.name}" canjeada!`);
-    } else if (reward) {
-      alert('Puntos de foco insuficientes para esta recompensa.');
-    }
-  };
-
-  const renderRewardsModal = () => (
-    <div className="store-overlay">
-      <div className="store-modal">
-        <button className="close-btn" onClick={() => setIsRewardsOpen(false)}>
-          <X size={24} />
-        </button>
-        <h2 className="store-title">Recompensas Personalizadas</h2>
-        <p className="user-points">Tus Puntos de Foco: **{focusPoints}**</p>
-        <div className="custom-rewards-list">
-          <h3>Mis Recompensas</h3>
-          {customRewards.length === 0 ? (
-            <p>Aún no has añadido recompensas.</p>
-          ) : (
-            customRewards.map((reward) => (
-              <div key={reward.id} className="reward-card">
-                <span>
-                  {reward.name} - {reward.cost} PF
-                </span>
-                <button
-                  onClick={() => redeemReward(reward.id)}
-                  disabled={focusPoints < reward.cost}
-                >
-                  Canjear
-                </button>
-              </div>
-            ))
-          )}
-        </div>
-        <div className="add-reward-form">
-          <h3>Añadir Nueva Recompensa</h3>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const form = e.target as HTMLFormElement;
-              const rewardName = (
-                form.elements.namedItem('rewardName') as HTMLInputElement
-              ).value;
-              const rewardCost = parseInt(
-                (form.elements.namedItem('rewardCost') as HTMLInputElement)
-                  .value,
-              );
-              if (rewardName && !isNaN(rewardCost)) {
-                addReward(rewardName, rewardCost);
-                form.reset();
-              }
-            }}
-          >
-            <input
-              type="text"
-              name="rewardName"
-              placeholder="Nombre de la recompensa"
-              required
-            />
-            <input
-              type="number"
-              name="rewardCost"
-              placeholder="Costo en PF"
-              required
-              min="1"
-            />
-            <button type="submit">Añadir</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderAchievementsModal = () => (
-    <div className="store-overlay">
-      <div className="store-modal">
-        <button
-          className="close-btn"
-          onClick={() => setIsAchievementsOpen(false)}
-        >
-          <X size={24} />
-        </button>
-        <h2 className="store-title">Logros y Medallas</h2>
-        <div className="achievements-list">
-          {achievements.map((ach) => (
-            <div
-              key={ach.id}
-              className={`achievement-card ${ach.unlocked ? 'unlocked' : 'locked'}`}
-            >
-              <span className="achievement-icon">{ach.icon}</span>
-              <div className="achievement-info">
-                <span className="achievement-name">{ach.name}</span>
-                <span className="achievement-desc">{ach.description}</span>
-              </div>
-              {ach.unlocked ? (
-                <span className="achievement-status">Desbloqueado</span>
-              ) : (
-                <span className="achievement-status">
-                  Progreso:{' '}
-                  {ach.id === 'ach_02'
-                    ? `${consecutiveCycles}/${ach.condition}`
-                    : `${cycles}/${ach.condition}`}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="cottagecore-container">
-      {isStoreOpen && (
-        <Store
-          onClose={() => setIsStoreOpen(false)}
-          onPurchase={handlePurchase}
-          userPoints={focusPoints}
-          avatarItems={avatarItems}
-          gardenItems={gardenItems}
-        />
-      )}
-      {isRewardsOpen && renderRewardsModal()}
-      {isAchievementsOpen && renderAchievementsModal()}
+      {/* Shop, rewards and achievements removed */}
 
       <header className="cottagecore-header">
         <h1 className="cottagecore-title">
@@ -481,25 +223,13 @@ const PomodoroTimer = () => {
             : 'Área de Estudio'}
         </h1>
         <div className="user-info">
-          <button className="store-btn" onClick={() => setIsRewardsOpen(true)}>
-            <Gift size={20} /> Recompensas
-          </button>
-          <button
-            className="store-btn"
-            onClick={() => setIsAchievementsOpen(true)}
-          >
-            <Award size={20} /> Logros
-          </button>
+          {/* Sistema de focus points temporalmente oculto */}
+          {/* 
           <div className="focus-points">
             <Gem size={20} />
             <span className="points-value">{focusPoints}</span>
-            <button className="add-points-btn" onClick={addTestPoints}>
-              <Plus size={16} />
-            </button>
           </div>
-          <button className="store-btn" onClick={() => setIsStoreOpen(true)}>
-            <ShoppingCart size={20} /> Tienda
-          </button>
+          */}
         </div>
       </header>
 
@@ -545,7 +275,7 @@ const PomodoroTimer = () => {
               {isCycleComplete ? (
                 <button
                   className="control-btn play-pause"
-                  onClick={startNextCycle}
+                  onClick={() => setIsCycleComplete(false)}
                 >
                   <Check size={24} /> Siguiente
                 </button>
@@ -562,15 +292,6 @@ const PomodoroTimer = () => {
                 <RotateCcw size={24} /> Reiniciar
               </button>
             </div>
-
-            <div className="cycle-info">
-              <div>
-                Ciclos: <strong>{cycles}</strong>
-              </div>
-              <div>
-                Racha: <strong>{consecutiveCycles}</strong>
-              </div>
-            </div>
           </div>
 
           {/* Video y Avatar - Sección Compacta */}
@@ -586,30 +307,56 @@ const PomodoroTimer = () => {
               />
             </div>
 
-            <div className="avatar-section-compact">
-              <img src={'/base1.png'} alt="Avatar" className="avatar-image" />
-              {avatarItems.map((item, index) => (
-                <img
-                  key={index}
-                  src={getItemImagePath(item)}
-                  alt="Avatar Item"
-                  className="avatar-item"
-                />
-              ))}
-              <div className="garden-items-compact">
-                {gardenItems.slice(0, 3).map((item, index) => (
-                  <img
-                    key={index}
-                    src={`/assets/items/${item}.png`}
-                    alt="Garden Item"
-                    className="garden-item-small"
-                  />
-                ))}
-              </div>
-            </div>
+            {/* Avatar removido */}
           </div>
         </div>
       </div>
+      {/* In-app toast notification */}
+      {toast && (
+        <div
+          className="pomodoro-toast"
+          role="alert"
+          aria-live="assertive"
+          style={{
+            position: 'fixed',
+            top: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(32, 129, 226, 0.99)',
+            color: 'white',
+            padding: '20px 26px',
+            borderRadius: 12,
+            boxShadow: '0 14px 40px rgba(0,0,0,0.35)',
+            zIndex: 2147483647,
+            maxWidth: '96%',
+            width: 'min(900px, 96%)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <div style={{ flex: 1 }}>
+              <strong style={{ display: 'block', fontSize: 18 }}>
+                {toast.title}
+              </strong>
+              <div style={{ fontSize: 16, marginTop: 8 }}>{toast.message}</div>
+            </div>
+            <button
+              onClick={() => setToast(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                fontSize: 26,
+                cursor: 'pointer',
+                lineHeight: 1,
+                padding: 6,
+              }}
+              aria-label="Cerrar notificación"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

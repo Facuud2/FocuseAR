@@ -48,31 +48,34 @@ export default function Sidebar({
     }
   }, [isCollapsed]);
 
+  // Toggle to show/hide Analytics section easily during development
+  const SHOW_ANALYTICS = false;
+
   const menuSections = [
     {
-      title: 'Dashboard',
+      title: 'Panel Principal',
       items: [
-        { id: 'overview', label: 'Overview', icon: Home, path: '/dashboard' },
+        { id: 'overview', label: 'Inicio', icon: Home, path: '/dashboard' },
       ],
     },
     {
-      title: 'Study Management',
+      title: 'Gestión de Estudio',
       items: [
         {
           id: 'subjects',
-          label: 'Subjects',
+          label: 'Materias',
           icon: BookOpen,
           path: '/subjects',
         },
         {
           id: 'documents',
-          label: 'Documents',
+          label: 'Documentos',
           icon: FileText,
           path: '/documents',
         },
         {
           id: 'pomodoro',
-          label: 'Pomodoro Timer',
+          label: 'Temporizador Pomodoro',
           icon: Timer,
           path: '/pomodoro',
         },
@@ -83,32 +86,37 @@ export default function Sidebar({
           path: '/ai-planner',
         },
         { id: 'quizzes', label: 'Quizzes', icon: HelpCircle, path: '/quizzes' },
-        { id: 'profile', label: 'Profile', icon: User, path: '/profile' },
+        { id: 'profile', label: 'Perfil', icon: User, path: '/profile' },
       ],
     },
+    // La ocultamos si SHOW_ANALYTICS es falso
+    ...(SHOW_ANALYTICS
+      ? [
+          {
+            title: 'Analytics',
+            items: [
+              {
+                id: 'progress',
+                label: 'Progress',
+                icon: TrendingUp,
+                path: '/progress',
+              },
+              {
+                id: 'analytics',
+                label: 'Analytics',
+                icon: BarChart3,
+                path: '/analytics',
+              },
+            ],
+          },
+        ]
+      : []),
     {
-      title: 'Analytics',
-      items: [
-        {
-          id: 'progress',
-          label: 'Progress',
-          icon: TrendingUp,
-          path: '/progress',
-        },
-        {
-          id: 'analytics',
-          label: 'Analytics',
-          icon: BarChart3,
-          path: '/analytics',
-        },
-      ],
-    },
-    {
-      title: 'Settings',
+      title: 'Configuración',
       items: [
         {
           id: 'settings',
-          label: 'Account Settings',
+          label: 'Configuración de Cuenta',
           icon: Settings,
           path: '/settings',
         },
@@ -137,7 +145,9 @@ export default function Sidebar({
           </div>
           {!isCollapsed && <h1 className="sidebar-logo-text">FocuseAr</h1>}
           {!isCollapsed && (
-            <p className="sidebar-logo-subtext">AI Study Planner</p>
+            <p className="sidebar-logo-subtext">
+              Tú Planificación de Estudios con IA
+            </p>
           )}
         </div>
 
@@ -200,15 +210,15 @@ export default function Sidebar({
                 <div className="sidebar-help-icon">
                   <Bot />
                 </div>
-                <p className="sidebar-help-title">AI Assistant</p>
+                <p className="sidebar-help-title">Chat AI</p>
               </div>
-              <p className="sidebar-help-text">Get help with your studies</p>
+              <p className="sidebar-help-text">Obtén ayuda con tus estudios</p>
               <button
                 className="sidebar-chat-button"
                 onClick={() => setIsChatOpen(true)}
               >
                 <Bot size={16} />
-                Open Chat
+                Abrir Chat
               </button>
             </div>
           </div>

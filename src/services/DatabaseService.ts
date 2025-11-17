@@ -154,6 +154,14 @@ export interface UserEvent {
   time?: string;
 }
 
+// Interfaz para notas del usuario (anotador y tareas)
+export interface UserNote {
+  id: number | string;
+  text: string;
+  completed: boolean;
+  type: 'note' | 'task';
+}
+
 export interface Activity {
   id: string;
   userId: string;
@@ -829,6 +837,36 @@ export class DatabaseService {
       return events;
     } catch (error) {
       console.error('❌ Error al obtener eventos del usuario:', error);
+      throw error;
+    }
+  }
+
+  // 19.1 Guardar notas del usuario (documento por usuario)
+  static async saveUserNotes(userId: string, notes: UserNote[]): Promise<void> {
+    try {
+      const payload = {
+        notes,
+        updatedAt: Timestamp.now(),
+      };
+      await setDoc(doc(db, 'user_notes', userId), payload, { merge: true });
+      console.log('✅ Notas de usuario guardadas');
+    } catch (error) {
+      console.error('❌ Error al guardar notas del usuario:', error);
+      throw error;
+    }
+  }
+
+  // 19.2 Obtener notas del usuario
+  static async getUserNotes(userId: string): Promise<UserNote[]> {
+    try {
+      const ref = doc(db, 'user_notes', userId);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return [];
+      const data = snap.data();
+      if (data && Array.isArray(data.notes)) return data.notes as UserNote[];
+      return [];
+    } catch (error) {
+      console.error('❌ Error al obtener notas del usuario:', error);
       throw error;
     }
   }

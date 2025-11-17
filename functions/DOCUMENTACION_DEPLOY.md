@@ -1,4 +1,4 @@
-# Documentación para configurar y desplegar Cloud Functions con Gemini API
+# Documentación para configurar y desplegar Cloud Functions con Gemini API.
 
 Esta guía explica cómo instalar, configurar y desplegar una Cloud Function que utiliza la API de Gemini para resumir texto. Incluye los problemas comunes y cómo resolverlos.
 

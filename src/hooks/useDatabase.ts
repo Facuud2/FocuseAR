@@ -12,6 +12,14 @@ import type {
 import type { Topic } from '../types/studyPlan';
 import { AuthContext } from './authContext';
 
+// Tipo para notas de usuario usado por getUserNotes/saveUserNotes
+type UserNote = {
+  id: number | string;
+  text: string;
+  completed: boolean;
+  type: 'note' | 'task';
+};
+
 export const useDatabase = () => {
   const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(false);
@@ -550,6 +558,57 @@ export const useDatabase = () => {
     }
   }, []);
 
+  // Notas de usuario
+  const saveUserNotes = useCallback(
+    async (
+      notes: {
+        id: number | string;
+        text: string;
+        completed: boolean;
+        type: 'note' | 'task';
+      }[],
+    ) => {
+      if (!user) {
+        setError('Usuario no autenticado');
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        await DatabaseService.saveUserNotes(user.uid, notes);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
+        console.error('❌ Error al guardar notas de usuario:', err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user],
+  );
+
+  const getUserNotes = useCallback(async (): Promise<UserNote[]> => {
+    if (!user) {
+      setError('Usuario no autenticado');
+      return [] as UserNote[];
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const notes = await DatabaseService.getUserNotes(user.uid);
+      return notes;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      console.error('❌ Error al obtener notas de usuario:', err);
+      return [] as UserNote[];
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
   // Limpiar error
   const clearError = useCallback(() => {
     setError(null);
@@ -633,6 +692,8 @@ export const useDatabase = () => {
     updateConversationTitle,
     createUserEvent, // Add this line
     getUserEvents, // Add this line
+    saveUserNotes,
+    getUserNotes,
     getQuizzes,
     getQuiz,
     deleteQuiz,

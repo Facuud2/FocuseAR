@@ -24,8 +24,8 @@ import Documents from './components/Documents';
 import PomodoroTimer from './components/PomodoroTimer';
 import AIPlanner from './components/AIPlanner';
 import Profile from './components/Profile';
-import Progress from './components/Progress';
-import Analytics from './components/Analytics';
+//import Progress from './components/Progress';
+//import Analytics from './components/Analytics';
 import Quizzes from './pages/Quizzes';
 import QuizPlayer from './pages/QuizPlayer';
 import QuizCreator from './pages/QuizCreator';
@@ -81,8 +81,8 @@ function AppRoutes() {
             <Route path="/ai-planner" element={<AIPlanner />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<AccountSettings />} />
-            <Route path="/progress" element={<Progress />} />
-            <Route path="/analytics" element={<Analytics />} />
+            {/* <Route path="/progress" element={<Progress />} /> */}
+            {/* <Route path="/analytics" element={<Analytics />} /> */}
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/quiz/:quizId" element={<QuizPlayer />} />
             <Route path="/create-quiz" element={<QuizCreator />} />
