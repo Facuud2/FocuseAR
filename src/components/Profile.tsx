@@ -71,12 +71,14 @@ const Profile = () => {
         const streak = computeCurrentStreak(sessionsLast30, 30);
         setStreakDays(streak);
 
-        // Cada pomodoro se considera 25 minutos
-        const minutesPerPomodoro = 25;
-        const totalPomodoroLast30 = Array.isArray(sessionsLast30)
-          ? sessionsLast30.length
+        // Calcular minutos totales sumando la duración real de cada sesión
+        const totalMinutes = Array.isArray(sessionsLast30)
+          ? sessionsLast30.reduce((total, session) => {
+              // Usar la duración guardada en cada sesión, con fallback a 25 para sesiones antiguas
+              const sessionDuration = session.duration || 25;
+              return total + sessionDuration;
+            }, 0)
           : 0;
-        const totalMinutes = totalPomodoroLast30 * minutesPerPomodoro;
         setMinutesThisMonth(totalMinutes);
         setSessionsLoading(false);
       } catch (err) {
@@ -165,8 +167,6 @@ const Profile = () => {
                     {user?.displayName || 'Explorador'}
                   </h3>
                   <p className="user-email-lg">{user?.email}</p>
-                  <p className="user-status-tag">Conectado al Hivemind</p>
-
                   {/* Estado cool */}
                   <div className="study-streak glow-effect">
                     <Award size={24} className="streak-icon" />
