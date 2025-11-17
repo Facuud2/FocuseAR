@@ -19,7 +19,7 @@ import StudyArea from './StudyArea';
 // Tipos de tienda/logros/recompensas eliminados para simplificar el componente
 
 // Timer constants
-const POMODORO_TIME = 0.5 * 60;
+const POMODORO_TIME = 25 * 60;
 const SHORT_BREAK = 5 * 60;
 const LONG_BREAK = 15 * 60;
 
