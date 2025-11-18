@@ -1,4 +1,3 @@
-/* src/components/StudyContentGenerator.css */
 
 .study-content-generator-overlay {
   position: fixed;
@@ -6,25 +5,29 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(4px);
 }
 
 .study-content-generator-modal {
-  background-color: var(--modal-bg);
-  border: 4px solid var(--border-color);
-  border-radius: var(--radius-lg);
+  background-color: #ffffff !important; 
+  color: #1f2937 !important; /* Texto gris oscuro */
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
   padding: 0;
   max-width: 500px;
   width: 90%;
   max-height: 80vh;
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   animation: slideIn 0.3s ease-out;
+  position: relative;
 }
 
 @keyframes slideIn {
@@ -43,8 +46,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 2px dashed var(--border-color);
-  background-color: var(--bg-primary);
+  
 }
 
 .generator-title {
@@ -64,6 +66,7 @@
   color: var(--highlight-color);
 }
 
+/*Boton de cerrar*/
 .close-btn {
   background: none;
   border: none;
@@ -88,7 +91,6 @@
 }
 
 .topic-info {
-  background-color: var(--bg-primary);
   border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 1rem;
@@ -135,7 +137,6 @@
   padding: 0.75rem;
   border: 2px solid var(--border-color);
   border-radius: 8px;
-  background-color: var(--bg-secondary);
   color: var(--text-color);
   font-size: 1rem;
   cursor: pointer;
@@ -154,7 +155,6 @@
 }
 
 .content-preview {
-  background-color: var(--bg-primary);
   border: 2px solid var(--accent-green);
   border-radius: 12px;
   padding: 1rem;

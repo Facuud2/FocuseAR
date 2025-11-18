@@ -1,12 +1,12 @@
 /* src/components/StudyMaterialViewer.css */
 
 .study-material-viewer-overlay {
-  position: fixed;
+  position: fixed!important;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.8);
+  bottom: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,7 +15,8 @@
 }
 
 .study-material-viewer {
-  background-color: var(--modal-bg);
+  background-color: #ffffff !important;
+  color: #1f2937 !important; /* Texto gris oscuro */
   border: 4px solid var(--border-color);
   border-radius: var(--radius-lg);
   width: 95%;
@@ -44,8 +45,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 2px dashed var(--border-color);
-  background-color: var(--bg-primary);
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #ffffff !important;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .topic-info h2 {
@@ -62,48 +65,64 @@
   opacity: 0.8;
 }
 
+/* Contenedor de los botones */
 .header-actions {
   display: flex;
-  gap: 0.75rem;
   align-items: center;
+  gap: 1rem; 
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;   
+  white-space: nowrap;            
 }
 
+/* Estilo Base compartido */
 .regenerate-btn, .complete-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border: none;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  border-radius: 50px; 
+  font-size: 0.9rem;
   font-weight: 600;
+  color: white;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  flex-shrink: 0; 
+}
+
+/* --- Botón REGENERAR  --- */
+
+/* Iconos dentro de los botones */
+.regenerate-btn svg, .complete-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .regenerate-btn {
-  background-color: var(--accent-yellow);
-  color: white;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
 .regenerate-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(245, 158, 11, 0.3); 
+  filter: brightness(1.1);
 }
 
+/* --- Botón COMPLETAR--- */
 .complete-btn {
-  background-color: var(--accent-green);
-  color: white;
+  background: linear-gradient(135deg, #34d399 0%, #059669 100%);
 }
 
 .complete-btn:hover {
-  background-color: #45a049;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(16, 185, 129, 0.3); 
+  filter: brightness(1.1);
 }
 
 .close-btn {
-  background: none;
   border: none;
   font-size: 1.5rem;
   color: var(--text-color);
@@ -114,7 +133,6 @@
 }
 
 .close-btn:hover {
-  background-color: var(--accent-red);
   color: white;
 }
 
@@ -126,7 +144,6 @@
 
 .content-navigation {
   width: 200px;
-  background-color: var(--bg-primary);
   border-right: 2px solid var(--border-color);
   padding: 1rem 0;
   display: flex;
@@ -146,10 +163,6 @@
   transition: var(--transition);
   font-size: 0.9rem;
   text-align: left;
-}
-
-.nav-item:hover {
-  background-color: var(--bg-secondary);
 }
 
 .nav-item.active {
@@ -195,7 +208,6 @@
 }
 
 .count-badge {
-  background-color: var(--highlight-color);
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -207,7 +219,6 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background-color: var(--accent-green);
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
@@ -232,7 +243,6 @@
 }
 
 .concept-card {
-  background-color: var(--bg-primary);
   border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 1rem;
@@ -278,7 +288,6 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: var(--bg-primary);
   border: 3px solid var(--border-color);
   border-radius: 16px;
   padding: 1.5rem;
@@ -345,12 +354,10 @@
 }
 
 .reveal-btn {
-  background-color: var(--highlight-color);
   color: white;
 }
 
 .hide-btn {
-  background-color: var(--accent-red);
   color: white;
 }
 
@@ -375,7 +382,6 @@
   padding: 0.5rem 1rem;
   border: 2px solid var(--border-color);
   border-radius: 20px;
-  background-color: var(--bg-primary);
   color: var(--text-color);
   font-size: 0.85rem;
   font-weight: 600;
@@ -384,20 +390,52 @@
 }
 
 .nav-btn:hover:not(:disabled) {
-  border-color: var(--highlight-color);
-  background-color: var(--highlight-color);
-  color: white;
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+}
+
+/* --- BOTÓN REINICIAR (El del medio) --- */
+.reset-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  padding: 0.8rem;
+  border-radius: 12px;
+  
+  /* Estilo gris discreto */
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  color: #6b7280 !important;
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  
+  /* No se estira como los otros */
+  flex: 0 0 auto; 
 }
 
 .reset-btn:hover {
-  border-color: var(--accent-yellow);
-  background-color: var(--accent-yellow);
-  color: white;
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+  border-color: #d1d5db !important;
+  transform: translateY(-2px);
 }
 
+/* Deshabilitado (cuando no hay más cartas) */
 .nav-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  border-color: #e5e7eb !important;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Questions Section */
@@ -411,7 +449,6 @@
 .question-card {
   width: 100%;
   max-width: 600px;
-  background-color: var(--bg-primary);
   border: 2px solid var(--border-color);
   border-radius: 16px;
   padding: 1.5rem;
@@ -447,7 +484,7 @@
 }
 
 .answer-section {
-  background-color: var(--bg-secondary);
+
   border: 2px solid var(--accent-green);
   border-radius: 8px;
   padding: 1rem;
@@ -468,7 +505,6 @@
 }
 
 .connection-card {
-  background-color: var(--bg-primary);
   border: 2px solid var(--border-color);
   border-left: 4px solid var(--accent-blue);
   border-radius: 8px;
@@ -505,7 +541,6 @@
 .tip-card {
   display: flex;
   gap: 1rem;
-  background-color: var(--bg-primary);
   border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 1rem;
@@ -520,7 +555,6 @@
 .tip-number {
   width: 32px;
   height: 32px;
-  background-color: var(--accent-yellow);
   color: white;
   border-radius: 50%;
   display: flex;
@@ -537,6 +571,43 @@
   line-height: 1.5;
   color: var(--text-color);
   flex: 1;
+}
+
+/* --- CONTENEDOR DE LOS BOTONES --- */
+.flashcard-controls, .question-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  max-width: 500px; /* Ancho igual a la tarjeta */
+  margin: 1.5rem auto 0 auto; /* Centrado horizontalmente */
+}
+
+/* --- ESTILO GENERAL DE BOTONES (Anterior / Siguiente) --- */
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  /* Tamaño y forma */
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  
+  /* Colores: Fondo azul muy clarito, texto azul */
+  background-color: #eff6ff !important; 
+  color: #2563eb !important;
+  border: 1px solid #dbeafe !important;
+  
+  /* Texto */
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  /* Ocupan espacio igual */
+  flex: 1; 
 }
 
 /* Responsive Design */
@@ -595,3 +666,5 @@
     justify-content: center;
   }
 }
+
+
