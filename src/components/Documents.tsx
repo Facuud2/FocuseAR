@@ -576,9 +576,7 @@ const Documents: React.FC = () => {
               <span
                 onClick={() => setCurrentPath('/')}
                 style={{ cursor: 'pointer' }}
-              >
-                Root
-              </span>
+              ></span>
               {currentPath
                 .split('/')
                 .filter(Boolean)

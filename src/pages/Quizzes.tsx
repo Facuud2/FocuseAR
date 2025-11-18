@@ -3,7 +3,8 @@ import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { Link } from 'react-router-dom';
 import { Timestamp } from 'firebase/firestore';
-import './QuizzesDashboard.css'; // For dashboard specific styles
+import { X, Play } from 'lucide-react'; // <--- 1. IMPORTANTE: Importar los iconos
+import './QuizzesDashboard.css';
 
 interface QuizQuestion {
   question: string;
@@ -58,20 +59,15 @@ const Quizzes: React.FC = () => {
     loadQuizzes();
   }, [user, getQuizzes, deleteQuiz]);
 
-  // Define a type for Firestore Timestamp-like objects
   interface FirestoreTimestamp {
     toDate: () => Date;
     seconds?: number;
     nanoseconds?: number;
   }
 
-  // Helper function to safely convert to Date with better error handling
   const toDate = (date: unknown): Date => {
     try {
-      // If it's already a Date, return it
       if (date instanceof Date) return date;
-
-      // If it's a Firebase Timestamp or similar object with toDate method
       if (
         date &&
         typeof date === 'object' &&
@@ -80,19 +76,13 @@ const Quizzes: React.FC = () => {
       ) {
         return (date as FirestoreTimestamp).toDate();
       }
-
-      // If it's a string, try to parse it
       if (typeof date === 'string') {
         const parsed = new Date(date);
         if (!isNaN(parsed.getTime())) return parsed;
       }
-
-      // If it's a number, assume it's a timestamp
       if (typeof date === 'number') {
         return new Date(date);
       }
-
-      // If it's an object with seconds (Firestore timestamp format)
       if (
         date &&
         typeof date === 'object' &&
@@ -101,25 +91,15 @@ const Quizzes: React.FC = () => {
       ) {
         return new Date((date as FirestoreTimestamp).seconds! * 1000);
       }
-
-      console.warn(
-        'Could not parse date, using current date as fallback:',
-        date,
-      );
-      return new Date(); // Fallback to current date
-    } catch (error) {
-      console.error(
-        'Error parsing date, using current date as fallback:',
-        error,
-      );
-      return new Date(); // Fallback to current date
+      return new Date();
+    } catch {
+      return new Date();
     }
   };
 
   const filteredQuizzes = quizzes
     .filter(() => {
       if (filter === 'all') return true;
-      // Add more filter logic here (e.g., by type, by subject)
       return true;
     })
     .sort((a, b) => {
@@ -155,7 +135,6 @@ const Quizzes: React.FC = () => {
             onChange={(e) => setFilter(e.target.value)}
           >
             <option value="all">Todos</option>
-            {/* Add more filter options dynamically based on quiz types/subjects */}
           </select>
         </div>
         <div className="sort-options">
@@ -168,7 +147,6 @@ const Quizzes: React.FC = () => {
             <option value="newest">Más Recientes</option>
             <option value="oldest">Más Antiguos</option>
             <option value="subject">Materia</option>
-            {/* Add more sort options */}
           </select>
         </div>
       </div>
@@ -188,22 +166,29 @@ const Quizzes: React.FC = () => {
         <div className="quizzes-grid">
           {filteredQuizzes.map((quizItem) => (
             <div key={quizItem.id} className="quiz-card">
-              <h3>{quizItem.subjectName}</h3>
-              <p>{quizItem.questions.length} preguntas</p>
-              <p className="quiz-type">Tipo: Quiz</p>{' '}
-              {/* Placeholder for quiz type */}
-              <p className="quiz-date">
-                Creado: {toDate(quizItem.createdAt).toLocaleDateString()}
-              </p>
-              <Link to={`/quiz/${quizItem.id}`} className="play-quiz-btn">
-                Jugar
-              </Link>
+              {/* --- AQUÍ ESTÁ EL CAMBIO --- */}
+              {/* Botón Eliminar: Ahora usa el icono X */}
               <button
                 onClick={() => quizItem.id && handleDeleteQuiz(quizItem.id)}
                 className="delete-quiz-btn"
+                title="Eliminar Quiz"
               >
-                Eliminar
+                <X size={20} />
               </button>
+              {/* --------------------------- */}
+
+              <h3>{quizItem.subjectName}</h3>
+              <div className="quiz-info">
+                <p>{quizItem.questions.length} preguntas</p>
+                <p className="quiz-date">
+                  {toDate(quizItem.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+
+              {/* Botón Jugar: Ahora usa el icono Play */}
+              <Link to={`/quiz/${quizItem.id}`} className="play-quiz-btn">
+                <Play size={20} fill="currentColor" /> Jugar
+              </Link>
             </div>
           ))}
         </div>

@@ -94,7 +94,7 @@
 
 .new-file-upload:hover {
   border-color: var(--primary-color);
-  background-color: var(--background-dark); /* Slightly darker background on hover */
+ 
 }
 
 .upload-content {

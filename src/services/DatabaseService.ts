@@ -761,19 +761,40 @@ export class DatabaseService {
       );
 
       const quizzesSnap = await getDocs(quizzesQuery);
-      const quizzes: Quiz[] = [];
 
-      quizzesSnap.forEach((doc) => {
-        quizzes.push({ id: doc.id, ...doc.data() } as Quiz);
+      // Usamos Promise.all para procesar cada quiz y buscar su materia si falta el nombre
+      const quizzesPromises = quizzesSnap.docs.map(async (doc) => {
+        const data = doc.data() as Quiz;
+
+        // TRUCO: Si no tiene subjectName, lo buscamos en el material original
+        if (!data.subjectName && data.materialId) {
+          try {
+            const material = await this.getMaterialById(data.materialId);
+            if (material) {
+              // Priorizamos el nombre de la materia, si no, el nombre del archivo
+              data.subjectName =
+                material.subjectName ||
+                material.fileName.replace(/\.[^/.]+$/, '');
+            }
+          } catch (err) {
+            console.warn(
+              'No se pudo recuperar el nombre de la materia para el quiz:',
+              doc.id,
+              err,
+            );
+          }
+        }
+
+        return { id: doc.id, ...data };
       });
 
+      const quizzes = await Promise.all(quizzesPromises);
       return quizzes;
     } catch (error) {
       console.error('❌ Error al obtener los quizzes del usuario:', error);
       throw error;
     }
   }
-
   // 16. Get a single quiz by its ID
   static async getQuiz(quizId: string): Promise<Quiz | null> {
     try {

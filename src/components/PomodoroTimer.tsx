@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import './PomodoroTimer.css';
-import { useDatabase } from '../hooks/useDatabase';
 import {
   Play,
   Pause,
@@ -56,8 +55,6 @@ const PomodoroTimer = () => {
   const [toast, setToast] = useState<{ title: string; message: string } | null>(
     null,
   );
-
-  const { saveUserStudySession } = useDatabase();
 
   // Load state from local storage on component mount
   useEffect(() => {
@@ -118,7 +115,7 @@ const PomodoroTimer = () => {
     } else {
       setConsecutiveCycles(0); // Reset consecutive cycles on break
     }
-  }, [mode, consecutiveCycles, saveUserStudySession]);
+  }, [mode, consecutiveCycles]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;

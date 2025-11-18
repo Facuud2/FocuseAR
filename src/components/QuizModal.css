@@ -53,7 +53,7 @@
 
 .option-button.correct {
   background-color: #4caf50;
-  color: white;
+  color: rgb(255, 255, 255);
 }
 
 .option-button.incorrect {
