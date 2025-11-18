@@ -199,18 +199,42 @@ const QuizPlayer: React.FC = () => {
 
   if (!currentQuestion) {
     return (
-      <div>
-        <h2>¡Quiz completado!</h2>
-        <p>
-          Tu puntuación final es: {score} de {quiz.questions.length}
-        </p>
-        <button onClick={() => navigate('/quizzes')}>Volver a Quizzes</button>
+      <div className="quiz-player-container">
+        <button
+          className="close-quiz-btn"
+          onClick={() => navigate('/quizzes')}
+          title="Cerrar Quiz"
+        >
+          ×
+        </button>
+        <div className="quiz-completed">
+          <h2>¡Quiz completado!</h2>
+          <p className="final-score">
+            Tu puntuación final es:{' '}
+            <strong>
+              {score} de {quiz.questions.length}
+            </strong>
+          </p>
+          <button
+            className="back-to-quizzes-btn"
+            onClick={() => navigate('/quizzes')}
+          >
+            Volver a Quizzes
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="quiz-player-container">
+      <button
+        className="close-quiz-btn"
+        onClick={() => navigate('/quizzes')}
+        title="Cerrar Quiz"
+      >
+        ×
+      </button>
       <h2>{quiz.subjectName}</h2>
       <div className="question-container">
         <h3>{currentQuestion.question}</h3>

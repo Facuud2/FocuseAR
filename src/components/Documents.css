@@ -534,9 +534,17 @@
 /* Hover neutral (sin cambios) */
 .documents-container .panel:hover,
 .documents-container .documents-header:hover,
-.documents-container .document-card:hover,
-.documents-container .documents-list-panel button:hover {
+.documents-container .document-card:hover {
   background-color: var(--surface-color) !important;
+  opacity: 1 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  border-color: inherit !important;
+}
+
+/* Mantener el hover correcto para botones */
+.documents-container .documents-list-panel button:hover {
+  background-color: #1a73e8 !important; /* Darker primary color */
   opacity: 1 !important;
   transform: none !important;
   box-shadow: none !important;
