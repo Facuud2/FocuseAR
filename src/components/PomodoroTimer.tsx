@@ -44,6 +44,10 @@ const PomodoroTimer = () => {
   const [isCycleComplete, setIsCycleComplete] = useState(false);
   const [focusPoints, setFocusPoints] = useState(0);
 
+  // Variable para evitar múltiples ejecuciones del guardado
+  const isProcessingCompletion = useRef(false);
+  const handleModeChangeRef = useRef<(() => void) | null>(null);
+
   void cycles; // Suprime warning de variable no usada
   const [currentStudyTopic, setCurrentStudyTopic] = useState<{
     id: string;
@@ -85,40 +89,77 @@ const PomodoroTimer = () => {
 
   // handleModeChange -> called cuando un timer llega a 0
   const handleModeChange = useCallback(async () => {
-    setIsActive(false);
-    setIsCycleComplete(true);
-    // play notification sound if available, handle promise errors
-    if (notificationSound.current) {
-      try {
-        const sp = notificationSound.current.play();
-        if (sp && typeof sp.catch === 'function') sp.catch(() => {});
-      } catch {
-        // ignore play errors
+    // Evitar múltiples ejecuciones
+    if (isProcessingCompletion.current) {
+      return;
+    }
+
+    isProcessingCompletion.current = true;
+
+    try {
+      setIsActive(false);
+      setIsCycleComplete(true);
+
+      // play notification sound if available, handle promise errors
+      if (notificationSound.current) {
+        try {
+          const sp = notificationSound.current.play();
+          if (sp && typeof sp.catch === 'function') sp.catch(() => {});
+        } catch {
+          // ignore play errors
+        }
       }
+
+      if (mode === 'pomodoro') {
+        const pointsEarned = 25 + consecutiveCycles * 10;
+        setFocusPoints((prev) => prev + pointsEarned);
+        setConsecutiveCycles((prev) => prev + 1);
+        setCycles((prev) => prev + 1);
+
+        // Guardar la sesión de estudio en Firestore
+        try {
+          const actualDurationMinutes = Math.round(POMODORO_TIME / 60);
+
+          await saveUserStudySession({
+            type: 'pomodoro',
+            duration: actualDurationMinutes,
+            meta: {
+              topic: currentStudyTopic?.name || null,
+              topicId: currentStudyTopic?.id || null,
+              pointsEarned,
+              consecutiveCycles: consecutiveCycles + 1,
+            },
+          });
+        } catch (error) {
+          console.error('Error al guardar sesión de pomodoro:', error);
+        }
+
+        // Show in-app toast notification
+        setToast({
+          title: 'Felicidades',
+          message:
+            '¡Has completado un Pomodoro! El temporizador está listo para iniciar de nuevo.',
+        });
+        setTimeout(() => setToast(null), 4000);
+
+        // Reset timer to Pomodoro time and keep it paused so user can start manually
+        setMode('pomodoro');
+        setTime(POMODORO_TIME);
+      } else {
+        setConsecutiveCycles(0);
+      }
+    } finally {
+      // Permitir nueva ejecución después de un pequeño delay
+      setTimeout(() => {
+        isProcessingCompletion.current = false;
+      }, 1000);
     }
+  }, [mode, consecutiveCycles, saveUserStudySession, currentStudyTopic]);
 
-    if (mode === 'pomodoro') {
-      const pointsEarned = 25 + consecutiveCycles * 10; // Bonus points for consecutive cycles
-      setFocusPoints((prev) => prev + pointsEarned);
-      setConsecutiveCycles((prev) => prev + 1); // Increment consecutive cycles
-      setCycles((prev) => prev + 1); // Increment total cycles
-
-      // Show in-app toast notification
-      setToast({
-        title: 'Felicidades',
-        message:
-          '¡Has completado un Pomodoro! El temporizador está listo para iniciar de nuevo.',
-      });
-      // Auto-hide toast after 4s
-      setTimeout(() => setToast(null), 4000);
-
-      // Reset timer to Pomodoro time and keep it paused so user can start manually
-      setMode('pomodoro');
-      setTime(POMODORO_TIME);
-    } else {
-      setConsecutiveCycles(0); // Reset consecutive cycles on break
-    }
-  }, [mode, consecutiveCycles, saveUserStudySession]);
+  // Actualizar el ref cada vez que cambie handleModeChange
+  useEffect(() => {
+    handleModeChangeRef.current = handleModeChange;
+  }, [handleModeChange]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -129,9 +170,8 @@ const PomodoroTimer = () => {
           if (prevTime <= 1) {
             // reached zero (or below) - clear interval and call handler
             if (interval) clearInterval(interval);
-            // call handleModeChange in next tick to avoid state update during render
             setTimeout(() => {
-              handleModeChange();
+              handleModeChangeRef.current?.();
             }, 0);
             return 0;
           }
@@ -159,7 +199,7 @@ const PomodoroTimer = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, time, handleModeChange]);
+  }, [isActive]); // Solo dependencia necesaria
 
   // startNextCycle removed: next Pomodoro is prepared automatically on cycle end
 
@@ -169,9 +209,10 @@ const PomodoroTimer = () => {
     setIsActive(false);
     setIsCycleComplete(false);
     setCycles(0);
-    setConsecutiveCycles(0); // Reset consecutive cycles on manual reset
+    setConsecutiveCycles(0);
     setMode('pomodoro');
     setTime(POMODORO_TIME);
+    isProcessingCompletion.current = false;
   };
 
   const handleManualModeChange = (
@@ -179,11 +220,12 @@ const PomodoroTimer = () => {
   ) => {
     setIsActive(false);
     setIsCycleComplete(false);
-    setConsecutiveCycles(0); // Reset consecutive cycles on manual mode change
+    setConsecutiveCycles(0);
     setMode(newMode);
     if (newMode === 'pomodoro') setTime(POMODORO_TIME);
     else if (newMode === 'short-break') setTime(SHORT_BREAK);
     else setTime(LONG_BREAK);
+    isProcessingCompletion.current = false;
   };
 
   const formatTime = (seconds: number) => {
