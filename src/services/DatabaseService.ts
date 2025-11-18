@@ -1078,10 +1078,9 @@ export class DatabaseService {
       };
       const colRef = collection(db, 'users', userId, 'stydu_session');
       const docRef = await addDoc(colRef, sessionToSave as DocumentData);
-      console.log('✅ stydu_session guardada con ID:', docRef.id);
       return docRef.id;
     } catch (error) {
-      console.error('❌ Error al guardar stydu_session:', error);
+      console.error('Error al guardar stydu_session:', error);
       throw error;
     }
   }
