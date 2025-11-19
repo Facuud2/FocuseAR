@@ -32,6 +32,7 @@ import {
   Download,
   X, // Removed Sun, Moon
   Edit,
+  ArrowLeft,
 } from 'lucide-react';
 
 import type { MaterialMetadata } from '../types/material';
@@ -532,6 +533,13 @@ const Documents: React.FC = () => {
     doc.fileName.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const getParentPath = (path: string) => {
+    if (!path || path === '/') return '/';
+    const parts = path.split('/').filter(Boolean);
+    parts.pop();
+    return parts.length ? `/${parts.join('/')}/` : '/';
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="documents-container" onClick={closeContextMenu}>
@@ -572,23 +580,34 @@ const Documents: React.FC = () => {
                 Create Folder
               </button>
             </div>
-            <div>
+            <div className="breadcrumbs">
+              <button
+                className="back-button"
+                onClick={() => setCurrentPath(getParentPath(currentPath))}
+                disabled={currentPath === '/'}
+                title="Volver a la carpeta anterior"
+              >
+                <ArrowLeft size={16} />
+                Atrás
+              </button>
               <span
+                className="breadcrumb-link"
                 onClick={() => setCurrentPath('/')}
-                style={{ cursor: 'pointer' }}
-              ></span>
+              >
+                /
+              </span>
               {currentPath
                 .split('/')
                 .filter(Boolean)
                 .map((segment, index, arr) => (
                   <span
                     key={index}
+                    className="breadcrumb-link"
                     onClick={() =>
                       setCurrentPath(
                         '/' + arr.slice(0, index + 1).join('/') + '/',
                       )
                     }
-                    style={{ cursor: 'pointer' }}
                   >
                     / {segment}
                   </span>

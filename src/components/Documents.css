@@ -142,14 +142,45 @@
 }
 
 /* Breadcrumbs*/
-.documents-list-panel > div:nth-child(2) {
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   color: var(--text-secondary);
   font-size: 0.9rem;
   margin-bottom: 1rem;
 }
 
-.documents-list-panel > div:nth-child(2) span {
-  margin-right: 0.5rem;
+.breadcrumb-link {
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.breadcrumb-link:hover {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-color);
+  color: var(--text-primary);
+}
+
+.back-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.back-button:not(:disabled):hover {
+  background: var(--surface-color);
+  border-color: var(--primary-color);
 }
 
 /* Search Bar*/
@@ -549,4 +580,17 @@
   transform: none !important;
   box-shadow: none !important;
   border-color: inherit !important;
+}
+
+/* Específico: no aplicar estilo de botón primario al botón Atrás */
+.documents-list-panel .back-button {
+  background-color: var(--surface-color) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 6px 10px !important;
+  box-shadow: none !important;
+}
+
+.documents-list-panel .back-button:hover {
+  background-color: var(--surface-color) !important;
 }
