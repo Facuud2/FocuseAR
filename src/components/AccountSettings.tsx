@@ -80,13 +80,50 @@ const AccountSettings = () => {
   const [showBenefitsModal, setShowBenefitsModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const { logout, user } = useAuth();
-  const { saveUserAvailability } = useDatabase();
+  const { saveUserAvailability, getUserAvailability } = useDatabase();
 
   const [saving, setSaving] = useState(false);
 
+  // Helpers para normalizar disponibilidad
+  const allFalseAvailability = () =>
+    diasSemana.reduce(
+      (acc, d) => {
+        acc[d] = false;
+        return acc;
+      },
+      {} as { [key: string]: boolean },
+    );
+
+  const normalizeAvailability = (input?: { [key: string]: boolean }) => {
+    const base = allFalseAvailability();
+    if (!input) return base;
+    const out = { ...base };
+    for (const key of Object.keys(input)) {
+      if (key in out) out[key] = !!input[key];
+    }
+    return out;
+  };
+
+  // Cargar disponibilidad desde Firestore al montar/cambiar usuario
   useEffect(() => {
-    // Could load initial settings here if needed
-  }, []);
+    const load = async () => {
+      if (!user) return;
+      try {
+        const data = await getUserAvailability(user.uid);
+        if (data && data.availability) {
+          setAvailability(normalizeAvailability(data.availability));
+        } else {
+          // Si no hay doc o no hay availability, usar todo en false
+          setAvailability(allFalseAvailability());
+        }
+      } catch (e) {
+        console.error('Error cargando disponibilidad del usuario', e);
+        // Fallback seguro
+        setAvailability(allFalseAvailability());
+      }
+    };
+    load();
+  }, [user, getUserAvailability]);
   const handleAvailabilityChange = (day: string) => {
     setAvailability((prev) => ({ ...prev, [day]: !prev[day] }));
   };
@@ -262,6 +299,11 @@ const AccountSettings = () => {
                     setSaving(true);
                     try {
                       await saveUserAvailability(user.uid, availability);
+                      // Releer desde Firestore para asegurar consistencia (incluye caso de "ningún día")
+                      const fresh = await getUserAvailability(user.uid);
+                      setAvailability(
+                        normalizeAvailability(fresh?.availability),
+                      );
                       alert('Disponibilidad guardada');
                     } catch (e) {
                       console.error(e);
