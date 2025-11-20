@@ -297,9 +297,9 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2px),
-    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.4) 1px, transparent 1.5px),
-    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.4) 2px, transparent 2.5px);
+    radial-gradient(circle at 20% 30%, rgba(238, 242, 130, 0.893) 1.5px, transparent 2px),
+    radial-gradient(circle at 80% 20%, rgba(243, 247, 132, 0.4) 1px, transparent 1.5px),
+    radial-gradient(circle at 40% 70%, rgb(231, 235, 30) 2px, transparent 2.5px);
   background-size: 200% 200%;
   opacity: 0.7;
   animation: sparkle 3s linear infinite;
@@ -392,7 +392,6 @@
 }
 
 .sidebar-help-content {
-  background: var(--bg-white);
   border-radius: 16px;
   padding: 22px;
   box-shadow: 0 4px 6px #f1efefed;
@@ -425,27 +424,28 @@
 .sidebar-help-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-dark);
+  color: black;
 }
 
 .sidebar-help-text {
   font-size: 12px;
-  color: var(--text-light);
+  color: black;
   margin-bottom: 20px;
   line-height: 1.5;
 }
 
 .sidebar-chat-button {
+  background-color: white;
   width: 100%;
   font-size: 14px;
   font-weight: 600;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid #ddd6fe;
+  border: 3px solid #ddd6fe;
+  border-color: #6051cf;
   color: #7c3aed;
   transition: background-color 0.2s ease, color 0.2s ease;
   cursor: pointer;
-  background: var(--bg-white);
   display: flex;
   align-items: center;
   justify-content: center;
