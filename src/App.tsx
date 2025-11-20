@@ -1,3 +1,4 @@
+/* src/App.tsx */
 import './theme.css';
 import './App.css';
 import './glass.css';
@@ -16,7 +17,6 @@ import ProtectedRoute from './ProtectedRoute';
 import PublicOnlyRoute from './PublicOnlyRoute';
 import Auth from './components/Auth';
 import Dashboard from './pages/Dashboard';
-//import PDFSummaryTest from './components/PDFSummaryTest'; ELIMINAR MÁS ADELANTE
 import Sidebar from './components/Sidebar';
 import AccountSettings from './components/AccountSettings';
 import Subjects from './components/Subjects';
@@ -24,8 +24,6 @@ import Documents from './components/Documents';
 import PomodoroTimer from './components/PomodoroTimer';
 import AIPlanner from './components/AIPlanner';
 import Profile from './components/Profile';
-//import Progress from './components/Progress';
-//import Analytics from './components/Analytics';
 import Quizzes from './pages/Quizzes';
 import QuizPlayer from './pages/QuizPlayer';
 import QuizCreator from './pages/QuizCreator';
@@ -34,10 +32,13 @@ import { AuthProvider } from './context/AuthContext';
 import { PlannerProvider } from './context/PlannerProvider';
 
 function AppRoutes() {
-  // El Sidebar ahora gestiona su propio estado de colapsado/expandido
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const currentPath = location.pathname;
+  // Detectamos si es la página de login
+  const isLoginPage = currentPath === '/';
 
   useEffect(() => {
     document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
@@ -47,17 +48,14 @@ function AppRoutes() {
     navigate(path);
   };
 
-  // El Sidebar gestiona el colapso/expansión internamente
-
   const handleToggleDarkMode = () => {
     setIsDarkMode((prevMode) => !prevMode);
   };
 
-  const currentPath = location.pathname;
-
   return (
-    <div className="app-container">
-      {currentPath !== '/' && (
+    // Si es login, usamos una clase que no aplique flex-row ni márgenes extra
+    <div className={isLoginPage ? 'app-container-login' : 'app-container'}>
+      {!isLoginPage && (
         <Sidebar
           activeSection={currentPath}
           onSectionChange={handleSectionChange}
@@ -65,14 +63,15 @@ function AppRoutes() {
           onToggleDarkMode={handleToggleDarkMode}
         />
       )}
-      <main className="content-area">
+      {/* Si es Login, usamos 'content-area-full' (sin padding).
+         Si es Dashboard, usamos 'content-area' (con padding).
+      */}
+      <main className={isLoginPage ? 'content-area-full' : 'content-area'}>
         <Toaster position="top-right" />
         <Routes>
-          {/* Rutas públicas solo para usuarios NO autenticados */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/" element={<Auth />} />
           </Route>
-          {/* Rutas protegidas solo para usuarios autenticados */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/subjects" element={<Subjects />} />
@@ -81,8 +80,6 @@ function AppRoutes() {
             <Route path="/ai-planner" element={<AIPlanner />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/settings" element={<AccountSettings />} />
-            {/* <Route path="/progress" element={<Progress />} /> */}
-            {/* <Route path="/analytics" element={<Analytics />} /> */}
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/quiz/:quizId" element={<QuizPlayer />} />
             <Route path="/create-quiz" element={<QuizCreator />} />

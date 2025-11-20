@@ -13,10 +13,9 @@
 
 .quiz-creator-container h2 {
   font-size: 2.2em;
-  color: var(--heading-color); /* Use CSS variable */
+  color: #007bff;
   text-align: center;
   margin-bottom: 30px;
-  text-shadow: 0 0 8px rgba(var(--heading-color-rgb), 0.5); /* Dynamic glow */
 }
 
 .quiz-creator-step {
@@ -46,8 +45,7 @@
 }
 
 .type-button {
-  background-color: var(--button-secondary-bg); /* Use CSS variable */
-  color: var(--text-color); /* Use CSS variable */
+  color: rgb(118, 240, 238); /* Use CSS variable */
   border: 2px solid var(--border-color); /* Use CSS variable */
   border-radius: 8px;
   padding: 15px 25px;
@@ -59,12 +57,10 @@
 }
 
 .type-button:hover {
-  background-color: var(--button-secondary-hover); /* Use CSS variable */
-  border-color: var(--button-primary-bg); /* Use CSS variable */
+  border-color: rgb(19, 176, 234); /* Use CSS variable */
 }
 
 .type-button.selected {
-  background-color: var(--button-primary-bg); /* Use CSS variable */
   border-color: var(--accent-color); /* Use CSS variable */
   color: white;
   box-shadow: 0 0 15px rgba(var(--button-primary-bg-rgb), 0.6); /* Dynamic glow */
@@ -77,7 +73,6 @@
   margin-bottom: 20px;
   border: 1px solid var(--border-color); /* Use CSS variable */
   border-radius: 5px;
-  background-color: var(--button-secondary-bg); /* Use CSS variable */
   color: var(--text-color); /* Use CSS variable */
   font-size: 1em;
   outline: none;
@@ -122,29 +117,28 @@
 }
 
 .quiz-creator-actions button:first-child {
-  background-color: var(--button-secondary-bg); /* Back button dark gray */
-  color: var(--text-color); /* Use CSS variable */
+  background-color: #007bff;
+  color:white; /* Use CSS variable */
 }
 
 .quiz-creator-actions button:first-child:hover {
-  background-color: var(--button-secondary-hover); /* Use CSS variable */
+  background-color: white;
 }
 
 .quiz-creator-actions button:last-child {
-  background-color: var(--button-primary-bg); /* Primary action blue */
+  background-color: var(--button-primary-bg); 
   color: white;
-  box-shadow: 0 4px 15px rgba(var(--button-primary-bg-rgb), 0.4); /* Dynamic shadow */
+  box-shadow: 0 4px 15px rgba(var(--button-primary-bg-rgb), 0.4); 
 }
 
-.quiz-creator-actions button:last-child:hover {
-  background-color: var(--button-primary-hover); /* Use CSS variable */
-  box-shadow: 0 6px 20px rgba(var(--button-primary-bg-rgb), 0.6); /* Dynamic shadow */
+.quiz-creator-actions button:last-child:hover { 
+  box-shadow: 0 6px 20px rgba(var(--button-primary-bg-rgb), 0.6); 
   transform: translateY(-2px);
 }
 
 .quiz-creator-actions button:disabled {
-  background-color: var(--border-color); /* Use CSS variable */
-  color: var(--text-color); /* Use CSS variable */
+  background-color: var(--border-color); 
+  color: var(--text-color); 
   opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;

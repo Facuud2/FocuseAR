@@ -737,23 +737,9 @@ const Subjects: React.FC = () => {
       {/* ===== COLUMNA DERECHA ===== */}
       <div className="subjects-right-column">
         <div className="panel subjects-list-panel">
-          <h1
-            className="subjects-title"
-            style={{
-              fontSize: '2.2rem',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              margin: 0,
-              letterSpacing: '-0.5px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-            }}
-          >
-            <i
-              className="fas fa-book-open"
-              style={{ marginRight: '0.6rem', color: '#4285F4' }}
-            ></i>
+          {/* MODIFICADO: Se eliminó el style={{...}} para que funcione el CSS */}
+          <h1 className="subjects-title">
+            <i className="fas fa-book-open"></i>
             Mis Materias
           </h1>
           {subjects.length === 0 ? (
@@ -769,7 +755,7 @@ const Subjects: React.FC = () => {
                 return (
                   <div
                     key={`subject-${subject.id || index}`}
-                    className="subject-card"
+                    className="subject-simple-item"
                   >
                     <div className="subject-header">
                       <div
@@ -824,6 +810,7 @@ const Subjects: React.FC = () => {
                           disabled={isGeneratingQuiz}
                         >
                           <i className="fas fa-question-circle"></i>
+                          {/* MODIFICADO: Texto descriptivo */}
                           {isGeneratingQuiz ? 'Generando...' : 'Generar Quiz'}
                         </button>
 
@@ -842,6 +829,7 @@ const Subjects: React.FC = () => {
                           aria-label={`Eliminar ${subject.name}`}
                         >
                           <i className="fas fa-trash"></i>
+                          {/* MODIFICADO: Se agregó el texto Eliminar */}
                           Eliminar
                         </button>
                       </div>

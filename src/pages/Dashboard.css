@@ -244,8 +244,6 @@ body {
 .panel-title {
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 1rem;
-  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -353,7 +351,6 @@ body {
     align-items: center;
     margin-bottom: 2rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--divider-color);
 }
 
 .panel-title {
@@ -490,9 +487,8 @@ header {
 .calendar-title {
     font-size: 2.5rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color:#007bff;
     text-transform: uppercase;
-    letter-spacing: 2px;
 }
 
 .calendar-nav-btn {
@@ -2202,7 +2198,8 @@ header {
 
 /* --- 5. (NUEVO) Achicar los títulos --- */
 .calendar-panel .panel-title {
-  font-size: 1.1rem; /* Achica "Calendario de Estudio" */
+  font-size: 1.5rem; /* Achica "Calendario de Estudio" */
+  color: #007bff;
 }
 
 .calendar-panel .calendar-title {

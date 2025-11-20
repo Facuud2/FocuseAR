@@ -235,7 +235,7 @@ const QuizPlayer: React.FC = () => {
       >
         ×
       </button>
-      <h2>{quiz.subjectName}</h2>
+      <h2>Comencemos...</h2>
       <div className="question-container">
         <h3>{currentQuestion.question}</h3>
         <div className="options-container">

@@ -5,8 +5,6 @@
   --primary-dark: #4338ca;
   --secondary: #71d8fb;
   --accent: #0bf5ed;
-  --text-dark: #1f2937;
-  --text-light: #6b7280;
   --bg-light: #f9fafb;
   --bg-white: #ffffff;
   --border-light: #e5e7eb;
@@ -18,7 +16,7 @@
 
 [data-theme='dark'] {
   --text-dark: #f9fafb;
-  --text-light: #9ca3af;
+  --text-light: #0b0b0b;
   --bg-light: #1f2937;
   --bg-white: #111827;
   --border-light: #4b5563;
@@ -198,7 +196,6 @@
 .sidebar-nav-item.active {
   background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
   color: white;
-  box-shadow: var(--glow-effect);
   transform: translateX(5px);
 }
 
@@ -274,14 +271,12 @@
   cursor: pointer;
   transition: all 0.3s ease;
   background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   position: relative;
   overflow: hidden;
 }
 
 .dark-mode-btn:hover {
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme='dark'] .dark-mode-btn {
@@ -296,10 +291,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.4) 1.5px, transparent 2px),
-    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.4) 1px, transparent 1.5px),
-    radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.4) 2px, transparent 2.5px);
   background-size: 200% 200%;
   opacity: 0.7;
   animation: sparkle 3s linear infinite;
@@ -392,10 +383,8 @@
 }
 
 .sidebar-help-content {
-  background: var(--bg-white);
   border-radius: 16px;
   padding: 22px;
-  box-shadow: 0 4px 6px #f1efefed;
   text-align: center;
 }
 
@@ -422,30 +411,33 @@
   color: white;
 }
 
-.sidebar-help-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-dark);
-}
 
+/* Texto: Negro/Gris en Modo Claro */
 .sidebar-help-text {
   font-size: 12px;
-  color: var(--text-light);
+  color: #000000 !important;
   margin-bottom: 20px;
   line-height: 1.5;
 }
 
+
+/*Modo Oscuro*/
+[data-theme='dark'] .sidebar-help-text { 
+  color: #ffffff !important; 
+}
+
 .sidebar-chat-button {
+  background-color: transparent;
   width: 100%;
   font-size: 14px;
   font-weight: 600;
   padding: 10px;
   border-radius: 12px;
-  border: 1px solid #ddd6fe;
+  border: 3px solid #ddd6fe;
+  border-color: #6051cf;
   color: #7c3aed;
   transition: background-color 0.2s ease, color 0.2s ease;
   cursor: pointer;
-  background: var(--bg-white);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -453,7 +445,7 @@
 }
 
 .sidebar-chat-button:hover {
-  background-color: #ede9fe;
+  background-color: transparent;
 }
 
 .sidebar-nav::-webkit-scrollbar {
@@ -464,3 +456,4 @@
   background-color: #cbd5e0;
   border-radius: 20px;
 }
+
