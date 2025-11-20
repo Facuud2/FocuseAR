@@ -35,15 +35,20 @@
 }
 
 .subjects-title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 2rem 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+  font-weight: bold;
+  color: #007bff;
+  margin: 0.5rem 0 3rem 0; 
   letter-spacing: -0.5px;
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 1rem;
 }
+
+
 /*
   ==========================================
   ESTILOS ESPECÍFICOS PARA EL COMPONENTE SUBJECTS
@@ -67,30 +72,40 @@
   gap: 1.5rem; /* Espacio entre paneles en la misma columna */
 }
 
-/* ===== PANELES (COMPACTADOS) ===== */
+/* Estilo base del panel */
 .panel {
-  background: var(--surface-color);
+  background: var(--surface-color) !important; /* Fondo sólido siempre */
   border-radius: var(--radius-md);
   padding: 1.5rem;
-  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
-  transition: var(--transition);
   margin-bottom: 0;
-  /* AÑADIDO: Convierte el panel en un contenedor flex para controlar su contenido */
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  
+  /* BLOQUEO DE EFECTOS */
+  box-shadow: var(--shadow-sm) !important; /* Mantiene sombra suave fija */
+  transform: none !important;              /* Evita movimiento */
+  opacity: 1 !important;                   /* Evita que desaparezca */
+  visibility: visible !important;
+  transition: none !important;             /* Quita animaciones de transición */
 }
 
 .panel:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  background: var(--surface-color) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: none !important;
+  opacity: 1 !important;
 }
 
 .panel h2 {
   margin: 0 0 1rem 0;
   font-size: 1.2rem;
   padding-bottom: 0.6rem;
-  flex-shrink: 0; /* Evita que el título se encoja si el contenido crece */
+  flex-shrink: 0;
+  text-shadow: none !important;
 }
 
 .panel h2 i {
@@ -99,7 +114,7 @@
 
 /* CLASE CLAVE: HACE QUE EL PANEL DE "MIS MATERIAS" CREZCA */
 .subjects-list-panel {
-  flex-grow: 1; /* Esta es la regla principal que hace que el panel se estire */
+  flex-grow: 1; 
 }
 
 /* ===== FORMULARIOS (COMPACTADOS) ===== */
@@ -110,14 +125,35 @@
 .form-group label {
   margin-bottom: 0.4rem;
   font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 
+/*Inputs sin seleccionar*/
+.form-group input[type="text"],
+.date-picker-input, 
+.form-group select {
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-alt-color) !important; 
+  color: var(--text-primary) !important;
+  border: 1px solid #9ca3af !important; 
+}
+/*Placeholder oscuro para inputs blancos*/
+.form-group input::placeholder,
+.date-picker-input::placeholder {
+  color: #6b7280 !important;
+}
+
+/*Inputs Seleccionados*/
 .form-group input,
 .date-picker-input,
 select {
   padding: 0.7rem 1rem;
   font-size: 0.9rem;
-  border-radius: var(--radius-sm);
+  background-color: #ffffff !important;
+  color: #333333 !important;
+  border: 2px solid #5e97f4;
 }
 
 /* SELECTOR DE COLOR (COMPACTADO) */
@@ -209,19 +245,14 @@ select {
 
 /* =========================
    Ajustes responsive para móviles muy pequeños (<= 360px)
-   - Fuerza una sola columna en el grid de materias
-   - Reduce gaps/padding para evitar desbordes horizontales
-   - Ajusta padding lateral del contenedor para dejar espacio seguro
    ========================= */
 @media (max-width: 360px) {
-  /* Apila las tarjetas en una sola columna y reduce separación */
   .subjects-grid {
     grid-template-columns: 1fr;
     gap: 0.75rem; /* espacio más compacto entre tarjetas */
     width: 100%;
   }
 
-  /* Reduce padding interno de cada tarjeta para aprovechar el ancho */
   .subject-card {
     padding: 0.8rem;
     max-width: 100%;
@@ -230,7 +261,6 @@ select {
     margin-right: 0;
   }
 
-  /* Ajusta el layout padre (convertir dos columnas en una sola) */
   .subjects-container {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -238,15 +268,14 @@ select {
     padding-right: 0.5rem;
   }
 
-  /* Reduce padding de paneles en móviles para evitar desbordes */
   .panel {
     padding: 1rem;
   }
 
-  /* Ajustes visuales menores para mantener legibilidad */
   .panel h2 { font-size: 1.05rem; }
   .subject-icon { width: 40px; height: 40px; font-size: 1rem; }
 }
+
 /* ...existing code... */
 .subject-card {
   background: var(--surface-color);
@@ -349,9 +378,7 @@ select {
 }
 
 
-/* Botones de acción en tarjeta (generar quiz / eliminar)
-   - Compacta tamaño, gap consistente y evita amontonamiento
-   - Usa flex-wrap para que no se desborden en pantallas pequeñas*/
+/* Botones de acción en tarjeta (generar quiz / eliminar) */
 
 .subject-footer .subject-actions {
   display: flex;
@@ -510,3 +537,72 @@ select {
   font-weight: 600;
 }
 
+/* ======================================================= */
+/* CORRECCIÓN FINAL: Eliminar animaciones y blur/glow      */
+/* ======================================================= */
+
+/* 1. Eliminamos el pseudo-elemento que causa el resplandor/blur de fondo */
+.subjects-left-column .panel::before {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+
+/* 2. Quitamos cualquier animación, sombra o filtro del texto del título */
+.subjects-left-column .panel h2 {
+  animation: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+/* 3. Limpiamos el contenedor del panel de efectos heredados */
+.subjects-left-column .panel {
+  backdrop-filter: none !important;
+  box-shadow: var(--shadow-sm) !important;
+  transform: none !important;
+  background: var(--surface-color) !important; /* Asegura color plano */
+  border: 1px solid var(--border-color) !important;
+}
+
+/* 4. Desactivamos efectos al pasar el mouse sobre el panel de carga */
+.subjects-left-column .panel:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+/* ======================================================= */
+/* PERSONALIZACIÓN DEL DATEPICKER (CALENDARIO)             */
+/* ======================================================= */
+
+/* Ajustar el título del mes (Nombre del mes y año) */
+.react-datepicker__current-month {
+  font-size: 1.2rem !important;      /* Achicar tamaño (ajusta a tu gusto, ej: 0.9rem) */
+  text-align: center !important;   /* Centrar el texto */
+  text-transform: capitalize;      /* Primera letra mayúscula */
+  margin-bottom: 0.1rem !important; 
+  color: #007bff !important;          /* Color oscuro para que contraste con el fondo blanco */
+  font-weight: 700 !important;
+  padding-left: 45px !important; 
+  padding-right: 30px !important;
+}
+
+/* CAMBIAR COLOR DE LAS FLECHAS (Navegación) */
+.react-datepicker__navigation-icon::before {
+  border-color: #555 !important; /* Gris oscuro para que se vean */
+  border-width: 2px 2px 0 0 !important;
+}
+
+/* Ajustar los nombres de los días (Lun, Mar, etc.) */
+.react-datepicker__day-name {
+  color: #0827d7 !important;
+  font-size: 0.8rem !important;
+  width: 1.7rem !important;
+}
+
+/*Ajustar los números de los días */
+.react-datepicker__day {
+  width: 1.7rem !important;
+  line-height: 1.7rem !important;
+  font-size: 0.9rem !important;
+}

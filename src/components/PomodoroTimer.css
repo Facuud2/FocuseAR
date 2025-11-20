@@ -48,8 +48,8 @@ body {
 .cottagecore-title {
   font-size: 1.8rem;
   font-weight: bold;
-  color: var(--highlight-color);
-  text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+  color: #007bff;
+  
 }
 
 .user-info {

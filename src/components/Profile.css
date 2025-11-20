@@ -58,27 +58,15 @@ body {
   font-weight: 900; /* Más audaz */
   margin-bottom: 0.8rem;
   display: block;
+  color: #007bff;
 }
 
-/* CORRECCIÓN! Agregado 'background-clip: text' estándar */
-.profile-title .gradient-text {
-  background: -webkit-linear-gradient(45deg, var(--primary-color), var(--accent-cyan));
-  -webkit-background-clip: text;
-  background-clip: text; /* Agregado */
-  -webkit-text-fill-color: transparent;
-}
-.profile-title .gradient-text-alt {
-  background: -webkit-linear-gradient(45deg, var(--accent-magenta), var(--primary-color));
-  -webkit-background-clip: text;
-  background-clip: text; /* Agregado */
-  -webkit-text-fill-color: transparent;
-}
 
 .profile-subtitle {
-  font-size: 1.3rem; /* Más grande */
-  color: var(--text-secondary);
+  font-size: 1rem; /* Más grande */
   max-width: 800px;
-  margin: 0 auto;
+  margin: 10 auto 0;
+  color: #202122;
 }
 
 .profile-main-content {
@@ -328,10 +316,6 @@ body {
   flex-direction: column;
 }
 
-.stats-panel:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-}
 
 .panel-title {
   font-size: 1.8rem; /* Más grande */
@@ -342,8 +326,8 @@ body {
   align-items: center;
   gap: 0.8rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid var(--primary-color);
-  text-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+  animation: none;
+  text-shadow: none!important;
 }
 
 .panel-icon {
@@ -359,17 +343,11 @@ body {
 
 /* MÁS SPICY! Stat Card con diseño neumórfico y hover */
 .stat-card-neumorphic {
-  background: var(--surface-color);
+  background: #007bff30;
   border-radius: var(--radius-md);
+  border-bottom: #0d1117;
   padding: 1.8rem; /* Más padding */
-  box-shadow:
-    8px 8px 15px rgba(0, 0, 0, 0.3), /* Sombra exterior */
-    -8px -8px 15px rgba(60, 60, 60, 0.1), /* Luz exterior */
-    inset 2px 2px 5px rgba(0, 0, 0, 0.1), /* Sombra interior */
-    inset -2px -2px 5px rgba(60, 60, 60, 0.05); /* Luz interior */
-  transition: var(--transition);
   display: flex;
-  flex-direction: column;
   gap: 0.8rem;
 }
 
