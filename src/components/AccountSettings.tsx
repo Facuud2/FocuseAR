@@ -1,6 +1,6 @@
 // src/components/AccountSettings.tsx
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useDatabase } from '../hooks/useDatabase';
 import './AccountSettings.css';
@@ -84,25 +84,31 @@ const AccountSettings = () => {
 
   const [saving, setSaving] = useState(false);
 
-  // Helpers para normalizar disponibilidad
-  const allFalseAvailability = () =>
-    diasSemana.reduce(
-      (acc, d) => {
-        acc[d] = false;
-        return acc;
-      },
-      {} as { [key: string]: boolean },
-    );
+  // Helpers para normalizar disponibilidad (memoizados para evitar recreación por render)
+  const allFalseAvailability = useCallback(
+    () =>
+      diasSemana.reduce(
+        (acc, d) => {
+          acc[d] = false;
+          return acc;
+        },
+        {} as { [key: string]: boolean },
+      ),
+    [],
+  );
 
-  const normalizeAvailability = (input?: { [key: string]: boolean }) => {
-    const base = allFalseAvailability();
-    if (!input) return base;
-    const out = { ...base };
-    for (const key of Object.keys(input)) {
-      if (key in out) out[key] = !!input[key];
-    }
-    return out;
-  };
+  const normalizeAvailability = useCallback(
+    (input?: { [key: string]: boolean }) => {
+      const base = allFalseAvailability();
+      if (!input) return base;
+      const out = { ...base };
+      for (const key of Object.keys(input)) {
+        if (key in out) out[key] = !!input[key];
+      }
+      return out;
+    },
+    [allFalseAvailability],
+  );
 
   // Cargar disponibilidad desde Firestore al montar/cambiar usuario
   useEffect(() => {
@@ -123,7 +129,7 @@ const AccountSettings = () => {
       }
     };
     load();
-  }, [user, getUserAvailability]);
+  }, [user, getUserAvailability, normalizeAvailability, allFalseAvailability]);
   const handleAvailabilityChange = (day: string) => {
     setAvailability((prev) => ({ ...prev, [day]: !prev[day] }));
   };

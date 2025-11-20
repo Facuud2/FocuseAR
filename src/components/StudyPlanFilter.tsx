@@ -80,12 +80,28 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
     const upcomingPlans = studyPlans
       .filter((plan) => {
         if (!plan.examDate) return false;
-        const examDate = new Date(plan.examDate);
+        // Interpretar fecha como local para evitar desfases
+        const parts = plan.examDate.split('-');
+        let examDate: Date;
+        if (parts.length === 3) {
+          const [y, m, d] = parts.map(Number);
+          examDate = new Date(y, (m || 1) - 1, d || 1);
+        } else {
+          examDate = new Date(plan.examDate);
+        }
         return examDate >= today;
       })
       .sort((a, b) => {
-        const dateA = new Date(a.examDate);
-        const dateB = new Date(b.examDate);
+        const parse = (str: string) => {
+          const p = str.split('-');
+          if (p.length === 3) {
+            const [y, m, d] = p.map(Number);
+            return new Date(y, (m || 1) - 1, d || 1);
+          }
+          return new Date(str);
+        };
+        const dateA = parse(a.examDate);
+        const dateB = parse(b.examDate);
         return dateA.getTime() - dateB.getTime();
       });
 
@@ -112,7 +128,7 @@ const StudyPlanFilter: React.FC<StudyPlanFilterProps> = ({
 
       return {
         name,
-        color: subject?.color || '#4A90E2', // Fallback color for dark theme
+        color: subject?.color || '#4A90E2', // Fallback color
         planCount: plansForSubject.length,
         avgProgress: Math.round(avgProgress),
       };

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import './AIPlanner.css';
 import { AuthContext } from '../hooks/authContext';
+import { formatLocalDate } from '../utils/dateUtils';
 import { useDatabase } from '../hooks/useDatabase';
 import { type StudyPlanDay } from '../pages/Dashboard';
 import { usePlanner } from '../context/PlannerContext';
@@ -571,14 +572,22 @@ const AIPlanner = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      timeZone: 'UTC',
-    });
+    // Usa formato local base sin desfase y luego agrega opciones extendidas
+    // Interpretamos dateString como 'YYYY-MM-DD' local
+    if (!dateString) return '';
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      const [y, m, d] = parts.map(Number);
+      const localDate = new Date(y, (m || 1) - 1, d || 1);
+      return localDate.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    // Fallback si viene con hora ISO
+    return formatLocalDate(dateString, 'es-ES');
   };
 
   const formatWeekDays = (weekDays: number[] | undefined | null) => {
