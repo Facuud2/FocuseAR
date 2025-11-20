@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
-import { Clock, Target, Brain, Play, Pause } from 'lucide-react';
+import { Clock, Target, Brain, Play } from 'lucide-react';
+import { formatLocalDate } from '../utils/dateUtils';
 import StudyContentGenerator from './StudyContentGenerator';
 import StudyMaterialViewer from './StudyMaterialViewer';
 import './StudyArea.css';
@@ -170,6 +171,8 @@ const StudyArea: React.FC<StudyAreaProps> = ({
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleTopicSelect = (topic: StudyTopic) => {
+    // Evitar seleccionar un nuevo tema si ya hay un modal abierto
+    if (showContentGenerator || showMaterialViewer) return;
     setSelectedTopic(topic);
     setTopicForGeneration(topic);
 
@@ -181,8 +184,8 @@ const StudyArea: React.FC<StudyAreaProps> = ({
     setGeneratedContent(content);
     setShowContentGenerator(false);
     setShowMaterialViewer(true);
-    // Iniciar el timer cuando se genere contenido desde el modal manual
-    if (topicForGeneration) {
+    // Iniciar el timer SOLO si aún no está activo (para permitir múltiples temas en un mismo pomodoro)
+    if (topicForGeneration && !isTimerActive) {
       onStartStudySession(topicForGeneration);
     }
   };
@@ -388,8 +391,7 @@ const StudyArea: React.FC<StudyAreaProps> = ({
                   {selectedPlan.examDate && (
                     <p className="exam-date">
                       <Clock size={16} />
-                      Examen:{' '}
-                      {new Date(selectedPlan.examDate).toLocaleDateString()}
+                      Examen: {formatLocalDate(selectedPlan.examDate)}
                     </p>
                   )}
                 </div>
@@ -412,10 +414,10 @@ const StudyArea: React.FC<StudyAreaProps> = ({
                       onClick={() =>
                         getNextTopic() && handleTopicSelect(getNextTopic()!)
                       }
-                      disabled={isTimerActive}
+                      disabled={showContentGenerator || showMaterialViewer}
                     >
-                      {isTimerActive ? <Pause size={16} /> : <Play size={16} />}
-                      {isTimerActive ? 'En progreso' : 'Empezar'}
+                      <Play size={16} />
+                      Empezar
                     </button>
                   </div>
                 </div>
@@ -440,22 +442,13 @@ const StudyArea: React.FC<StudyAreaProps> = ({
                       <div className="topic-actions">
                         <button
                           className="start-topic-btn"
-                          onClick={() =>
-                            !isTimerActive && handleTopicSelect(topic)
-                          }
-                          disabled={isTimerActive}
+                          onClick={() => handleTopicSelect(topic)}
+                          disabled={showContentGenerator || showMaterialViewer}
                         >
-                          {isTimerActive && selectedTopic?.id === topic.id ? (
-                            <>
-                              <Pause size={14} />
-                              En progreso
-                            </>
-                          ) : (
-                            <>
-                              <Play size={14} />
-                              Empezar
-                            </>
-                          )}
+                          <Play size={14} />
+                          {selectedTopic?.id === topic.id
+                            ? 'Seleccionado'
+                            : 'Empezar'}
                         </button>
                       </div>
                       {topic.completed && (

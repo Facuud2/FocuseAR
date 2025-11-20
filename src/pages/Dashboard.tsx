@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { formatLocalDate } from '../utils/dateUtils';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { useNavigate } from 'react-router-dom';
@@ -210,14 +211,19 @@ const Dashboard: React.FC = () => {
   }, [user, getUserStudyPlans, getUserEvents]);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      timeZone: 'UTC',
-    });
+    if (!dateString) return '';
+    const parts = dateString.split('-');
+    if (parts.length === 3) {
+      const [y, m, d] = parts.map(Number);
+      const localDate = new Date(y, (m || 1) - 1, d || 1);
+      return localDate.toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    }
+    return formatLocalDate(dateString, 'es-ES');
   };
 
   const monthNames = [

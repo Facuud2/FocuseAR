@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { formatLocalDate } from '../utils/dateUtils';
 import { useDatabase } from '../hooks/useDatabase';
 import { AuthContext } from '../hooks/authContext';
 import { PDFProcessor } from '../services/PDFProcessor';
@@ -783,9 +784,7 @@ const Subjects: React.FC = () => {
                           <p className="subject-date">
                             <i className="fas fa-calendar-alt"></i>
                             {subject.examDate && subject.examDate !== ''
-                              ? new Date(subject.examDate).toLocaleDateString(
-                                  'es-ES',
-                                )
+                              ? formatLocalDate(subject.examDate, 'es-ES')
                               : 'Fecha no definida'}
                           </p>
 
