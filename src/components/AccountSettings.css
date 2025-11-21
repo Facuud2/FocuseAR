@@ -248,7 +248,7 @@
 }
 
 .day-button {
-  background: var(--bg-secondary);
+ background-color: #00f1fe45 ;
   border: 2px;
   color: var(--text-secondary);
   font-weight: 600;
