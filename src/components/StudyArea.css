@@ -389,11 +389,6 @@
   transition: width 0.3s ease;
 }
 
-.progress-text {
-  font-size: 0.9rem;
-  color: var(--text-color);
-  opacity: 0.8;
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {
