@@ -27,6 +27,7 @@ import Profile from './components/Profile';
 import Quizzes from './pages/Quizzes';
 import QuizPlayer from './pages/QuizPlayer';
 import QuizCreator from './pages/QuizCreator';
+import ErrorTest from './components/ErrorTest';
 
 import { AuthProvider } from './context/AuthContext';
 import { PlannerProvider } from './context/PlannerProvider';
@@ -83,6 +84,7 @@ function AppRoutes() {
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/quiz/:quizId" element={<QuizPlayer />} />
             <Route path="/create-quiz" element={<QuizCreator />} />
+            <Route path="/error-test" element={<ErrorTest />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Routes>
