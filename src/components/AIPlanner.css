@@ -170,7 +170,6 @@ select:focus {
 }
 
 .button-secondary {
-  background: var(--glass-bg);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   color: var(--text-color);
@@ -214,7 +213,6 @@ select:focus {
 }
 
 .topic-item {
-  background: var(--glass-bg);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
   border: var(--glass-border);
@@ -237,10 +235,9 @@ select:focus {
 }
 
 .topic-tag {
-  background: var(--glass-bg);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
-  border: var(--glass-border);
+  border: 1px solid #9ca3af !important; 
   border-radius: var(--radius-md);
   padding: 0.4rem 0.6rem;
   margin: 0.2rem;
@@ -305,7 +302,6 @@ select:focus {
 }
 
 .info-box {
-  background: var(--glass-bg);
   border: var(--glass-border);
   color: var(--text-color);
   text-align: center;
@@ -378,22 +374,21 @@ select:focus {
   box-shadow: 0 5px 15px rgba(129, 199, 132, 0.4);
 }
 
-.study-day-card {
-  backdrop-filter: var(--blur);
-  -webkit-backdrop-filter: var(--blur);
-  border: var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: 0.8rem;
-  transition: var(--transition);
-  color: var(--text-color);
-  box-shadow: var(--glass-shadow);
-  margin-bottom: 0.6rem;
-}
+  .study-day-card {
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 2px solid rgb(95, 152, 238);
+    padding: 0.8rem;
+    transition: var(--transition);
+    color: var(--text-color);
+    
+    margin-bottom: 0.6rem;
+  }
 
-.study-day-card:hover {
-  transform: translateY(-2px);
-  background: var(--glass-bg-hover);
-}
+  .study-day-card:hover {
+    transform: translateY(-2px);
+    background: var(--glass-bg-hover);
+  }
 
 .study-day-card.completed {
   background: rgba(129, 199, 132, 0.2);
@@ -718,7 +713,6 @@ select:focus {
 /* ===== Overrides solo para AI Planner ===== */
 .ai-planner-container .panel,
 .ai-planner-container .topic-item,
-.ai-planner-container .study-day-card,
 .ai-planner-container .summary-box,
 .ai-planner-container .info-box,
 .ai-planner-container .warning-box,
