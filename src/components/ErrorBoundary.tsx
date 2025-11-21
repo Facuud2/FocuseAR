@@ -1,6 +1,9 @@
 import React from 'react';
 import { logErrorToFirestore } from '../utils/errorHandler';
-import { ErrorBoundaryProps, ErrorBoundaryState } from './ErrorBoundary.types';
+import type {
+  ErrorBoundaryProps,
+  ErrorBoundaryState,
+} from './ErrorBoundary.types';
 
 class ErrorBoundary extends React.Component<
   ErrorBoundaryProps,
