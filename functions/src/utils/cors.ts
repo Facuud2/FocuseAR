@@ -1,12 +1,16 @@
 import cors from 'cors';
 
-// Dominios permitidos para CORS
-const allowedOrigins = [
+// Dominios permitidos para CORS (pueden especificarse mediante la variable de entorno ALLOWED_ORIGINS)
+const defaultAllowedOrigins = [
   'http://localhost:5173', // Desarrollo local Vite (principal)
   'http://localhost:3000', // Desarrollo local React
   'http://localhost:4173', // Preview Vite
   'https://focuse-ar.vercel.app', // Producción Vercel
 ];
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim())
+  : defaultAllowedOrigins;
 
 // Configuración segura de CORS
 export const corsHandler = cors({
@@ -31,20 +35,29 @@ export function addCorsHeaders(
   },
   origin?: string,
 ) {
-  // Si el origin está en la lista permitida, usarlo. Si no, usar el de desarrollo principal
-  const allowedOrigin =
-    origin && allowedOrigins.includes(origin)
-      ? origin
-      : 'http://localhost:5173'; // Default a Vite para desarrollo
+  // Sólo establecer Access-Control-Allow-Origin si el origin está permitido
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
 
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
     'Content-Type, Authorization, X-Requested-With',
   );
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Max-Age', '86400'); // Cache preflight por 24 horas
+
+  if (process.env.CORS_DEBUG === 'true') {
+    // Logueo opcional para depuración de orígenes
+     
+    console.log(
+      '[CORS] addCorsHeaders origin=',
+      origin,
+      'allowed=',
+      Boolean(origin && allowedOrigins.includes(origin)),
+    );
+  }
 }
 
 // Helper para manejar preflight OPTIONS
@@ -55,6 +68,14 @@ export function handleOptionsRequest(
   },
   origin?: string,
 ) {
+  // Validar origin explícitamente en preflight
+  if (origin && !allowedOrigins.includes(origin)) {
+     
+    console.warn('[CORS] Forbidden preflight origin=', origin);
+    res.status(403).send('Forbidden');
+    return;
+  }
+
   addCorsHeaders(res, origin);
   res.status(204).send('');
 }

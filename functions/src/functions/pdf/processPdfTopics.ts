@@ -11,12 +11,14 @@ export const processPdfTopics = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 120 },
   async (req, res) => {
     if (req.method === 'OPTIONS') {
-      handleOptionsRequest(res);
+      // Manejo de preflight, incluir origin dinámico
+      handleOptionsRequest(res, req.headers.origin as string | undefined);
       return;
     }
 
     corsHandler(req, res, async () => {
-      addCorsHeaders(res);
+      // Añadir cabeceras CORS correctas según el origin real
+      addCorsHeaders(res, req.headers.origin as string | undefined);
       if (req.method !== 'POST') {
         res.status(405).json({ error: 'Método no permitido. Usa POST.' });
         return;

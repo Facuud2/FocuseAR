@@ -15,12 +15,12 @@ export const generateQuizFromMaterial = onRequest(
   { secrets: [GEMINI_API_KEY], region: 'us-central1', timeoutSeconds: 180 },
   async (req, res) => {
     if (req.method === 'OPTIONS') {
-      handleOptionsRequest(res);
+      handleOptionsRequest(res, req.headers.origin as string | undefined);
       return;
     }
 
     corsHandler(req, res, async () => {
-      addCorsHeaders(res);
+      addCorsHeaders(res, req.headers.origin as string | undefined);
 
       if (req.method !== 'POST') {
         res.status(405).json({ error: 'Método no permitido. Usa POST.' });
